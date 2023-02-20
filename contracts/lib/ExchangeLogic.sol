@@ -67,17 +67,41 @@ library ExchangeLogic {
         // must settle funding first
         (, int256 fundingPayment) = GenericLogic.settleFunding(chAddress, params.trader, params.baseToken);
 
-        IExchange.SwapResponse memory response = IExchange(IClearingHouse(chAddress).getExchange()).swap(
-            IExchange.SwapParams({
-                trader: params.trader,
-                baseToken: params.baseToken,
-                isBaseToQuote: params.isBaseToQuote,
-                isExactInput: params.isExactInput,
-                isClose: params.isClose,
-                amount: params.amount,
-                sqrtPriceLimitX96: params.sqrtPriceLimitX96
-            })
-        );
+        IExchange.SwapResponse memory response;
+        // IExchange(IClearingHouse(chAddress).getExchange()).swap(
+        //     IExchange.SwapParams({
+        //         trader: params.trader,
+        //         baseToken: params.baseToken,
+        //         isBaseToQuote: params.isBaseToQuote,
+        //         isExactInput: params.isExactInput,
+        //         isClose: params.isClose,
+        //         amount: params.amount,
+        //         sqrtPriceLimitX96: params.sqrtPriceLimitX96
+        //     })
+        // );
+
+        try
+            IExchange(IClearingHouse(chAddress).getExchange()).swap(
+                IExchange.SwapParams({
+                    trader: params.trader,
+                    baseToken: params.baseToken,
+                    isBaseToQuote: params.isBaseToQuote,
+                    isExactInput: params.isExactInput,
+                    isClose: params.isClose,
+                    amount: params.amount,
+                    sqrtPriceLimitX96: params.sqrtPriceLimitX96
+                })
+            )
+        returns (IExchange.SwapResponse memory tmp) {
+            // you can use variable foo here
+            response = tmp;
+        } catch Error(string memory reason) {
+            // catch failing revert() and require()
+            revert(reason);
+        } catch (bytes memory reason) {
+            // catch failing assert()
+            revert(string(abi.encodePacked(reason)));
+        }
 
         // EL_DA: DUST Amount
         require(
