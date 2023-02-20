@@ -30,7 +30,7 @@ import migrateClearingHouse from "./15_migrate_ClearingHouse";
 import migratePNFTToken from "./20_migrate_PNFTToken";
 import migrateRewardMiner from "./21_migrate_RewardMiner";
 import { } from "../../test/helper/clearingHouseHelper";
-import { providers } from "ethers";
+import { BigNumber, providers } from "ethers";
 
 
 async function main() {
@@ -38,6 +38,10 @@ async function main() {
 }
 
 export default deploy;
+
+function delay(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
 async function deploy() {
 
@@ -196,6 +200,34 @@ async function deploy() {
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
 
+    // console.log(formatSqrtPriceX96ToPrice(BigNumber.from((new bn('8dd3e0fd20a8974258e3cae12', 16)).toString()), 18))
+
+    // {
+    //     await waitForTx(
+    //         await clearingHouse.connect(hieuq).openPosition({
+    //             baseToken: deployData.vBAYC.address,
+    //             isBaseToQuote: false,
+    //             isExactInput: true,
+    //             oppositeAmountBound: 0,
+    //             amount: parseEther('0.0001620424805'),
+    //             sqrtPriceLimitX96: encodePriceSqrt('85', '1'),
+    //             deadline: ethers.constants.MaxUint256,
+    //             referralCode: ethers.constants.HashZero,
+    //         }),
+    //         'clearingHouse.connect(trader).openPosition'
+    //     )
+    // }
+
+    // clearingHouse.on("PositionChanged", (trader, baseToken, exchangedPositionSize, exchangedPositionNotional, fee, openNotional, realizedPnl, sqrtPriceAfterX96, event) => {
+    //     console.log(JSON.stringify(event, null, 4))
+    //     console.log(
+    //         'detail',
+    //         trader, baseToken, exchangedPositionSize, exchangedPositionNotional, fee, openNotional, realizedPnl, sqrtPriceAfterX96
+    //     )
+    // })
+
+    // await delay(600000);
+
     // {
     //     const eventTopic = clearingHouse.interface.getEventTopic(clearingHouse.interface.events["Repeg(uint256,uint256)"])
     //     console.log(eventTopic)
@@ -219,15 +251,15 @@ async function deploy() {
     //     (await rewardMiner.getStartPnlNumber()).toString()
     // )
 
-    let minerData = await rewardMiner.getCurrentPeriodInfoTrader('0x80d03173a5371523f94fbba9d1fcbb0777e8dfc9')
-    console.log(
-        'getCurrentPeriodInfoTrader',
-        formatEther(minerData.total),
-        formatEther(minerData.amount),
-        formatEther(minerData.pnlAmount),
-        formatEther(minerData.traderAmount),
-        formatEther(minerData.traderPnl),
-    )
+    // let minerData = await rewardMiner.getCurrentPeriodInfoTrader('0x80d03173a5371523f94fbba9d1fcbb0777e8dfc9')
+    // console.log(
+    //     'getCurrentPeriodInfoTrader',
+    //     formatEther(minerData.total),
+    //     formatEther(minerData.amount),
+    //     formatEther(minerData.pnlAmount),
+    //     formatEther(minerData.traderAmount),
+    //     formatEther(minerData.traderPnl),
+    // )
 
 
     // await clearingHouse.setRewardMiner(deployData.rewardMiner.address)

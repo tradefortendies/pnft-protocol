@@ -1,7 +1,7 @@
 import { MockContract, smockit } from "@eth-optimism/smock"
 import { ethers } from "hardhat"
 import { BaseToken, QuoteToken, UniswapV3Factory, UniswapV3Pool, VirtualToken } from "../../typechain"
-import { ChainlinkPriceFeedV2, EmergencyPriceFeed } from "../../typechain"
+import { ChainlinkPriceFeedV2 } from "../../typechain"
 import { NftPriceFeed } from "../../typechain"
 import { isAscendingTokenOrder } from "./utilities"
 
@@ -137,11 +137,4 @@ export async function base0Quote1PoolFixture(): Promise<PoolFixture> {
     const pool = poolFactory.attach(poolAddress) as UniswapV3Pool
 
     return { factory, pool, baseToken: token0, quoteToken: token1 }
-}
-
-export async function emergencyPriceFeedFixture(poolAddr: string, baseToken: BaseToken): Promise<EmergencyPriceFeed> {
-    const emergencyPriceFeedFactory = await ethers.getContractFactory("EmergencyPriceFeed")
-    const emergencyPriceFeed = (await emergencyPriceFeedFactory.deploy(poolAddr)) as EmergencyPriceFeed
-    await baseToken.setPriceFeed(emergencyPriceFeed.address)
-    return emergencyPriceFeed
 }
