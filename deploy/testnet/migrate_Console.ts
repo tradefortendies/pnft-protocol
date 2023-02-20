@@ -80,12 +80,12 @@ async function deploy() {
     //     console.log('migrateBaseTokenAll -- END --')
     // }
 
-    // import migrateLibrary from "./6_migrate_Library";
-    {
-        console.log('migrateLibrary -- START --')
-        await migrateLibrary();
-        console.log('migrateLibrary -- END --')
-    }
+    // // import migrateLibrary from "./6_migrate_Library";
+    // {
+    //     console.log('migrateLibrary -- START --')
+    //     await migrateLibrary();
+    //     console.log('migrateLibrary -- END --')
+    // }
 
     // // import migrateUniswapV3 from "./6_migrate_UniswapV3";
     // {
@@ -122,12 +122,12 @@ async function deploy() {
     //     console.log('migrateAccountBalance -- END --')
     // }
 
-    // import migrateExchange from "./11_migrate_Exchange";
-    {
-        console.log('migrateExchange -- START --')
-        await migrateExchange();
-        console.log('migrateExchange -- END --')
-    }
+    // // import migrateExchange from "./11_migrate_Exchange";
+    // {
+    //     console.log('migrateExchange -- START --')
+    //     await migrateExchange();
+    //     console.log('migrateExchange -- END --')
+    // }
 
     // // import migrateInsuranceFund from "./12_migrate_InsuranceFund";
     // {
@@ -150,12 +150,12 @@ async function deploy() {
     //     console.log('migrateCollateralManager -- END --')
     // }
 
-    // import migrateClearingHouse from "./15_migrate_ClearingHouse";
-    {
-        console.log('migrateClearingHouse -- START --')
-        await migrateClearingHouse();
-        console.log('migrateClearingHouse -- END --')
-    }
+    // // import migrateClearingHouse from "./15_migrate_ClearingHouse";
+    // {
+    //     console.log('migrateClearingHouse -- START --')
+    //     await migrateClearingHouse();
+    //     console.log('migrateClearingHouse -- END --')
+    // }
 
     // // import migratePNFTToken from "./20_migrate_PNFTToken";
     // {
@@ -171,7 +171,7 @@ async function deploy() {
     //     console.log('migrateRewardMiner -- END --')
     // }
 
-    return
+    // return
 
 
     const network = hre.network.name;
@@ -251,7 +251,7 @@ async function deploy() {
     //     (await rewardMiner.getStartPnlNumber()).toString()
     // )
 
-    // let minerData = await rewardMiner.getCurrentPeriodInfoTrader('0x80d03173a5371523f94fbba9d1fcbb0777e8dfc9')
+    // let minerData = await rewardMiner.getCurrentPeriodInfoTrader('0xb7bb5674a5ea3ca966cbd9930230f271804c165b')
     // console.log(
     //     'getCurrentPeriodInfoTrader',
     //     formatEther(minerData.total),

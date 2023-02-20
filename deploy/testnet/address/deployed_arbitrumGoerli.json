@@ -142,7 +142,7 @@
     },
     "clearingHouse": {
         "address": "0x98081433437D574C3E399EfBD028fBDF3A174E89",
-        "implAddress": "0xa67636B7391cDea6DB670A4d558DB5193A3c1082"
+        "implAddress": "0x31cc68Dc8eCBd48074ac4500604E67c273FD0576"
     },
     "pNFTToken": {
         "address": "0x674001749A44B9D6d931D1826233795e7Cf4eb2b",
