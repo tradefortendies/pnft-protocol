@@ -106,7 +106,7 @@
         "address": "0xB069C0Fda75950E30F3d7C4ccdE158513Fd6f668"
     },
     "exchangeLogic": {
-        "address": "0xbDad5afA8Ab1d4598C43c10DfDeb448DAaDC5A3b"
+        "address": "0xb2746650e1be6f2535b2396B0175A788463Df4de"
     },
     "clearingHouseConfig": {
         "address": "0xf09dA90C5BE6Aa124C8AC54444CbFb2E36f6d162",
@@ -126,7 +126,7 @@
     },
     "exchange": {
         "address": "0x11810deA012E77521cf994C82B8Cf05Eb786DB1A",
-        "implAddress": "0xc56b615B902253aD3030BceaB2D1Ea1Aea42dbA6"
+        "implAddress": "0x6823F32B71F39B084AD6108BD723cABAC9766AF0"
     },
     "insuranceFund": {
         "address": "0xFbCdd83BF266a49e35b860d29C9B92Aca155a441",
@@ -142,7 +142,7 @@
     },
     "clearingHouse": {
         "address": "0x98081433437D574C3E399EfBD028fBDF3A174E89",
-        "implAddress": "0x842d6294E0587566fa93DE2a617A396FaAdE3Cc1"
+        "implAddress": "0xa67636B7391cDea6DB670A4d558DB5193A3c1082"
     },
     "pNFTToken": {
         "address": "0x674001749A44B9D6d931D1826233795e7Cf4eb2b",
