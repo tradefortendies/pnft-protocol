@@ -280,21 +280,7 @@ contract ClearingHouse is
         checkDeadline(params.deadline)
         returns (uint256 base, uint256 quote, uint256 fee)
     {
-        try ExchangeLogic.closePosition(address(this), _msgSender(), params) returns (
-            uint256 baseArg,
-            uint256 quoteArg,
-            uint256 feeArg
-        ) {
-            // you can use variable foo here
-            base = baseArg;
-            quote = quoteArg;
-            fee = feeArg;
-        } catch Error(string memory reason) {
-            revert(string(abi.encodePacked("EL_CP_", reason)));
-        } catch (bytes memory reason) {
-            revert(string(abi.encodePacked("EL_CP_", reason)));
-        }
-        // return ExchangeLogic.closePosition(address(this), _msgSender(), params);
+        return ExchangeLogic.closePosition(address(this), _msgSender(), params);
     }
 
     /// @inheritdoc IClearingHouse
@@ -464,21 +450,7 @@ contract ClearingHouse is
         address trader,
         DataTypes.OpenPositionParams memory params
     ) internal returns (uint256 base, uint256 quote, uint256 fee) {
-        try ExchangeLogic.openPositionFor(address(this), trader, params) returns (
-            uint256 baseArg,
-            uint256 quoteArg,
-            uint256 feeArg
-        ) {
-            // you can use variable foo here
-            base = baseArg;
-            quote = quoteArg;
-            fee = feeArg;
-        } catch Error(string memory reason) {
-            revert(string(abi.encodePacked("EL_OP_", reason)));
-        } catch (bytes memory reason) {
-            revert(string(abi.encodePacked("EL_OP_", reason)));
-        }
-        // return ExchangeLogic.openPositionFor(address(this), trader, params);
+        return ExchangeLogic.openPositionFor(address(this), trader, params);
     }
 
     //
