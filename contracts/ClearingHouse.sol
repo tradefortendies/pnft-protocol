@@ -9,10 +9,7 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import { IUniswapV3MintCallback } from "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3MintCallback.sol";
 import { IUniswapV3SwapCallback } from "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol";
-import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
-import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
-import { SettlementTokenMath } from "./lib/SettlementTokenMath.sol";
 import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IVault } from "./interface/IVault.sol";
@@ -35,7 +32,6 @@ import { GenericLogic } from "./lib/GenericLogic.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { UniswapV3Broker } from "./lib/UniswapV3Broker.sol";
-import "hardhat/console.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract ClearingHouse is
@@ -51,36 +47,27 @@ contract ClearingHouse is
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
-    using PerpSafeCast for uint256;
-    using PerpSafeCast for uint128;
-    using PerpSafeCast for int256;
     using PerpMath for uint256;
     using PerpMath for uint160;
     using PerpMath for uint128;
     using PerpMath for int256;
-    using SettlementTokenMath for int256;
 
     //
     // STRUCT
     //
 
-    /// @param sqrtPriceLimitX96 tx will fill until it reaches this price but WON'T REVERT
-    struct InternalOpenPositionParams {
-        address trader;
-        address baseToken;
-        bool isBaseToQuote;
-        bool isExactInput;
-        bool isClose;
-        uint256 amount;
-        uint160 sqrtPriceLimitX96;
-    }
-
-    struct InternalCheckSlippageParams {
-        bool isBaseToQuote;
-        bool isExactInput;
-        uint256 base;
-        uint256 quote;
-        uint256 oppositeAmountBound;
+    struct InternalRepegParams {
+        uint160 oldSqrtMarkPrice;
+        uint256 oldMarkPrice;
+        uint160 newSqrtMarkPrice;
+        uint256 newMarkPrice;
+        uint256 spotPrice;
+        uint160 sqrtSpotPrice;
+        int256 oldDeltaBase;
+        uint256 newDeltaBase;
+        uint256 oldLongPositionSize;
+        uint256 oldShortPositionSize;
+        uint256 oldDeltaQuote;
     }
 
     //
@@ -410,10 +397,10 @@ contract ClearingHouse is
         return _marketRegistry;
     }
 
-    /// @inheritdoc IClearingHouse
-    function getAccountValue(address trader) public view override returns (int256) {
-        return IVault(_vault).getAccountValue(trader).parseSettlementToken(_settlementTokenDecimals);
-    }
+    // /// @inheritdoc IClearingHouse
+    // function getAccountValue(address trader) public view override returns (int256) {
+    //     return IVault(_vault).getAccountValue(trader).parseSettlementToken(_settlementTokenDecimals);
+    // }
 
     //
     // INTERNAL NON-VIEW
@@ -489,20 +476,6 @@ contract ClearingHouse is
             return false;
         }
         return true;
-    }
-
-    struct InternalRepegParams {
-        uint160 oldSqrtMarkPrice;
-        uint256 oldMarkPrice;
-        uint160 newSqrtMarkPrice;
-        uint256 newMarkPrice;
-        uint256 spotPrice;
-        uint160 sqrtSpotPrice;
-        int256 oldDeltaBase;
-        uint256 newDeltaBase;
-        uint256 oldLongPositionSize;
-        uint256 oldShortPositionSize;
-        uint256 oldDeltaQuote;
     }
 
     ///REPEG

@@ -260,11 +260,11 @@ interface IClearingHouse {
     /// @return quote The amount of quote token that is closed
     // function quitMarket(address trader, address baseToken) external returns (uint256 base, uint256 quote);
 
-    /// @notice Get account value of trader
-    /// @dev accountValue = totalCollateralValue + totalUnrealizedPnl, in 18 decimals
-    /// @param trader The address of trader
-    /// @return accountValue The account value of trader
-    function getAccountValue(address trader) external view returns (int256 accountValue);
+    // /// @notice Get account value of trader
+    // /// @dev accountValue = totalCollateralValue + totalUnrealizedPnl, in 18 decimals
+    // /// @param trader The address of trader
+    // /// @return accountValue The account value of trader
+    // function getAccountValue(address trader) external view returns (int256 accountValue);
 
     /// @notice Get QuoteToken address
     /// @return quoteToken The quote token address

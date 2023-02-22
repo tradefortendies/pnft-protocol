@@ -19,8 +19,6 @@ import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/Sa
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { DataTypes } from "../types/DataTypes.sol";
 
-import "hardhat/console.sol";
-
 library GenericLogic {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
