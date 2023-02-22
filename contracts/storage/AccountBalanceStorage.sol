@@ -8,7 +8,7 @@ import { DataTypes } from "../types/DataTypes.sol";
 /// AccountBalanceStorageVX.
 abstract contract AccountBalanceStorageV1 {
     address internal _clearingHouseConfig;
-    address internal _orderBook;
+    address internal __orderBook;
     address internal _vault;
 
     address[10] private __gap1;

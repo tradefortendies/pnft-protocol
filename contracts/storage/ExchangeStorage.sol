@@ -7,7 +7,7 @@ import { DataTypes } from "../types/DataTypes.sol";
 /// contract which implements ExchangeStorageV1 and following the naming convention
 /// ExchangeStorageVX.
 abstract contract ExchangeStorageV1 {
-    address internal _orderBook;
+    address internal __orderBook;
     address internal _accountBalance;
     address internal _clearingHouseConfig;
 

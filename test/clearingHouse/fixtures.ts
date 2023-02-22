@@ -9,7 +9,6 @@ import {
     Exchange,
     InsuranceFund,
     MarketRegistry,
-    OrderBook,
     RewardMiner,
     TestClearingHouse,
     TestERC20,
@@ -30,7 +29,6 @@ import { createQuoteTokenFixture, token0Fixture, tokensFixture, uniswapV3Factory
 
 export interface ClearingHouseFixture {
     clearingHouse: TestClearingHouse | ClearingHouse
-    orderBook: OrderBook
     accountBalance: TestAccountBalance | AccountBalance
     marketRegistry: MarketRegistry
     clearingHouseConfig: ClearingHouseConfig
@@ -88,10 +86,18 @@ export function createClearingHouseFixture(
         const WBTC = (await tokenFactory.deploy()) as TestERC20
         await WBTC.__TestERC20_init("TestWBTC", "WBTC", 8)
 
-        let GenericLogic = await ethers.getContractFactory("GenericLogic");
+        let UniswapV3Broker = await ethers.getContractFactory("UniswapV3Broker");
+        let uniswapV3Broker = await UniswapV3Broker.deploy();
+
+        let GenericLogic = await ethers.getContractFactory("GenericLogic", {
+            libraries: {
+                UniswapV3Broker: uniswapV3Broker.address,
+            },
+        });
         let genericLogic = await GenericLogic.deploy();
         let ClearingHouseLogic = await ethers.getContractFactory("ClearingHouseLogic", {
             libraries: {
+                UniswapV3Broker: uniswapV3Broker.address,
                 GenericLogic: genericLogic.address,
             },
         });
@@ -130,13 +136,13 @@ export function createClearingHouseFixture(
         await uniV3Factory.createPool(baseToken.address, quoteToken.address, uniFeeTier)
         const poolFactory = await ethers.getContractFactory("UniswapV3Pool")
 
-        const marketRegistryFactory = await ethers.getContractFactory("MarketRegistry")
+        const marketRegistryFactory = await ethers.getContractFactory("MarketRegistry", {
+            libraries: {
+                UniswapV3Broker: uniswapV3Broker.address,
+            },
+        })
         const marketRegistry = (await marketRegistryFactory.deploy()) as MarketRegistry
         await marketRegistry.initialize(uniV3Factory.address, quoteToken.address)
-
-        const orderBookFactory = await ethers.getContractFactory("OrderBook")
-        const orderBook = (await orderBookFactory.deploy()) as OrderBook
-        await orderBook.initialize(marketRegistry.address)
 
         let accountBalance
         let exchange
@@ -146,6 +152,7 @@ export function createClearingHouseFixture(
 
             const exchangeFactory = await ethers.getContractFactory("TestExchange", {
                 libraries: {
+                    UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
@@ -157,6 +164,7 @@ export function createClearingHouseFixture(
 
             const exchangeFactory = await ethers.getContractFactory("Exchange", {
                 libraries: {
+                    UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
@@ -169,12 +177,10 @@ export function createClearingHouseFixture(
         await insuranceFund.initialize(WETH.address)
 
         // deploy exchange
-        await exchange.initialize(marketRegistry.address, orderBook.address, clearingHouseConfig.address)
+        await exchange.initialize(marketRegistry.address, clearingHouseConfig.address)
         await exchange.setAccountBalance(accountBalance.address)
 
-        await orderBook.setExchange(exchange.address)
-
-        await accountBalance.initialize(clearingHouseConfig.address, orderBook.address)
+        await accountBalance.initialize(clearingHouseConfig.address)
 
         const [admin, maker, taker, alice, a1, a2, a3, fundingFund, platformFund] = waffle.provider.getWallets()
 
@@ -216,6 +222,7 @@ export function createClearingHouseFixture(
         if (canMockTime) {
             const clearingHouseFactory = await ethers.getContractFactory("TestClearingHouse", {
                 libraries: {
+                    UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
@@ -240,6 +247,7 @@ export function createClearingHouseFixture(
         } else {
             const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse", {
                 libraries: {
+                    UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
@@ -271,7 +279,6 @@ export function createClearingHouseFixture(
         await baseToken.addWhitelist(clearingHouse.address)
         await baseToken2.addWhitelist(clearingHouse.address)
         await marketRegistry.setClearingHouse(clearingHouse.address)
-        await orderBook.setClearingHouse(clearingHouse.address)
         await exchange.setClearingHouse(clearingHouse.address)
         await accountBalance.setClearingHouse(clearingHouse.address)
         await vault.setClearingHouse(clearingHouse.address)
@@ -282,7 +289,6 @@ export function createClearingHouseFixture(
 
         return {
             clearingHouse,
-            orderBook,
             accountBalance,
             marketRegistry,
             clearingHouseConfig,
@@ -415,13 +421,10 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
     await marketRegistry.initialize(mockedUniV3Factory.address, mockedQuoteToken.address)
     const mockedMarketRegistry = await smockit(marketRegistry)
     const orderBookFactory = await ethers.getContractFactory("OrderBook")
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook
-    await orderBook.initialize(marketRegistry.address)
-    const mockedOrderBook = await smockit(orderBook)
 
     const exchangeFactory = await ethers.getContractFactory("Exchange")
     const exchange = (await exchangeFactory.deploy()) as Exchange
-    await exchange.initialize(mockedMarketRegistry.address, mockedOrderBook.address, clearingHouseConfig.address)
+    await exchange.initialize(mockedMarketRegistry.address, clearingHouseConfig.address)
     const mockedExchange = await smockit(exchange)
 
     const accountBalanceFactory = await ethers.getContractFactory("AccountBalance")
@@ -430,8 +433,6 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
 
     // deployer ensure base token is always smaller than quote in order to achieve base=token0 and quote=token1
     const mockedBaseToken = await mockedBaseTokenTo(ADDR_LESS_THAN, mockedQuoteToken.address)
-
-    mockedExchange.smocked.getOrderBook.will.return.with(mockedOrderBook.address)
 
     const [admin, maker, taker, alice, a1, a2, a3, fundingFund, platformFund] = waffle.provider.getWallets()
 

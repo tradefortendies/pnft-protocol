@@ -16,8 +16,6 @@ import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/Sa
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { PerpMath } from "../lib/PerpMath.sol";
 
-import { IMarketRegistry } from "../interface/IMarketRegistry.sol";
-
 /**
  * Uniswap's v3 pool: token0 & token1
  * -> token0's price = token1 / token0; tick index = log(1.0001, token0's price)
@@ -144,7 +142,7 @@ library UniswapV3Broker {
         address pool,
         AddLiquidityParams calldata params
     ) external returns (AddLiquidityResponse memory) {
-        (int24 lowerTick, int24 upperTick) = UniswapV3Broker.getFullTickForLiquidity(pool);
+        (int24 lowerTick, int24 upperTick) = getFullTickForLiquidity(pool);
         // add liquidity to pool
         return
             _addLiquidity(
@@ -204,7 +202,7 @@ library UniswapV3Broker {
         return RemoveLiquidityResponse({ base: amount0Burned, quote: amount1Burned });
     }
 
-    function swap(SwapParams memory params) internal returns (SwapResponse memory response) {
+    function swap(SwapParams memory params) external returns (SwapResponse memory response) {
         // UniswapV3Pool uses the sign to determine isExactInput or not
         int256 specifiedAmount = params.isExactInput ? params.amount.toInt256() : params.amount.neg256();
 
@@ -251,19 +249,19 @@ library UniswapV3Broker {
         address quoteToken,
         address baseToken,
         uint24 uniswapFeeRatio
-    ) internal view returns (address) {
+    ) external view returns (address) {
         PoolAddress.PoolKey memory poolKeys = PoolAddress.getPoolKey(quoteToken, baseToken, uniswapFeeRatio);
         return IUniswapV3Factory(factory).getPool(poolKeys.token0, poolKeys.token1, uniswapFeeRatio);
     }
 
-    function getTickSpacing(address pool) internal view returns (int24 tickSpacing) {
+    function getTickSpacing(address pool) public view returns (int24 tickSpacing) {
         tickSpacing = IUniswapV3Pool(pool).tickSpacing();
     }
 
     function getSlot0(
         address pool
     )
-        internal
+        public
         view
         returns (
             uint160 sqrtPriceX96,
@@ -278,29 +276,29 @@ library UniswapV3Broker {
         return IUniswapV3Pool(pool).slot0();
     }
 
-    function getTick(address pool) internal view returns (int24 tick) {
+    function getTick(address pool) external view returns (int24 tick) {
         (, tick, , , , , ) = IUniswapV3Pool(pool).slot0();
     }
 
-    function getIsTickInitialized(address pool, int24 tick) internal view returns (bool initialized) {
+    function getIsTickInitialized(address pool, int24 tick) external view returns (bool initialized) {
         (, , , , , , , initialized) = IUniswapV3Pool(pool).ticks(tick);
     }
 
-    function getTickLiquidityNet(address pool, int24 tick) internal view returns (int128 liquidityNet) {
+    function getTickLiquidityNet(address pool, int24 tick) public view returns (int128 liquidityNet) {
         (, liquidityNet, , , , , , ) = IUniswapV3Pool(pool).ticks(tick);
     }
 
-    function getSqrtMarkPriceX96(address pool) internal view returns (uint160 sqrtMarkPrice) {
+    function getSqrtMarkPriceX96(address pool) external view returns (uint160 sqrtMarkPrice) {
         (sqrtMarkPrice, , , , , , ) = IUniswapV3Pool(pool).slot0();
     }
 
-    function getLiquidity(address pool) internal view returns (uint128 liquidity) {
+    function getLiquidity(address pool) external view returns (uint128 liquidity) {
         return IUniswapV3Pool(pool).liquidity();
     }
 
     /// @dev if twapInterval < 10 (should be less than 1 block), return mark price without twap directly,
     ///      as twapInterval is too short and makes getting twap over such a short period meaningless
-    function getSqrtMarkTwapX96(address pool, uint32 twapInterval) internal view returns (uint160) {
+    function getSqrtMarkTwapX96(address pool, uint32 twapInterval) external view returns (uint160) {
         return getSqrtMarkTwapX96From(pool, 0, twapInterval);
     }
 
@@ -308,7 +306,7 @@ library UniswapV3Broker {
         address pool,
         uint32 secondsAgo,
         uint32 twapInterval
-    ) internal view returns (uint160) {
+    ) public view returns (uint160) {
         // return the current price as twapInterval is too short/ meaningless
         if (twapInterval < 10) {
             (uint160 sqrtMarkPrice, , , , , , ) = getSlot0(pool);
@@ -332,7 +330,7 @@ library UniswapV3Broker {
         int24 tick,
         int24 tickSpacing,
         bool isBaseToQuote
-    ) internal view returns (int24 next, bool initialized) {
+    ) public view returns (int24 next, bool initialized) {
         int24 compressed = tick / tickSpacing;
         if (tick < 0 && tick % tickSpacing != 0) compressed--; // round towards negative infinity
 
@@ -367,7 +365,7 @@ library UniswapV3Broker {
     function getSwapState(
         address pool,
         int256 signedScaledAmountForReplaySwap
-    ) internal view returns (SwapState memory) {
+    ) public view returns (SwapState memory) {
         (uint160 sqrtMarkPrice, int24 tick, , , , , ) = getSlot0(pool);
         uint128 liquidity = IUniswapV3Pool(pool).liquidity();
         return
@@ -393,7 +391,7 @@ library UniswapV3Broker {
         bitPos = uint8(tick % 256);
     }
 
-    function getFullTickForLiquidity(address pool) internal view returns (int24 lowerTick, int24 upperTick) {
+    function getFullTickForLiquidity(address pool) public view returns (int24 lowerTick, int24 upperTick) {
         int24 tickSpacing = IUniswapV3Pool(pool).tickSpacing();
         lowerTick = (TickMath.MIN_TICK / tickSpacing) * tickSpacing;
         upperTick = (TickMath.MAX_TICK / tickSpacing) * tickSpacing;
@@ -407,7 +405,7 @@ library UniswapV3Broker {
         bool isExactInput = params.amount > 0;
         uint256 fee;
 
-        UniswapV3Broker.SwapState memory swapState = UniswapV3Broker.getSwapState(pool, params.amount);
+        SwapState memory swapState = getSwapState(pool, params.amount);
 
         params.sqrtPriceLimitX96 = params.sqrtPriceLimitX96 == 0
             ? (params.isBaseToQuote ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
@@ -415,7 +413,7 @@ library UniswapV3Broker {
 
         // if there is residue in amountSpecifiedRemaining, makers can get a tiny little bit less than expected,
         // which is safer for the system
-        int24 tickSpacing = UniswapV3Broker.getTickSpacing(pool);
+        int24 tickSpacing = getTickSpacing(pool);
 
         while (swapState.amountSpecifiedRemaining != 0 && swapState.sqrtPriceX96 != params.sqrtPriceLimitX96) {
             InternalSwapStep memory step;
@@ -423,7 +421,7 @@ library UniswapV3Broker {
 
             // find next tick
             // note the search is bounded in one word
-            (step.nextTick, step.isNextTickInitialized) = UniswapV3Broker.getNextInitializedTickWithinOneWord(
+            (step.nextTick, step.isNextTickInitialized) = getNextInitializedTickWithinOneWord(
                 pool,
                 swapState.tick,
                 tickSpacing,
@@ -483,7 +481,7 @@ library UniswapV3Broker {
                 // we have reached the tick's boundary
                 if (step.isNextTickInitialized) {
                     if (params.shouldUpdateState) {}
-                    int128 liquidityNet = UniswapV3Broker.getTickLiquidityNet(pool, step.nextTick);
+                    int128 liquidityNet = getTickLiquidityNet(pool, step.nextTick);
                     if (params.isBaseToQuote) liquidityNet = liquidityNet.neg128();
                     swapState.liquidity = LiquidityMath.addDelta(swapState.liquidity, liquidityNet);
                 }
@@ -508,7 +506,7 @@ library UniswapV3Broker {
         uint256 amountIn;
         uint256 amountOut;
 
-        UniswapV3Broker.SwapState memory swapState = UniswapV3Broker.getSwapState(pool, params.amount);
+        SwapState memory swapState = getSwapState(pool, params.amount);
 
         params.sqrtPriceLimitX96 = params.sqrtPriceLimitX96 == 0
             ? (params.isBaseToQuote ? TickMath.MIN_SQRT_RATIO + 1 : TickMath.MAX_SQRT_RATIO - 1)
@@ -516,7 +514,7 @@ library UniswapV3Broker {
 
         // if there is residue in amountSpecifiedRemaining, makers can get a tiny little bit less than expected,
         // which is safer for the system
-        int24 tickSpacing = UniswapV3Broker.getTickSpacing(pool);
+        int24 tickSpacing = getTickSpacing(pool);
 
         while (swapState.amountSpecifiedRemaining != 0 && swapState.sqrtPriceX96 != params.sqrtPriceLimitX96) {
             InternalSwapStep memory step;
@@ -524,7 +522,7 @@ library UniswapV3Broker {
 
             // find next tick
             // note the search is bounded in one word
-            (step.nextTick, step.isNextTickInitialized) = UniswapV3Broker.getNextInitializedTickWithinOneWord(
+            (step.nextTick, step.isNextTickInitialized) = getNextInitializedTickWithinOneWord(
                 pool,
                 swapState.tick,
                 tickSpacing,
@@ -585,7 +583,7 @@ library UniswapV3Broker {
                 // we have reached the tick's boundary
                 if (step.isNextTickInitialized) {
                     if (params.shouldUpdateState) {}
-                    int128 liquidityNet = UniswapV3Broker.getTickLiquidityNet(pool, step.nextTick);
+                    int128 liquidityNet = getTickLiquidityNet(pool, step.nextTick);
                     if (params.isBaseToQuote) liquidityNet = liquidityNet.neg128();
                     swapState.liquidity = LiquidityMath.addDelta(swapState.liquidity, liquidityNet);
                 }

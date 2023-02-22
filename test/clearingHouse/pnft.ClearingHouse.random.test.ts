@@ -11,7 +11,6 @@ import {
     Exchange,
     InsuranceFund,
     MarketRegistry,
-    OrderBook,
     QuoteToken,
     TestAccountBalance,
     TestClearingHouse,
@@ -41,7 +40,6 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
     let clearingHouse: TestClearingHouse
     let clearingHouseConfig: ClearingHouseConfig
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
@@ -59,7 +57,6 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         clearingHouseConfig = fixture.clearingHouseConfig as ClearingHouseConfig
-        orderBook = fixture.orderBook
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund

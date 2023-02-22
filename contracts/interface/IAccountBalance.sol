@@ -116,10 +116,6 @@ interface IAccountBalance {
     /// @return clearingHouseConfig The address of ClearingHouseConfig
     function getClearingHouseConfig() external view returns (address clearingHouseConfig);
 
-    /// @notice Get `OrderBook` address
-    /// @return orderBook The address of OrderBook
-    function getOrderBook() external view returns (address orderBook);
-
     /// @notice Get `Vault` address
     /// @return vault The address of Vault
     function getVault() external view returns (address vault);

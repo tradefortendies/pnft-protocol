@@ -9,10 +9,10 @@ import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import { ClearingHouseCallee } from "./base/ClearingHouseCallee.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
+import { IVault } from "./interface/IVault.sol";
 import { IExchange } from "./interface/IExchange.sol";
 import { IBaseToken } from "./interface/IBaseToken.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
-import { IOrderBook } from "./interface/IOrderBook.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { AccountBalanceStorageV1 } from "./storage/AccountBalanceStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
@@ -41,17 +41,13 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     // EXTERNAL NON-VIEW
     //
 
-    function initialize(address clearingHouseConfigArg, address orderBookArg) external initializer {
+    function initialize(address clearingHouseConfigArg) external initializer {
         // IClearingHouseConfig address is not contract
         require(clearingHouseConfigArg.isContract(), "AB_CHCNC");
-
-        // IOrderBook is not contract
-        require(orderBookArg.isContract(), "AB_OBNC");
 
         __ClearingHouseCallee_init();
 
         _clearingHouseConfig = clearingHouseConfigArg;
-        _orderBook = orderBookArg;
     }
 
     function setVault(address vaultArg) external onlyOwner {
@@ -199,11 +195,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     /// @inheritdoc IAccountBalance
     function getClearingHouseConfig() external view override returns (address) {
         return _clearingHouseConfig;
-    }
-
-    /// @inheritdoc IAccountBalance
-    function getOrderBook() external view override returns (address) {
-        return _orderBook;
     }
 
     /// @inheritdoc IAccountBalance
@@ -640,7 +631,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
 
     function _getReferencePrice(address baseToken) internal view returns (uint256) {
         return
-            IExchange(IOrderBook(_orderBook).getExchange())
+            IExchange(IVault(_vault).getExchange())
                 .getSqrtMarkTwapX96(baseToken, IClearingHouseConfig(_clearingHouseConfig).getTwapInterval())
                 .formatSqrtPriceX96ToPriceX96()
                 .formatX96ToX10_18();

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.7.6;
 pragma abicoder v2;
-import { IOrderBook } from "./IOrderBook.sol";
 import { DataTypes } from "../types/DataTypes.sol";
 import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
 
@@ -125,10 +124,6 @@ interface IExchange {
     /// @param params The params needed to do the query, encoded as `RealizePnlParams` in calldata
     /// @return pnlToBeRealized The pnl that can be realized if trader reduce position
     function getPnlToBeRealized(RealizePnlParams memory params) external view returns (int256 pnlToBeRealized);
-
-    /// @notice Get `OrderBook` contract address
-    /// @return orderBook `OrderBook` contract address
-    function getOrderBook() external view returns (address orderBook);
 
     /// @notice Get `AccountBalance` contract address
     /// @return accountBalance `AccountBalance` contract address

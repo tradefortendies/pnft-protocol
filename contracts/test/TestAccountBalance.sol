@@ -10,17 +10,13 @@ contract TestAccountBalance is AccountBalance {
     uint256 private _testBlockTimestamp;
 
     // copy paste from AccountBalance.initialize to avoid it to be public
-    function __TestAccountBalance_init(address clearingHouseConfigArg, address orderBookArg) external initializer {
+    function __TestAccountBalance_init(address clearingHouseConfigArg) external initializer {
         // ClearingHouseConfig address is not contract
         require(clearingHouseConfigArg.isContract(), "AB_ENC");
-
-        // OrderBook is not contarct
-        require(orderBookArg.isContract(), "AB_OBNC");
 
         __ClearingHouseCallee_init();
 
         _clearingHouseConfig = clearingHouseConfigArg;
-        _orderBook = orderBookArg;
     }
 
     function setBlockTimestamp(uint256 blockTimestamp) external {

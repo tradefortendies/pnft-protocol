@@ -6,7 +6,6 @@ import { IBaseToken } from "../interface/IBaseToken.sol";
 import { IIndexPrice } from "../interface/IIndexPrice.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
-import { IOrderBook } from "../interface/IOrderBook.sol";
 import { IExchange } from "../interface/IExchange.sol";
 import { IVault } from "../interface/IVault.sol";
 import { IMarketRegistry } from "../interface/IMarketRegistry.sol";

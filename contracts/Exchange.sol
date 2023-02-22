@@ -14,7 +14,6 @@ import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { ClearingHouseCallee } from "./base/ClearingHouseCallee.sol";
 import { UniswapV3CallbackBridge } from "./base/UniswapV3CallbackBridge.sol";
-import { IOrderBook } from "./interface/IOrderBook.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
@@ -82,21 +81,14 @@ contract Exchange is
     // EXTERNAL NON-VIEW
     //
 
-    function initialize(
-        address marketRegistryArg,
-        address orderBookArg,
-        address clearingHouseConfigArg
-    ) external initializer {
+    function initialize(address marketRegistryArg, address clearingHouseConfigArg) external initializer {
         __ClearingHouseCallee_init();
         __UniswapV3CallbackBridge_init(marketRegistryArg);
 
-        // E_OBNC: OrderBook is not contract
-        require(orderBookArg.isContract(), "E_OBNC");
         // E_CHNC: CH is not contract
         require(clearingHouseConfigArg.isContract(), "E_CHNC");
 
         // update states
-        _orderBook = orderBookArg;
         _clearingHouseConfig = clearingHouseConfigArg;
     }
 
@@ -394,11 +386,6 @@ contract Exchange is
     //
     // EXTERNAL VIEW
     //
-
-    /// @inheritdoc IExchange
-    function getOrderBook() external view override returns (address) {
-        return _orderBook;
-    }
 
     /// @inheritdoc IExchange
     function getAccountBalance() external view override returns (address) {

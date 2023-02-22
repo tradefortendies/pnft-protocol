@@ -286,10 +286,6 @@ interface IClearingHouse {
     /// @return exchange `Exchange` address
     function getExchange() external view returns (address exchange);
 
-    /// @notice Get `OrderBook` address
-    /// @return orderBook `OrderBook` address
-    function getOrderBook() external view returns (address orderBook);
-
     /// @notice Get AccountBalance address
     /// @return accountBalance `AccountBalance` address
     function getAccountBalance() external view returns (address accountBalance);

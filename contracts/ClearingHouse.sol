@@ -14,7 +14,6 @@ import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IVault } from "./interface/IVault.sol";
 import { IExchange } from "./interface/IExchange.sol";
-import { IOrderBook } from "./interface/IOrderBook.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
@@ -85,6 +84,20 @@ contract ClearingHouse is
         _;
     }
 
+    modifier checkSwapCallback() {
+        // only exchange
+        require(_msgSender() == _exchange, "CH_OE");
+        _;
+    }
+
+    modifier checkMintCallback() {
+        address pool = _msgSender();
+        address baseToken = IUniswapV3Pool(pool).token0();
+        // UCB_FCV: failed callback validation
+        require(pool == IMarketRegistry(_marketRegistry).getPool(baseToken), "UCB_FCV");
+        _;
+    }
+
     //
     // EXTERNAL NON-VIEW
     //
@@ -120,10 +133,6 @@ contract ClearingHouse is
         // CH_IFANC: InsuranceFund address is not contract
         _isContract(insuranceFundArg, "CH_IFANC");
 
-        address orderBookArg = IExchange(exchangeArg).getOrderBook();
-        // orderBook is not contract
-        _isContract(orderBookArg, "CH_OBNC");
-
         __ReentrancyGuard_init();
         __OwnerPausable_init();
 
@@ -132,7 +141,6 @@ contract ClearingHouse is
         _quoteToken = quoteTokenArg;
         _uniswapV3Factory = uniV3FactoryArg;
         _exchange = exchangeArg;
-        _orderBook = orderBookArg;
         _accountBalance = accountBalanceArg;
         _marketRegistry = marketRegistryArg;
         _insuranceFund = insuranceFundArg;
@@ -279,7 +287,11 @@ contract ClearingHouse is
 
     /// @inheritdoc IUniswapV3MintCallback
     /// @dev namings here follow Uniswap's convention
-    function uniswapV3MintCallback(uint256 amount0Owed, uint256 amount1Owed, bytes calldata data) external override {
+    function uniswapV3MintCallback(
+        uint256 amount0Owed,
+        uint256 amount1Owed,
+        bytes calldata data
+    ) external override checkMintCallback {
         // input requirement checks:
         //   amount0Owed: here
         //   amount1Owed: here
@@ -288,9 +300,9 @@ contract ClearingHouse is
         // For caller validation purposes it would be more efficient and more reliable to use
         // "msg.sender" instead of "_msgSender()" as contracts never call each other through GSN.
         // not orderbook
-        require(msg.sender == _orderBook, "CH_NOB");
+        // require(msg.sender == _orderBook, "CH_NOB");
 
-        IOrderBook.MintCallbackData memory callbackData = abi.decode(data, (IOrderBook.MintCallbackData));
+        UniswapV3Broker.MintCallbackData memory callbackData = abi.decode(data, (UniswapV3Broker.MintCallbackData));
 
         if (amount0Owed > 0) {
             address token = IUniswapV3Pool(callbackData.pool).token0();
@@ -304,14 +316,18 @@ contract ClearingHouse is
 
     /// @inheritdoc IUniswapV3SwapCallback
     /// @dev namings here follow Uniswap's convention
-    function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external override {
+    function uniswapV3SwapCallback(
+        int256 amount0Delta,
+        int256 amount1Delta,
+        bytes calldata data
+    ) external override checkSwapCallback {
         // input requirement checks:
         //   amount0Delta: here
         //   amount1Delta: here
         //   data: X
         // For caller validation purposes it would be more efficient and more reliable to use
         // "msg.sender" instead of "_msgSender()" as contracts never call each other through GSN.
-        require(msg.sender == _exchange, "CH_OE");
+        // require(msg.sender == _exchange, "CH_OE");
 
         // swaps entirely within 0-liquidity regions are not supported -> 0 swap is forbidden
         // CH_F0S: forbidden 0 swap
@@ -356,11 +372,6 @@ contract ClearingHouse is
     /// @inheritdoc IClearingHouse
     function getExchange() external view override returns (address) {
         return _exchange;
-    }
-
-    /// @inheritdoc IClearingHouse
-    function getOrderBook() external view override returns (address) {
-        return _orderBook;
     }
 
     /// @inheritdoc IClearingHouse
