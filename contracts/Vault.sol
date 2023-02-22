@@ -53,12 +53,12 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
 
     function _requireNotMaker(address maker) internal view {
         // only Maker
-        require(maker != _maker, "CHD_NM");
+        require(maker != _maker, "V_NM");
     }
 
     function _requireOnlyMaker(address maker) internal view {
         // only Maker
-        require(maker == _maker, "CHD_OM");
+        require(maker == _maker, "V_OM");
     }
 
     //
@@ -352,7 +352,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
                         .formatSettlementToken(_decimals);
         }
 
-        return getBalanceByToken(trader, token).toUint256();
+        revert("V_NS");
     }
 
     /// @inheritdoc IVault
@@ -509,10 +509,6 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     //
     // INTERNAL VIEW
     //
-
-    function _getTokenDecimals(address token) internal view returns (uint8) {
-        return IERC20Metadata(token).decimals();
-    }
 
     function _getFreeCollateral(address trader) internal view returns (uint256 freeCollateralX10_18) {
         return

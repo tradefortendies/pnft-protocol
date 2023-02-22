@@ -6,7 +6,6 @@ import {
     BaseToken,
     ClearingHouse,
     ClearingHouseConfig,
-    CollateralManager,
     Exchange,
     InsuranceFund,
     MarketRegistry,
@@ -38,7 +37,6 @@ export interface ClearingHouseFixture {
     exchange: TestExchange | Exchange
     vault: Vault
     insuranceFund: InsuranceFund
-    collateralManager: CollateralManager
     uniV3Factory: UniswapV3Factory
     pool: UniswapV3Pool
     uniFeeTier: number
@@ -92,8 +90,6 @@ export function createClearingHouseFixture(
 
         let GenericLogic = await ethers.getContractFactory("GenericLogic");
         let genericLogic = await GenericLogic.deploy();
-        let VaultLogic = await ethers.getContractFactory("VaultLogic");
-        let vaultLogic = await VaultLogic.deploy();
         let ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
             libraries: {
                 GenericLogic: genericLogic.address,
@@ -188,11 +184,7 @@ export function createClearingHouseFixture(
         const [admin, maker, taker, alice, a1, a2, a3, fundingFund, platformFund] = waffle.provider.getWallets()
 
         // deploy vault
-        const vaultFactory = await ethers.getContractFactory("TestVault", {
-            libraries: {
-                VaultLogic: vaultLogic.address,
-            },
-        })
+        const vaultFactory = await ethers.getContractFactory("TestVault")
         const vault = (await vaultFactory.deploy()) as Vault
         await vault.initialize(
             insuranceFund.address,
@@ -202,27 +194,6 @@ export function createClearingHouseFixture(
             maker.address,
         )
 
-        const collateralManagerFactory = await ethers.getContractFactory("CollateralManager")
-        const collateralManager = (await collateralManagerFactory.deploy()) as CollateralManager
-        await collateralManager.initialize(
-            clearingHouseConfig.address,
-            vault.address,
-            5, // maxCollateralTokensPerAccount
-            "750000", // debtNonSettlementTokenValueRatio
-            "500000", // liquidationRatio
-            "2000", // mmRatioBuffer
-            "30000", // clInsuranceFundFeeRatio
-            parseUnits("10000", wethDecimals), // debtThreshold
-            parseUnits("500", wethDecimals), // collateralValueDust
-        )
-        await collateralManager.addCollateral(WBTC.address, {
-            priceFeed: mockedWbtcPriceFeed.address,
-            collateralRatio: (0.7e6).toString(),
-            discountRatio: (0.1e6).toString(),
-            depositCap: parseUnits("1000", await WBTC.decimals()),
-        })
-
-        await vault.setCollateralManager(collateralManager.address)
         await insuranceFund.setVault(vault.address)
         await accountBalance.setVault(vault.address)
 
@@ -323,7 +294,6 @@ export function createClearingHouseFixture(
             exchange,
             vault,
             insuranceFund,
-            collateralManager,
             uniV3Factory,
             pool,
             uniFeeTier,
