@@ -16,16 +16,17 @@ export default deploy;
 async function deploy() {
     const network = hre.network.name;
     let deployData = (await loadDB(network))
-
+    // 
+    const [admin, maker, priceAdmin] = await ethers.getSigners()
+    // 
+    {
+        deployData.makerFundAddress = maker.address
+        deployData = (await saveDB(network, deployData))
+    }
     // 
     const TransparentUpgradeableProxy = await hre.ethers.getContractFactory('TransparentUpgradeableProxy');
     // 
     var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
-    if (network == 'local') {
-        const [admin, maker, priceAdmin, platformFund, trader, liquidator] = await ethers.getSigners()
-        deployData.platformFundAddress = platformFund.address
-        deployData.makerFundAddress = maker.address
-    }
     //
     if (deployData.clearingHouse.implAddress == undefined || deployData.clearingHouse.implAddress == '') {
         let ClearingHouse = await hre.ethers.getContractFactory("ClearingHouse", {
@@ -54,7 +55,7 @@ async function deploy() {
             deployData.marketRegistry.address,
             deployData.insuranceFund.address,
             deployData.platformFundAddress,
-            deployData.makerFundAddress,
+            maker.address,
         ]);
         var transparentUpgradeableProxy = await waitForDeploy(
             await TransparentUpgradeableProxy.deploy(
@@ -73,16 +74,15 @@ async function deploy() {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.clearingHouse.address, deployData.clearingHouse.implAddress)
     }
     {
-        var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var clearingHouseLogic = await hre.ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
         await verifyContract(
             deployData,
             network,
             deployData.clearingHouse.implAddress,
             [],
             {
-                GenericLogic: genericLogic.address,
-                ClearingHouseLogic: clearingHouseLogic.address,
+                UniswapV3Broker: deployData.uniswapV3Broker.address,
+                GenericLogic: deployData.genericLogic.address,
+                ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
             "contracts/ClearingHouse.sol:ClearingHouse",
         )

@@ -63,7 +63,9 @@ async function deploy() {
             deployData.exchange.implAddress,
             [],
             {
-                GenericLogic: genericLogic.address,
+                UniswapV3Broker: deployData.uniswapV3Broker.address,
+                GenericLogic: deployData.genericLogic.address,
+                ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
             "contracts/Exchange.sol:Exchange",
         )

@@ -25,7 +25,7 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
     // 
-    const [admin, maker, priceAdmin, platformFund, trader, liquidator] = await ethers.getSigners()
+    const [admin, maker, priceAdmin] = await ethers.getSigners()
 
     let nftPriceFeeds = [
         deployData.nftPriceFeedBAYC,

@@ -59,7 +59,9 @@ async function deploy() {
             network,
             deployData.marketRegistry.implAddress,
             [],
-            {},
+            {
+                UniswapV3Broker: deployData.uniswapV3Broker.address,
+            },
             "contracts/MarketRegistry.sol:MarketRegistry",
         )
     }
