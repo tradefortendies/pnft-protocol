@@ -9,7 +9,6 @@ import migrateLibrary from "./6_migrate_Library";
 import migrateUniswapV3 from "./6_migrate_UniswapV3";
 import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
 import migrateMarketRegistry from "./8_migrate_MarketRegistry";
-import migrateOrderBook from "./9_migrate_OrderBook";
 import migrateAccountBalance from "./10_migrate_AccountBalance";
 import migrateExchange from "./11_migrate_Exchange";
 import migrateInsuranceFund from "./12_migrate_InsuranceFund";
@@ -88,13 +87,6 @@ async function deploy() {
         console.log('migrateMarketRegistry -- START --')
         await migrateMarketRegistry();
         console.log('migrateMarketRegistry -- END --')
-    }
-    await delay(0)
-    // import migrateOrderBook from "./9_migrate_OrderBook";
-    {
-        console.log('migrateOrderBook -- START --')
-        await migrateOrderBook();
-        console.log('migrateOrderBook -- END --')
     }
     await delay(0)
     // import migrateAccountBalance from "./10_migrate_AccountBalance";

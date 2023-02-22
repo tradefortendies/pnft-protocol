@@ -93,10 +93,10 @@
     "uniswapV3Factory": {
         "address": ""
     },
-    "genericLogic": {
+    "uniswapV3Broker": {
         "address": ""
     },
-    "vaultLogic": {
+    "genericLogic": {
         "address": ""
     },
     "clearingHouseLogic": {
@@ -107,10 +107,6 @@
         "implAddress": ""
     },
     "marketRegistry": {
-        "address": "",
-        "implAddress": ""
-    },
-    "orderBook": {
         "address": "",
         "implAddress": ""
     },
@@ -127,10 +123,6 @@
         "implAddress": ""
     },
     "vault": {
-        "address": "",
-        "implAddress": ""
-    },
-    "collateralManager": {
         "address": "",
         "implAddress": ""
     },

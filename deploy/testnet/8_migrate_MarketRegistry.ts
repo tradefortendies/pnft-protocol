@@ -5,7 +5,7 @@ import helpers from "../helpers";
 
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -18,11 +18,15 @@ async function deploy() {
     let deployData = (await loadDB(network))
     // 
     const TransparentUpgradeableProxy = await hre.ethers.getContractFactory('TransparentUpgradeableProxy');
-    const MarketRegistry = await hre.ethers.getContractFactory("MarketRegistry");
     // 
     var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
     // 
     if (deployData.marketRegistry.implAddress == undefined || deployData.marketRegistry.implAddress == '') {
+        const MarketRegistry = await hre.ethers.getContractFactory("MarketRegistry", {
+            libraries: {
+                UniswapV3Broker: deployData.uniswapV3Broker.address,
+            },
+        });
         const marketRegistry = await waitForDeploy(await MarketRegistry.deploy())
         {
             deployData.marketRegistry.implAddress = marketRegistry.address;

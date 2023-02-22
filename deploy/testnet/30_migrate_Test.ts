@@ -3,10 +3,10 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { parseEther } from "ethers/lib/utils";
-import { ClearingHouse, OrderBook, TestERC20, TestWETH9, Vault } from "../../typechain";
+import { ClearingHouse, TestERC20, TestWETH9, Vault } from "../../typechain";
 
 import helpers from "../helpers";
-const { waitForTx } = helpers;
+const { waitForTx, loadDB } = helpers;
 
 
 async function main() {

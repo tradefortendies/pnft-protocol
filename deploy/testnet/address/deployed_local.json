@@ -1,35 +1,35 @@
 {
     "verifiedContracts": {},
     "nftPriceFeedBAYC": {
-        "address": "0x108CE2d16a9639A2b5519cfE7A906F27E8b50a55",
+        "address": "0x1F23c3E85E8EdA123B6680a74EefFF36acB72FEd",
         "symbol": "BAYC-ETH"
     },
     "nftPriceFeedMAYC": {
-        "address": "0x59606FA9d53A5D9429019Eb07bbDc015F1cF18D4",
+        "address": "0x33C4A78f36dF916530CEC1FB631Faa3DC86B9500",
         "symbol": "MAYC-ETH"
     },
     "nftPriceFeedCRYPTOPUNKS": {
-        "address": "0xD8da87Eb4b428816f655dF6a49f8bA4F748bf947",
+        "address": "0x8fd81B3A252573A1A05E7b0C6F4d41c84a7E0FeF",
         "symbol": "CRYPTOPUNKS-ETH"
     },
     "nftPriceFeedMOONBIRD": {
-        "address": "0x8B0847D61975357A60222D163Be81415564dA90d",
+        "address": "0xA6e993C71Ad30Faa78a78c21Ed82eA820A809894",
         "symbol": "MOONBIRD-ETH"
     },
     "nftPriceFeedAZUKI": {
-        "address": "0x7C2eCb8f5F45F0520043F2a4D630d80bFaE1c432",
+        "address": "0x46D3fEb94aC7FbAf43D2D274BBE1b9C1Ee42f5A1",
         "symbol": "AZUKI-ETH"
     },
     "nftPriceFeedCLONEX": {
-        "address": "0x4D686b06e6b3950a75f6009cD08D33CBC64d0E56",
+        "address": "0x92c9F7325A86ABDD0E6C7E296e955bdC04E073E9",
         "symbol": "CLONEX-ETH"
     },
     "nftPriceFeedDOODLE": {
-        "address": "0x593Ee4415a7e1CB24Ca1074879F6b1E0189fC5C6",
+        "address": "0xE092d8451C4A105BD0b85b0977AF277D7b91461B",
         "symbol": "DOODLE-ETH"
     },
     "wETH": {
-        "address": "0x66D54E4565ff0e5CA559F50c7a9D63DDb1B6a241",
+        "address": "0xFaCF2d7571153163139Ef26d7B8FDe89F1E81a2B",
         "name": "Wrapped Ether",
         "symbol": "WETH",
         "decimals": 18
@@ -38,109 +38,101 @@
         "name": "vETH",
         "symbol": "vETH",
         "decimals": 18,
-        "address": "0xFBCBB7A7b66b2B90f5c9458a361fFca32ad407a8",
-        "implAddress": "0x13787B7fBCd8c90eD68A1622700088af4370FEB5"
+        "address": "0xf3315166A7A55C775248C419B8933701E600172f",
+        "implAddress": "0xC728121cC9dd7b46d2Cc850e5A56dafbfB6409bc"
     },
     "baseToken": {
-        "implAddress": "0x974Cd3cdf85b6eb149FBF196B47914A1b5f0A668"
+        "implAddress": "0xdb5721EbB16DBd08cBacEBf1bE93928FC59D7E06"
     },
     "vBAYC": {
-        "address": "0x7b495CBb441eB4CC0A15F5C88847D375411c59db",
+        "address": "0x1fC4a6457A1603A37A3d1B423166047fc3Fd3692",
         "name": "vBAYC",
         "symbol": "vBAYC",
         "decimals": 18
     },
     "vMAYC": {
-        "address": "0xA9F679F26D23b7c6aFf99B51eAC114E503f098F5",
+        "address": "0xb3d88Fa4892AE6467FEcdf0A5E261438841D1231",
         "name": "vMAYC",
         "symbol": "vMAYC",
         "decimals": 18
     },
     "vCRYPTOPUNKS": {
-        "address": "0x7f77E2B427B00CC28ae8596A5675F453bcfa5f15",
+        "address": "0x8E2B4311fE4BFf642e1FCB2EFedbe8c502e8A450",
         "name": "vCRYPTOPUNKS",
         "symbol": "vCRYPTOPUNKS",
         "decimals": 18
     },
     "vMOONBIRD": {
-        "address": "0xdD3A0A850B743D026488CCa90f693dec35514e64",
+        "address": "0x9D3DbF92EA6b1a251b504beE2B4dc8f997F548A3",
         "name": "vMOONBIRD",
         "symbol": "vMOONBIRD",
         "decimals": 18
     },
     "vAZUKI": {
-        "address": "0xBCBF9D4f0bF9E971027A8f388C1f34977B1Fb80e",
+        "address": "0x05aAA99a6Ab335025617f148a290C5476Cf4653b",
         "name": "vAZUKI",
         "symbol": "vAZUKI",
         "decimals": 18
     },
     "vCLONEX": {
-        "address": "0x1f51E6977FaF810241B66218e11C882a2B9625B4",
+        "address": "0x0Cc4c352EFfBbB7b9699c748a0160f185c67d168",
         "name": "vCLONEX",
         "symbol": "vCLONEX",
         "decimals": 18
     },
     "vDOODLE": {
-        "address": "0xEC05A21496F825c91a2aE732565483D134a9011F",
+        "address": "0xCE14729945Cdb935d5f6c8170302001c2CFD8cf5",
         "name": "vDOODLE",
         "symbol": "vDOODLE",
         "decimals": 18
     },
     "priceAdminAddress": "0x9686203be0cae320bb4Dee971BB8a530A15EF489",
-    "platformFundAddress": "0x1b74Ed7Fd53A8C29587BF49467F7ed963E63A8Ae",
-    "makerFundAddress": "0x0E4098A728B69Da0D45595aD47E534c18553F942",
-    "proxyAdminAddress": "0x4a1DC31B8457F4dCA8b52D3abC18216C88c3C7bb",
+    "platformFundAddress": "0x37F2dB738f114331d2Fb59bF09ebD819E60b04fe",
+    "makerFundAddress": "0x31457eB1c54504955D0226B8C3BB8553E763d87a",
+    "proxyAdminAddress": "0xdD812fB342feD2F54cF4D42978e30C82111e91b8",
     "uniswapV3Factory": {
-        "address": "0xF59447dFBf820cbEb8Fd204C3E09fC442456e5Cd"
+        "address": "0x44dB9eDDDa7ada7b353De49AA73CeFF61A34394B"
+    },
+    "uniswapV3Broker": {
+        "address": "0xDc9C0fFa8901D8e0B7B64481930C69E67fBd5FF9"
     },
     "genericLogic": {
-        "address": "0x2b20d8AabFa235a0995D9d4178E60FE09650041D"
-    },
-    "vaultLogic": {
-        "address": "0x44BBf3B3b9aA0Cd59d1B384D0621FF8999677361"
+        "address": "0x58a0F73Afd3DAd68E5dF72AE7764a3145a5A0D8e"
     },
     "clearingHouseLogic": {
-        "address": "0xba0448BcBb3b9390f3844Cf9BD3e373f08B1287A"
+        "address": "0x61AE9ced1953354b5744EBD6dc2CD6eb03661CDC"
     },
     "clearingHouseConfig": {
-        "address": "0x8670b31E0275E515EF4AC4e9BB82E13af8d1429f",
-        "implAddress": "0x20037516494E04dCCEF7209C470e327CA9517381"
+        "address": "0x2731601ee79596377D1a719acE5b0719bf87560F",
+        "implAddress": "0xfc7CBdB1F0Cc0fe563fFbb60A50410Bd7c41df00"
     },
     "marketRegistry": {
-        "address": "0xfB4323050537401Cd5a1CF05F553645f0B0276C0",
-        "implAddress": "0xe3Fde0C28674235717648845589Ff12b58ae45CA"
-    },
-    "orderBook": {
-        "address": "0xbD96B9c628513dD39D8327F1046216d5b0b3ff35",
-        "implAddress": "0x405CE0F59aaF8d09B426B9b10E9D57Ab946C09D8"
+        "address": "0x21433CD7af5C7382A1ED17cCAFF809dbE2d69A63",
+        "implAddress": "0x594eCDF242FCCdfB808E244535aD94aE3cB34eC5"
     },
     "accountBalance": {
-        "address": "0xc6D3661d969329a1B2807195287cD7273852DF1F",
-        "implAddress": "0xCc3d50e9d07CC399e9f04Ab7581fB0744664dA78"
+        "address": "0xCEa415359477055Ef9A04706d385b49E529634Fa",
+        "implAddress": "0xD8E40a0a79d38eB9BA89223D293B46686ce4E9Bb"
     },
     "exchange": {
-        "address": "0x86B9E6bB861c76da6DF4eEb1C19D001bd4A452F5",
-        "implAddress": "0xaa879cc97171f66567Af724038998B1299E0CB5E"
+        "address": "0x06539783E16eC080E7E31b14173266eB2fA13FC4",
+        "implAddress": "0x87026CDC72cBd69497967a44Be9535c005d4a087"
     },
     "insuranceFund": {
-        "address": "0x29189A4c32559DF80bF2406246011262F4062EB3",
-        "implAddress": "0xf5f656E3dC25CDE0fD268657790D12b5F677ECA1"
+        "address": "0x193eC48F6E6Cae5dEba2EbaF947CF4707188DE72",
+        "implAddress": "0xB73BDFc570c8FE17EdF9ea2358fF1b34e11f6D58"
     },
     "vault": {
-        "address": "0xF7a7E73a04dc3387aEAbc9f1E146d073d718AdCf",
-        "implAddress": "0x9D0ffA54FD2DBbc737e8e34B72643334d802851f"
-    },
-    "collateralManager": {
-        "address": "0x59AFd3ba4aDcF253ebaB105095AAD89E1Faa856f",
-        "implAddress": "0xe23AB9B55c763146Dd481C8cbca471964e35BfA6"
+        "address": "0x13d3651B23877C477244D75D35D5Fd31860E548a",
+        "implAddress": "0x105816263731C624648cf6744C9f46041434DFd1"
     },
     "clearingHouse": {
-        "address": "0x3018A60cF87802efee0D4b49260581f63525C787",
-        "implAddress": "0xd362732F97379be9c868b7CD4Ae3f03d562A9f41"
+        "address": "0xe83a79a0f733307624277D3fB638A8A9bf968144",
+        "implAddress": "0x00bA8C42Ea3b725944D5603DBd99aEE37A22D3a9"
     },
     "pNFTToken": {
-        "address": "0x8fC1898d2608F024b65ea5782F46dB3E2019F4BA",
-        "implAddress": "0x73F1E3F2f58f0C3552DfFC861aCd33B90853A520",
+        "address": "0x1832faADab9435216E17592E68DbbbC610483A0B",
+        "implAddress": "0x78384F2F3f74321301f1Ef64D9868d556b872D98",
         "name": "PNFT Token",
         "symbol": "PNFT",
         "decimals": 18,
@@ -149,8 +141,8 @@
         "rewardAddress": "0x688d89B7512e512CEfbF1e7b03b7b9F32026A180"
     },
     "rewardMiner": {
-        "address": "0x9c25BEf9Ef33959Af72849C473ecD1f3d9367CF0",
-        "implAddress": "0x9855c3996dB407C9ab14DEff24bBF5f5E572abB6"
+        "address": "0xec98e720fdd35DCCEF0e05cc2AFA29e608143c5D",
+        "implAddress": "0x08aA20c99b76E13cb7167EB7E8F357E29C0A1990"
     },
     "testFaucet": {
         "address": "",

@@ -32,7 +32,7 @@ async function deploy() {
     }
     if (deployData.accountBalance.address == undefined || deployData.accountBalance.address == '') {
         var accountBalance = await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.implAddress);
-        var initializeData = accountBalance.interface.encodeFunctionData('initialize', [deployData.clearingHouseConfig.address, deployData.orderBook.address]);
+        var initializeData = accountBalance.interface.encodeFunctionData('initialize', [deployData.clearingHouseConfig.address]);
         var transparentUpgradeableProxy = await waitForDeploy(
             await TransparentUpgradeableProxy.deploy(
                 deployData.accountBalance.implAddress,
@@ -61,7 +61,7 @@ async function deploy() {
     }
     {
         var accountBalance = await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.implAddress);
-        var initializeData = accountBalance.interface.encodeFunctionData('initialize', [deployData.clearingHouseConfig.address, deployData.orderBook.address]);
+        var initializeData = accountBalance.interface.encodeFunctionData('initialize', [deployData.clearingHouseConfig.address]);
         await verifyContract(
             deployData,
             network,
