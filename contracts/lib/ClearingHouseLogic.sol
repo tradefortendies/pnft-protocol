@@ -540,17 +540,18 @@ library ClearingHouseLogic {
             );
 
         // simulate the swap to calculate the fees charged in exchange
-        IOrderBook.ReplaySwapResponse memory replayResponse = IOrderBook(IClearingHouse(chAddress).getOrderBook())
-            .replaySwap(
-                IOrderBook.ReplaySwapParams({
-                    baseToken: params.baseToken,
-                    isBaseToQuote: params.isBaseToQuote,
-                    shouldUpdateState: true,
-                    amount: signedScaledAmountForReplaySwap,
-                    sqrtPriceLimitX96: params.sqrtPriceLimitX96,
-                    uniswapFeeRatio: marketInfo.uniswapFeeRatio
-                })
-            );
+        UniswapV3Broker.ReplaySwapResponse memory replayResponse = UniswapV3Broker.replaySwap(
+            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
+            UniswapV3Broker.ReplaySwapParams({
+                baseToken: params.baseToken,
+                isBaseToQuote: params.isBaseToQuote,
+                shouldUpdateState: true,
+                amount: signedScaledAmountForReplaySwap,
+                sqrtPriceLimitX96: params.sqrtPriceLimitX96,
+                uniswapFeeRatio: marketInfo.uniswapFeeRatio
+            })
+        );
+
         UniswapV3Broker.SwapResponse memory response = UniswapV3Broker.swap(
             UniswapV3Broker.SwapParams(
                 marketInfo.pool,

@@ -530,8 +530,9 @@ contract Exchange is
         );
 
         // globalFundingGrowth can be empty if shouldUpdateState is false
-        IOrderBook.ReplaySwapResponse memory response = IOrderBook(_orderBook).replaySwap(
-            IOrderBook.ReplaySwapParams({
+        UniswapV3Broker.ReplaySwapResponse memory response = UniswapV3Broker.replaySwap(
+            IMarketRegistry(_marketRegistry).getPool(params.baseToken),
+            UniswapV3Broker.ReplaySwapParams({
                 baseToken: params.baseToken,
                 isBaseToQuote: params.isBaseToQuote,
                 amount: signedScaledAmountForReplaySwap,

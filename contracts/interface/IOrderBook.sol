@@ -64,13 +64,6 @@ interface IOrderBook {
         RemoveLiquidityParams calldata params
     ) external returns (RemoveLiquidityResponse memory response);
 
-    /// @notice Replay the swap and get the swap result (price impact and swap fee),
-    /// only can be called by `ClearingHouse` contract;
-    /// @dev `ReplaySwapResponse.insuranceFundFee = fee * insuranceFundFeeRatio`
-    /// @param params ReplaySwap params, detail on `IOrderBook.ReplaySwapParams`
-    /// @return response The swap result encoded in `ReplaySwapResponse`
-    function replaySwap(ReplaySwapParams memory params) external view returns (ReplaySwapResponse memory response);
-
     /// @notice Get open order ids of a trader in the given market
     /// @param baseToken The base token address
     function getLiquidity(address baseToken) external view returns (uint128);
