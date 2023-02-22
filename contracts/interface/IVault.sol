@@ -98,22 +98,6 @@ interface IVault {
     /// @return amount The amount of ETH withdrawn
     function withdrawAllEther() external returns (uint256 amount);
 
-    /// @notice Liquidate trader's collateral by given settlement token amount or non settlement token amount
-    /// @param trader The address of trader that will be liquidated
-    /// @param token The address of non settlement collateral token that the trader will be liquidated
-    /// @param amount The amount of settlement token that the liquidator will repay for trader or
-    ///               the amount of non-settlement collateral token that the liquidator will charge from trader
-    /// @param isDenominatedInSettlementToken Whether the amount is denominated in settlement token or not
-    /// @return returnAmount The amount of a non-settlement token (in its native decimals) that is liquidated
-    ///         when `isDenominatedInSettlementToken` is true or the amount of settlement token that is repaid
-    ///         when `isDenominatedInSettlementToken` is false
-    function liquidateCollateral(
-        address trader,
-        address token,
-        uint256 amount,
-        bool isDenominatedInSettlementToken
-    ) external returns (uint256 returnAmount);
-
     /// @notice Settle trader's bad debt
     /// @param trader The address of trader that will be settled
     function settleBadDebt(address trader) external;
@@ -184,58 +168,6 @@ interface IVault {
     /// @return settlementToken The address of the settlement token
     function getSettlementToken() external view returns (address settlementToken);
 
-    /// @notice Check if a given trader's collateral token can be liquidated; liquidation criteria:
-    ///         1. margin ratio falls below maintenance threshold + 20bps (mmRatioBuffer)
-    ///         2. USDC debt > nonSettlementTokenValue * debtNonSettlementTokenValueRatio (ex: 75%)
-    ///         3. USDC debt > debtThreshold (ex: $10000)
-    //          USDC debt = USDC balance + Total Unrealized PnL
-    /// @param trader The address of the trader
-    /// @return isLiquidatable If the trader can be liquidated
-    function isLiquidatable(address trader) external view returns (bool isLiquidatable);
-
-    /// @notice get the margin requirement for collateral liquidation of a trader
-    /// @dev this value is compared with `ClearingHouse.getAccountValue()` (int)
-    /// @param trader The address of the trader
-    /// @return marginRequirement margin requirement (in 18 decimals)
-    function getMarginRequirementForCollateralLiquidation(address trader)
-        external
-        view
-        returns (int256 marginRequirement);
-
-    /// @notice Get the maintenance margin ratio for collateral liquidation
-    /// @return collateralMmRatio The maintenance margin ratio for collateral liquidation
-    function getCollateralMmRatio() external view returns (uint24 collateralMmRatio);
-
-    /// @notice Get a trader's liquidatable collateral amount by a given settlement amount
-    /// @param token The address of the token of the trader's collateral
-    /// @param settlementX10_S The amount of settlement token the liquidator wants to pay
-    /// @return collateral The collateral amount(in its native decimals) the liquidator can get
-    function getLiquidatableCollateralBySettlement(address token, uint256 settlementX10_S)
-        external
-        view
-        returns (uint256 collateral);
-
-    /// @notice Get a trader's repaid settlement amount by a given collateral amount
-    /// @param token The address of the token of the trader's collateral
-    /// @param collateral The amount of collateral token the liquidator wants to get
-    /// @return settlementX10_S The settlement amount(in settlement token's decimals) the liquidator needs to pay
-    function getRepaidSettlementByCollateral(address token, uint256 collateral)
-        external
-        view
-        returns (uint256 settlementX10_S);
-
-    /// @notice Get a trader's max repaid settlement & max liquidatable collateral by a given collateral token
-    /// @param trader The address of the trader
-    /// @param token The address of the token of the trader's collateral
-    /// @return maxRepaidSettlementX10_S The maximum settlement amount(in settlement token's decimals)
-    ///         the liquidator needs to pay to liquidate a trader's collateral token
-    /// @return maxLiquidatableCollateral The maximum liquidatable collateral amount
-    ///         (in the collateral token's native decimals) of a trader
-    function getMaxRepaidSettlementAndLiquidatableCollateral(address trader, address token)
-        external
-        view
-        returns (uint256 maxRepaidSettlementX10_S, uint256 maxLiquidatableCollateral);
-
     /// @notice Get settlement token decimals
     /// @dev cached the settlement token's decimal for gas optimization
     /// @return decimals The decimals of settlement token
@@ -264,10 +196,6 @@ interface IVault {
     /// @notice Get `ClearingHouse` contract address
     /// @return clearingHouse The address of `ClearingHouse` contract
     function getClearingHouse() external view returns (address clearingHouse);
-
-    /// @notice Get `CollateralManager` contract address
-    /// @return clearingHouse The address of `CollateralManager` contract
-    function getCollateralManager() external view returns (address clearingHouse);
 
     /// @notice Get `WETH9` contract address
     /// @return clearingHouse The address of `WETH9` contract
