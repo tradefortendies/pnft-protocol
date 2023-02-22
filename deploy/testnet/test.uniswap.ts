@@ -31,7 +31,7 @@ import { ClearingHouseFixture, createClearingHouseFixture } from "../../test/cle
 
 import helpers from "../helpers";
 import { encodePriceSqrt, isAscendingTokenOrder } from "../../test/shared/utilities"
-const {  waitForDeploy, verifyContract, loadDB, saveDB } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB } = helpers;
 
 describe("Deployment check", () => {
     const [admin, maker, trader, liquidator, priceAdmin, platformFund] = waffle.provider.getWallets()
@@ -76,7 +76,6 @@ describe("Deployment check", () => {
         deployData.vault = {} as ContractData
         deployData.collateralManager = {} as ContractData
         deployData.genericLogic = {} as ContractData
-        deployData.liquidityLogic = {} as ContractData
         deployData.exchangeLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
 

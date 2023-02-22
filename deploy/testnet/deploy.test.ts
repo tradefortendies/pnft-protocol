@@ -77,7 +77,6 @@ describe("Deployment check", () => {
         deployData.genericLogic = {} as ContractData
         deployData.vaultLogic = {} as ContractData
         deployData.fundingLogic = {} as ContractData
-        deployData.liquidityLogic = {} as ContractData
         deployData.exchangeLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
 
@@ -213,18 +212,6 @@ describe("Deployment check", () => {
             }
         }
         var fundingLogic = await ethers.getContractAt('FundingLogic', deployData.fundingLogic.address);
-        const LiquidityLogic = await ethers.getContractFactory("LiquidityLogic", {
-            libraries: {
-                GenericLogic: genericLogic.address,
-            },
-        });
-        {
-            const liquidityLogic = await waitForDeploy(await LiquidityLogic.deploy())
-            {
-                deployData.liquidityLogic.address = liquidityLogic.address;
-            }
-        }
-        var liquidityLogic = await ethers.getContractAt('LiquidityLogic', deployData.liquidityLogic.address);
         const ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
             libraries: {
                 GenericLogic: genericLogic.address,
@@ -436,7 +423,6 @@ describe("Deployment check", () => {
         let ClearingHouse = await ethers.getContractFactory("ClearingHouse", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                LiquidityLogic: liquidityLogic.address,
                 ExchangeLogic: exchangeLogic.address,
             },
         });

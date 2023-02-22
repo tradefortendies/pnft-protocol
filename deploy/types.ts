@@ -49,7 +49,6 @@ type DeployData = {
     genericLogic: ContractData,
     vaultLogic: ContractData,
     fundingLogic: ContractData,
-    liquidityLogic: ContractData,
     exchangeLogic: ContractData,
     clearingHouse: ContractData,
     clearingHouseConfig: ContractData,

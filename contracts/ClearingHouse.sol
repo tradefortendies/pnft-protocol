@@ -30,7 +30,6 @@ import { ClearingHouseStorage } from "./storage/ClearingHouseStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { AccountMarket } from "./lib/AccountMarket.sol";
-import { LiquidityLogic } from "./lib/LiquidityLogic.sol";
 import { ExchangeLogic } from "./lib/ExchangeLogic.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
@@ -199,7 +198,7 @@ contract ClearingHouse is
             DataTypes.AddLiquidityResponse memory
         )
     {
-        return LiquidityLogic.addLiquidity(address(this), params);
+        return GenericLogic.addLiquidity(address(this), params);
     }
 
     /// @inheritdoc IClearingHouse
@@ -214,7 +213,7 @@ contract ClearingHouse is
         onlyMaker
         returns (DataTypes.RemoveLiquidityResponse memory)
     {
-        return LiquidityLogic.removeLiquidity(address(this), params);
+        return GenericLogic.removeLiquidity(address(this), params);
     }
 
     /// @inheritdoc IClearingHouse
@@ -247,7 +246,6 @@ contract ClearingHouse is
     {
         // openPosition() is already published, returned types remain the same (without fee)
         (base, quote, ) = _openPositionFor(_msgSender(), params);
-
         return (base, quote);
     }
 
