@@ -55,6 +55,34 @@ library ClearingHouseLogic {
         int24 tick;
     }
 
+    struct InternalLiquidateParams {
+        address chAddress;
+        address marketRegistry;
+        address liquidator;
+        address trader;
+        address baseToken;
+        int256 positionSizeToBeLiquidated;
+        bool isForced;
+    }
+
+    struct InternalLiquidateVars {
+        int256 positionSize;
+        int256 openNotional;
+        uint256 liquidationPenalty;
+        int256 accountValue;
+        int256 liquidatedPositionSize;
+        int256 liquidatedPositionNotional;
+        uint256 liquidationFeeToLiquidator;
+        uint256 liquidationFeeToIF;
+        int256 liquidatorExchangedPositionNotional;
+        int256 accountValueAfterLiquidationX10_18;
+        int256 insuranceFundCapacityX10_18;
+        int256 liquidatorExchangedPositionSize;
+        address insuranceFund;
+        int256 traderRealizedPnl;
+        int256 liquidatorRealizedPnl;
+    }
+
     //
     function _openPosition(
         address chAddress,
@@ -351,34 +379,6 @@ library ClearingHouseLogic {
             realizedPnl,
             currentPrice // sqrtPriceAfterX96: no swap, so market price didn't change
         );
-    }
-
-    struct InternalLiquidateParams {
-        address chAddress;
-        address marketRegistry;
-        address liquidator;
-        address trader;
-        address baseToken;
-        int256 positionSizeToBeLiquidated;
-        bool isForced;
-    }
-
-    struct InternalLiquidateVars {
-        int256 positionSize;
-        int256 openNotional;
-        uint256 liquidationPenalty;
-        int256 accountValue;
-        int256 liquidatedPositionSize;
-        int256 liquidatedPositionNotional;
-        uint256 liquidationFeeToLiquidator;
-        uint256 liquidationFeeToIF;
-        int256 liquidatorExchangedPositionNotional;
-        int256 accountValueAfterLiquidationX10_18;
-        int256 insuranceFundCapacityX10_18;
-        int256 liquidatorExchangedPositionSize;
-        address insuranceFund;
-        int256 traderRealizedPnl;
-        int256 liquidatorRealizedPnl;
     }
 
     function liquidate(
