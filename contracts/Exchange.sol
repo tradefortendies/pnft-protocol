@@ -11,7 +11,6 @@ import { IUniswapV3SwapCallback } from "@uniswap/v3-core/contracts/interfaces/ca
 import { BlockContext } from "./base/BlockContext.sol";
 import { UniswapV3Broker } from "./lib/UniswapV3Broker.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
-import { PerpFixedPoint96 } from "./lib/PerpFixedPoint96.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { AccountMarket } from "./lib/AccountMarket.sol";
 import { ClearingHouseCallee } from "./base/ClearingHouseCallee.sol";
@@ -331,14 +330,14 @@ contract Exchange is
             balanceCoefficientInFundingPayment = PerpMath.mulDiv(
                 baseBalance,
                 fundingGrowthGlobal.twLongPremiumX96.sub(twLongPremiumGrowthGlobalX96),
-                uint256(PerpFixedPoint96._IQ96)
+                uint256(PerpMath._IQ96)
             );
         }
         if (baseBalance < 0) {
             balanceCoefficientInFundingPayment = PerpMath.mulDiv(
                 baseBalance,
                 fundingGrowthGlobal.twShortPremiumX96.sub(twShortPremiumGrowthGlobalX96),
-                uint256(PerpFixedPoint96._IQ96)
+                uint256(PerpMath._IQ96)
             );
         }
         return balanceCoefficientInFundingPayment.div(_DEFAULT_FUNDING_PERIOD);
@@ -663,7 +662,7 @@ contract Exchange is
             // // log(1e9 * 2^96 * (3600 * 24 * 365) * 2^96) / log(2) = 246.8078491997 < 255
             // // twPremiumDivBySqrtPrice += deltaTwPremium / getSqrtMarkTwap(baseToken)
             // fundingGrowthGlobal.twPremiumDivBySqrtPriceX96 = lastFundingGrowthGlobal.twPremiumDivBySqrtPriceX96.add(
-            //     PerpMath.mulDiv(deltaTwPremiumX96, PerpFixedPoint96._IQ96, getSqrtMarkTwapX96(baseToken, 0))
+            //     PerpMath.mulDiv(deltaTwPremiumX96, PerpMath._IQ96, getSqrtMarkTwapX96(baseToken, 0))
             // );
 
             InternalFundingGrowthGlobalAndTwapsVars memory vars;

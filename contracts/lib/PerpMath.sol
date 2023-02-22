@@ -9,6 +9,9 @@ import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/Sa
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 
 library PerpMath {
+    // CONST
+    int256 internal constant _IQ96 = 0x1000000000000000000000000;
+
     using PerpSafeCast for int256;
     using PerpSafeCast for uint256;
     using PerpMath for int256;
