@@ -14,7 +14,6 @@ import { IInsuranceFund } from "../interface/IInsuranceFund.sol";
 import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import { PerpSafeCast } from "./PerpSafeCast.sol";
 import { PerpMath } from "./PerpMath.sol";
-import { SettlementTokenMath } from "./SettlementTokenMath.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { DataTypes } from "../types/DataTypes.sol";
@@ -29,7 +28,6 @@ library GenericLogic {
     using PerpMath for uint160;
     using PerpMath for uint128;
     using PerpMath for int256;
-    using SettlementTokenMath for int256;
 
     uint256 internal constant _FULLY_CLOSED_RATIO = 1e18;
 
