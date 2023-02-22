@@ -90,12 +90,12 @@ export function createClearingHouseFixture(
 
         let GenericLogic = await ethers.getContractFactory("GenericLogic");
         let genericLogic = await GenericLogic.deploy();
-        let ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
+        let ClearingHouseLogic = await ethers.getContractFactory("ClearingHouseLogic", {
             libraries: {
                 GenericLogic: genericLogic.address,
             },
         });
-        let exchangeLogic = await ExchangeLogic.deploy();
+        let clearingHouseLogic = await ClearingHouseLogic.deploy();
 
         const wethDecimals = await WETH.decimals()
 
@@ -147,7 +147,7 @@ export function createClearingHouseFixture(
             const exchangeFactory = await ethers.getContractFactory("TestExchange", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    ExchangeLogic: exchangeLogic.address,
+                    ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
             exchange = (await exchangeFactory.deploy()) as TestExchange
@@ -158,7 +158,7 @@ export function createClearingHouseFixture(
             const exchangeFactory = await ethers.getContractFactory("Exchange", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    ExchangeLogic: exchangeLogic.address,
+                    ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
             exchange = (await exchangeFactory.deploy()) as Exchange
@@ -217,7 +217,7 @@ export function createClearingHouseFixture(
             const clearingHouseFactory = await ethers.getContractFactory("TestClearingHouse", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    ExchangeLogic: exchangeLogic.address,
+                    ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
             const testClearingHouse = (await clearingHouseFactory.deploy()) as TestClearingHouse
@@ -241,7 +241,7 @@ export function createClearingHouseFixture(
             const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    ExchangeLogic: exchangeLogic.address,
+                    ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
             clearingHouse = (await clearingHouseFactory.deploy()) as ClearingHouse
@@ -374,12 +374,12 @@ export async function mockedBaseTokenTo(longerThan: boolean, targetAddr: string)
 export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseFixture> {
     let GenericLogic = await ethers.getContractFactory("GenericLogic");
     let genericLogic = await GenericLogic.deploy();
-    let ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
+    let ClearingHouseLogic = await ethers.getContractFactory("ClearingHouseLogic", {
         libraries: {
             GenericLogic: genericLogic.address,
         },
     });
-    let exchangeLogic = await ExchangeLogic.deploy();
+    let clearingHouseLogic = await ClearingHouseLogic.deploy();
 
     const token1 = await createQuoteTokenFixture("RandomVirtualToken", "RVT")()
 
@@ -438,7 +438,7 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
     // deploy clearingHouse
     const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse", {
         libraries: {
-            ExchangeLogic: exchangeLogic.address,
+            ClearingHouseLogic: clearingHouseLogic.address,
         },
     })
     const clearingHouse = (await clearingHouseFactory.deploy()) as ClearingHouse

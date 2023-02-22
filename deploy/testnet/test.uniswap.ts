@@ -76,7 +76,7 @@ describe("Deployment check", () => {
         deployData.vault = {} as ContractData
         deployData.collateralManager = {} as ContractData
         deployData.genericLogic = {} as ContractData
-        deployData.exchangeLogic = {} as ContractData
+        deployData.clearingHouseLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
 
         let ProxyAdmin = await ethers.getContractFactory('ProxyAdmin');

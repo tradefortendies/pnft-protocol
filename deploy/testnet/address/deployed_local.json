@@ -99,7 +99,7 @@
     "vaultLogic": {
         "address": "0x44BBf3B3b9aA0Cd59d1B384D0621FF8999677361"
     },
-    "exchangeLogic": {
+    "clearingHouseLogic": {
         "address": "0xba0448BcBb3b9390f3844Cf9BD3e373f08B1287A"
     },
     "clearingHouseConfig": {

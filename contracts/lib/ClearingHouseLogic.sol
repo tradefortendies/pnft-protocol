@@ -22,7 +22,7 @@ import { GenericLogic } from "../lib/GenericLogic.sol";
 import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
 import "hardhat/console.sol";
 
-library ExchangeLogic {
+library ClearingHouseLogic {
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
     using PerpSafeCast for uint256;

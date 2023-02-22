@@ -26,7 +26,7 @@ import { BaseRelayRecipient } from "./gsn/BaseRelayRecipient.sol";
 import { ClearingHouseStorage } from "./storage/ClearingHouseStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
-import { ExchangeLogic } from "./lib/ExchangeLogic.sol";
+import { ClearingHouseLogic } from "./lib/ClearingHouseLogic.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { DataTypes } from "./types/DataTypes.sol";
@@ -216,7 +216,7 @@ contract ClearingHouse is
             fundingPaymentTotal = fundingPaymentTotal.add(fundingPayment);
         }
         // reward miner
-        ExchangeLogic.rewardMinerMint(address(this), trader, 0, fundingPaymentTotal.neg256());
+        ClearingHouseLogic.rewardMinerMint(address(this), trader, 0, fundingPaymentTotal.neg256());
     }
 
     /// @inheritdoc IClearingHouse
@@ -264,7 +264,7 @@ contract ClearingHouse is
         checkDeadline(params.deadline)
         returns (uint256 base, uint256 quote, uint256 fee)
     {
-        return ExchangeLogic.closePosition(address(this), _msgSender(), params);
+        return ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
     }
 
     /// @inheritdoc IClearingHouse
@@ -417,8 +417,8 @@ contract ClearingHouse is
         bool isForced
     ) internal returns (uint256 base, uint256 quote, uint256 fee) {
         return
-            ExchangeLogic.liquidate(
-                ExchangeLogic.InternalLiquidateParams({
+            ClearingHouseLogic.liquidate(
+                ClearingHouseLogic.InternalLiquidateParams({
                     chAddress: address(this),
                     marketRegistry: _marketRegistry,
                     liquidator: _msgSender(),
@@ -434,7 +434,7 @@ contract ClearingHouse is
         address trader,
         DataTypes.OpenPositionParams memory params
     ) internal returns (uint256 base, uint256 quote, uint256 fee) {
-        return ExchangeLogic.openPositionFor(address(this), trader, params);
+        return ClearingHouseLogic.openPositionFor(address(this), trader, params);
     }
 
     //

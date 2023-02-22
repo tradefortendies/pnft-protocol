@@ -25,7 +25,7 @@ import { ExchangeStorageV2 } from "./storage/ExchangeStorage.sol";
 import { IExchange } from "./interface/IExchange.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
-import { ExchangeLogic } from "./lib/ExchangeLogic.sol";
+import { ClearingHouseLogic } from "./lib/ClearingHouseLogic.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract Exchange is
@@ -140,7 +140,7 @@ contract Exchange is
 
     function internalSwap(SwapParams memory params) external override returns (SwapResponse memory) {
         _requireOnlyClearingHouse();
-        ExchangeLogic.InternalSwapResponse memory response = _swap(params);
+        ClearingHouseLogic.InternalSwapResponse memory response = _swap(params);
         return
             SwapResponse({
                 base: response.base.abs(),
@@ -211,7 +211,7 @@ contract Exchange is
             params.trader,
             params.baseToken
         );
-        ExchangeLogic.InternalSwapResponse memory response = _swap(params);
+        ClearingHouseLogic.InternalSwapResponse memory response = _swap(params);
 
         // if (!params.isClose) {
         // over price limit after swap
@@ -544,8 +544,8 @@ contract Exchange is
     }
 
     /// @dev customized fee: https://www.notion.so/perp/Customise-fee-tier-on-B2QFee-1b7244e1db63416c8651e8fa04128cdb
-    function _swap(SwapParams memory params) internal returns (ExchangeLogic.InternalSwapResponse memory) {
-        ExchangeLogic.InternalSwapResponse memory res = ExchangeLogic.swap(_clearingHouse, params);
+    function _swap(SwapParams memory params) internal returns (ClearingHouseLogic.InternalSwapResponse memory) {
+        ClearingHouseLogic.InternalSwapResponse memory res = ClearingHouseLogic.swap(_clearingHouse, params);
         if (_firstTradedTimestampMap[params.baseToken] == 0) {
             _firstTradedTimestampMap[params.baseToken] = _blockTimestamp();
         }
@@ -892,6 +892,6 @@ contract Exchange is
     function estimateSwap(
         DataTypes.OpenPositionParams memory params
     ) external view override returns (IOrderBook.ReplaySwapResponse memory) {
-        return ExchangeLogic.estimateSwap(_clearingHouse, params);
+        return ClearingHouseLogic.estimateSwap(_clearingHouse, params);
     }
 }

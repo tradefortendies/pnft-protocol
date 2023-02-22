@@ -25,11 +25,11 @@ async function deploy() {
     //
     if (deployData.clearingHouse.implAddress == undefined || deployData.clearingHouse.implAddress == '') {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
+        var clearingHouseLogic = await hre.ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
         let ClearingHouse = await hre.ethers.getContractFactory("ClearingHouse", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                ExchangeLogic: exchangeLogic.address,
+                ClearingHouseLogic: clearingHouseLogic.address,
             },
         });
         const clearingHouse = await waitForDeploy(await ClearingHouse.deploy())
@@ -71,7 +71,7 @@ async function deploy() {
     }
     {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
+        var clearingHouseLogic = await hre.ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
         await verifyContract(
             deployData,
             network,
@@ -79,7 +79,7 @@ async function deploy() {
             [],
             {
                 GenericLogic: genericLogic.address,
-                ExchangeLogic: exchangeLogic.address,
+                ClearingHouseLogic: clearingHouseLogic.address,
             },
             "contracts/ClearingHouse.sol:ClearingHouse",
         )

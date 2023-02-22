@@ -23,11 +23,11 @@ async function deploy() {
     // 
     if (deployData.exchange.implAddress == undefined || deployData.exchange.implAddress == '') {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
+        var clearingHouseLogic = await hre.ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
         let Exchange = await hre.ethers.getContractFactory("Exchange", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                ExchangeLogic: exchangeLogic.address,
+                ClearingHouseLogic: clearingHouseLogic.address,
             },
         });
         const exchange = await waitForDeploy(await Exchange.deploy())

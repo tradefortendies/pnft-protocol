@@ -99,7 +99,7 @@
     "vaultLogic": {
         "address": ""
     },
-    "exchangeLogic": {
+    "clearingHouseLogic": {
         "address": ""
     },
     "clearingHouseConfig": {

@@ -76,7 +76,7 @@ describe("Deployment check", () => {
         deployData.collateralManager = {} as ContractData
         deployData.genericLogic = {} as ContractData
         deployData.vaultLogic = {} as ContractData
-        deployData.exchangeLogic = {} as ContractData
+        deployData.clearingHouseLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
 
         let ProxyAdmin = await ethers.getContractFactory('ProxyAdmin');
@@ -203,18 +203,18 @@ describe("Deployment check", () => {
             }
         }
         var genericLogic = await ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        const ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
+        const ClearingHouseLogic = await ethers.getContractFactory("ClearingHouseLogic", {
             libraries: {
                 GenericLogic: genericLogic.address,
             },
         });
         {
-            const exchangeLogic = await waitForDeploy(await ExchangeLogic.deploy())
+            const clearingHouseLogic = await waitForDeploy(await ClearingHouseLogic.deploy())
             {
-                deployData.exchangeLogic.address = exchangeLogic.address;
+                deployData.clearingHouseLogic.address = clearingHouseLogic.address;
             }
         }
-        var exchangeLogic = await ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
+        var clearingHouseLogic = await ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
 
         const ClearingHouseConfig = await ethers.getContractFactory("ClearingHouseConfig");
         {
@@ -303,7 +303,7 @@ describe("Deployment check", () => {
         let Exchange = await ethers.getContractFactory("Exchange", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                ExchangeLogic: exchangeLogic.address,
+                ClearingHouseLogic: clearingHouseLogic.address,
             },
         });
         if (deployData.exchange.implAddress == undefined || deployData.exchange.implAddress == '') {
@@ -413,7 +413,7 @@ describe("Deployment check", () => {
         let ClearingHouse = await ethers.getContractFactory("ClearingHouse", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                ExchangeLogic: exchangeLogic.address,
+                ClearingHouseLogic: clearingHouseLogic.address,
             },
         });
         {
