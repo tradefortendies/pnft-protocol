@@ -95,19 +95,19 @@ contract TestSettlementTokenMath {
         return amount.formatSettlementToken(decimals);
     }
 
-    function testConvertTokenDecimals(
-        uint256 amount,
-        uint8 fromDecimals,
-        uint8 toDecimals
-    ) external pure returns (uint256) {
-        return amount.convertTokenDecimals(fromDecimals, toDecimals);
-    }
+    // function testConvertTokenDecimals(
+    //     uint256 amount,
+    //     uint8 fromDecimals,
+    //     uint8 toDecimals
+    // ) external pure returns (uint256) {
+    //     return amount.convertTokenDecimals(fromDecimals, toDecimals);
+    // }
 
-    function testConvertTokenDecimals(
-        int256 amount,
-        uint8 fromDecimals,
-        uint8 toDecimals
-    ) external pure returns (int256) {
-        return amount.convertTokenDecimals(fromDecimals, toDecimals);
-    }
+    // function testConvertTokenDecimals(
+    //     int256 amount,
+    //     uint8 fromDecimals,
+    //     uint8 toDecimals
+    // ) external pure returns (int256) {
+    //     return amount.convertTokenDecimals(fromDecimals, toDecimals);
+    // }
 }
