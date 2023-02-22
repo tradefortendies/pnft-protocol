@@ -1,7 +1,13 @@
-npx hardhat run deploy/testnet/migrate_1Contracts.ts --network local --no-compile
-npx hardhat run deploy/testnet/migrate_2Init_Config.ts --network local --no-compile
-npx hardhat run deploy/testnet/migrate_3GetPrices.ts --network mainnet --no-compile
-npx hardhat run deploy/testnet/migrate_4SetPrices.ts --network local --no-compile
-npx hardhat run deploy/testnet/migrate_5InitVToken.ts --network local --no-compile
-npx hardhat run deploy/testnet/migrate_6AddLiquidity.ts --network local --no-compile
-# npx hardhat run deploy/testnet/migrate_8Faucet.ts --network local --no-compile
+# 
+# 
+# 
+
+npx hardhat run deploy/mainnet/migrate_1ContractInit.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_2ConfigUpdate.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_3PriceGet.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_4PriceSet.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_5VTokenInit.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_6LiquidityAdd.ts --network local --no-compile
+npx hardhat run deploy/mainnet/migrate_8MinerStart.ts --network local --no-compile
+
+npx hardhat run deploy/mainnet/migrate_Console.ts --network local --no-compile

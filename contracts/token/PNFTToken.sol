@@ -2,19 +2,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity 0.7.6;
 pragma abicoder v2;
+
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/math/Math.sol";
 import "@openzeppelin/contracts/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/Initializable.sol";
+import "./PNFTTokenStorage.sol";
 
 /**
  * @title PNFTToken
@@ -25,48 +23,10 @@ contract PNFTToken is
     ERC20BurnableUpgradeable,
     PausableUpgradeable,
     OwnableUpgradeable,
-    ReentrancyGuard
+    ReentrancyGuard,
+    PNFTTokenStorageV1
 {
     using SafeMath for uint256;
-
-    struct VestingScheduleParams {
-        address beneficiary;
-        uint256 start;
-        uint256 cliff;
-        uint256 duration;
-        uint256 slicePeriodSeconds;
-        bool revocable;
-        uint256 unvestingAmount;
-        uint256 amount;
-    }
-
-    struct VestingSchedule {
-        bool initialized;
-        // beneficiary of tokens after they are released
-        address beneficiary;
-        // cliff period in seconds
-        uint256 cliff;
-        // start time of the vesting period
-        uint256 start;
-        // duration of the vesting period in seconds
-        uint256 duration;
-        // duration of a slice period for the vesting in seconds
-        uint256 slicePeriodSeconds;
-        // whether or not the vesting is revocable
-        bool revocable;
-        // total amount of tokens to be released at the end of the vesting
-        uint256 amountTotal;
-        // amount of tokens released
-        uint256 released;
-        // whether or not the vesting has been revoked
-        bool revoked;
-    }
-
-    // address of the ERC20 token
-    bytes32[] private vestingSchedulesIds;
-    mapping(bytes32 => VestingSchedule) private vestingSchedules;
-    uint256 private vestingSchedulesTotalAmount;
-    mapping(address => uint256) private holdersVestingCount;
 
     event Released(uint256 amount);
     event Revoked();
@@ -75,7 +35,7 @@ contract PNFTToken is
      * @dev Reverts if no vesting schedule matches the passed identifier.
      */
     modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true);
+        require(_vestingSchedules[vestingScheduleId].initialized == true);
         _;
     }
 
@@ -83,8 +43,8 @@ contract PNFTToken is
      * @dev Reverts if the vesting schedule does not exist or has been revoked.
      */
     modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true);
-        require(vestingSchedules[vestingScheduleId].revoked == false);
+        require(_vestingSchedules[vestingScheduleId].initialized == true);
+        require(_vestingSchedules[vestingScheduleId].revoked == false);
         _;
     }
 
@@ -118,7 +78,7 @@ contract PNFTToken is
      * @return the number of vesting schedules
      */
     function getVestingSchedulesCountByBeneficiary(address _beneficiary) external view returns (uint256) {
-        return holdersVestingCount[_beneficiary];
+        return _holdersVestingCount[_beneficiary];
     }
 
     /**
@@ -127,7 +87,7 @@ contract PNFTToken is
      */
     function getVestingIdAtIndex(uint256 index) external view returns (bytes32) {
         require(index < getVestingSchedulesCount(), "PNFTToken: index out of bounds");
-        return vestingSchedulesIds[index];
+        return _vestingSchedulesIds[index];
     }
 
     /**
@@ -146,7 +106,7 @@ contract PNFTToken is
      * @return the total amount of vesting schedules
      */
     function getVestingSchedulesTotalAmount() external view returns (uint256) {
-        return vestingSchedulesTotalAmount;
+        return _vestingSchedulesTotalAmount;
     }
 
     function createVestingScheduleBatch(VestingScheduleParams[] calldata params) public onlyOwner {
@@ -164,7 +124,7 @@ contract PNFTToken is
         require(params.slicePeriodSeconds >= 1, "PNFTToken: slicePeriodSeconds must be >= 1");
         bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(params.beneficiary);
         uint256 cliff = params.start.add(params.cliff);
-        vestingSchedules[vestingScheduleId] = VestingSchedule(
+        _vestingSchedules[vestingScheduleId] = VestingSchedule(
             true,
             params.beneficiary,
             cliff,
@@ -176,10 +136,10 @@ contract PNFTToken is
             0,
             false
         );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(params.amount);
-        vestingSchedulesIds.push(vestingScheduleId);
-        uint256 currentVestingCount = holdersVestingCount[params.beneficiary];
-        holdersVestingCount[params.beneficiary] = currentVestingCount.add(1);
+        _vestingSchedulesTotalAmount = _vestingSchedulesTotalAmount.add(params.amount);
+        _vestingSchedulesIds.push(vestingScheduleId);
+        uint256 currentVestingCount = _holdersVestingCount[params.beneficiary];
+        _holdersVestingCount[params.beneficiary] = currentVestingCount.add(1);
         if (params.unvestingAmount > 0) {
             address payable beneficiaryPayable = payable(params.beneficiary);
             _mint(beneficiaryPayable, params.unvestingAmount);
@@ -191,14 +151,14 @@ contract PNFTToken is
      * @param vestingScheduleId the vesting schedule identifier
      */
     function revoke(bytes32 vestingScheduleId) public onlyOwner onlyIfVestingScheduleNotRevoked(vestingScheduleId) {
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        VestingSchedule storage vestingSchedule = _vestingSchedules[vestingScheduleId];
         require(vestingSchedule.revocable == true, "PNFTToken: vesting is not revocable");
         uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
         if (vestedAmount > 0) {
             release(vestingScheduleId);
         }
         uint256 unreleased = vestingSchedule.amountTotal.sub(vestingSchedule.released);
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(unreleased);
+        _vestingSchedulesTotalAmount = _vestingSchedulesTotalAmount.sub(unreleased);
         vestingSchedule.revoked = true;
     }
 
@@ -207,14 +167,14 @@ contract PNFTToken is
      * @param vestingScheduleId the vesting schedule identifier
      */
     function release(bytes32 vestingScheduleId) public nonReentrant onlyIfVestingScheduleNotRevoked(vestingScheduleId) {
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        VestingSchedule storage vestingSchedule = _vestingSchedules[vestingScheduleId];
         bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
         bool isOwner = msg.sender == owner();
         require(isBeneficiary || isOwner, "PNFTToken: only beneficiary and owner can release vested tokens");
         uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
         vestingSchedule.released = vestingSchedule.released.add(vestedAmount);
         address payable beneficiaryPayable = payable(vestingSchedule.beneficiary);
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(vestedAmount);
+        _vestingSchedulesTotalAmount = _vestingSchedulesTotalAmount.sub(vestedAmount);
         _mint(beneficiaryPayable, vestedAmount);
     }
 
@@ -223,7 +183,7 @@ contract PNFTToken is
      * @return the number of vesting schedules
      */
     function getVestingSchedulesCount() public view returns (uint256) {
-        return vestingSchedulesIds.length;
+        return _vestingSchedulesIds.length;
     }
 
     /**
@@ -233,7 +193,7 @@ contract PNFTToken is
     function computeReleasableAmount(
         bytes32 vestingScheduleId
     ) public view onlyIfVestingScheduleNotRevoked(vestingScheduleId) returns (uint256) {
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        VestingSchedule storage vestingSchedule = _vestingSchedules[vestingScheduleId];
         return _computeReleasableAmount(vestingSchedule);
     }
 
@@ -242,21 +202,21 @@ contract PNFTToken is
      * @return the vesting schedule structure information
      */
     function getVestingSchedule(bytes32 vestingScheduleId) public view returns (VestingSchedule memory) {
-        return vestingSchedules[vestingScheduleId];
+        return _vestingSchedules[vestingScheduleId];
     }
 
     /**
      * @dev Computes the next vesting schedule identifier for a given holder address.
      */
     function computeNextVestingScheduleIdForHolder(address holder) public view returns (bytes32) {
-        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder]);
+        return computeVestingScheduleIdForAddressAndIndex(holder, _holdersVestingCount[holder]);
     }
 
     /**
      * @dev Returns the last vesting schedule for a given holder address.
      */
     function getLastVestingScheduleForHolder(address holder) public view returns (VestingSchedule memory) {
-        return vestingSchedules[computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder] - 1)];
+        return _vestingSchedules[computeVestingScheduleIdForAddressAndIndex(holder, _holdersVestingCount[holder] - 1)];
     }
 
     /**

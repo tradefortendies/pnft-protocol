@@ -7,13 +7,13 @@ import migrateBaseTokenAll from "./5_migrate_BaseToken_All";
 import migrateLibrary from "./6_migrate_Library";
 import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
 import migrateMarketRegistry from "./8_migrate_MarketRegistry";
-import migrateAccountBalance from "./10_migrate_AccountBalance";
-import migrateExchange from "./11_migrate_Exchange";
-import migrateInsuranceFund from "./12_migrate_InsuranceFund";
-import migrateVault from "./13_migrate_Vault";
-import migrateClearingHouse from "./15_migrate_ClearingHouse";
-import migratePNFTToken from "./20_migrate_PNFTToken";
-import migrateRewardMiner from "./21_migrate_RewardMiner";
+import migrateAccountBalance from "./9_migrate_AccountBalance";
+import migrateExchange from "./10_migrate_Exchange";
+import migrateInsuranceFund from "./11_migrate_InsuranceFund";
+import migrateVault from "./12_migrate_Vault";
+import migrateClearingHouse from "./13_migrate_ClearingHouse";
+import migratePNFTToken from "./14_migrate_PNFTToken";
+import migrateRewardMiner from "./15_migrate_RewardMiner";
 
 async function main() {
     await deploy();

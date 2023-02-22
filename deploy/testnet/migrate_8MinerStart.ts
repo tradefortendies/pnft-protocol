@@ -3,12 +3,11 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, CollateralManager, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
 const { waitForTx, tryWaitForTx, loadDB, saveDB } = helpers;
-
 
 async function main() {
     await deploy();
@@ -23,14 +22,14 @@ async function deploy() {
     // deploy UniV3 factory
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
 
-    await waitForTx(
-        await rewardMiner.startMiner(0),
-        'rewardMiner.startMiner()'
-    )
-    await waitForTx(
-        await rewardMiner.startPnlMiner(1, 666666),
-        'rewardMiner.startPnlMiner(1, 666666)'
-    )
+    // await waitForTx(
+    //     await rewardMiner.startMiner(0),
+    //     'rewardMiner.startMiner()'
+    // )
+    // await waitForTx(
+    //     await rewardMiner.startPnlMiner(1, 666666),
+    //     'rewardMiner.startPnlMiner(1, 666666)'
+    // )
 
 }
 
