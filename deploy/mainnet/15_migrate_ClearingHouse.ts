@@ -19,17 +19,20 @@ async function deploy() {
 
     // 
     const TransparentUpgradeableProxy = await hre.ethers.getContractFactory('TransparentUpgradeableProxy');
-    const GenericLogic = await hre.ethers.getContractFactory("GenericLogic");
     // 
     var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
+    if (network == 'local') {
+        const [admin, maker, priceAdmin, platformFund, trader, liquidator] = await ethers.getSigners()
+        deployData.platformFundAddress = platformFund.address
+        deployData.makerFundAddress = maker.address
+    }
     //
     if (deployData.clearingHouse.implAddress == undefined || deployData.clearingHouse.implAddress == '') {
-        var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var clearingHouseLogic = await hre.ethers.getContractAt('ClearingHouseLogic', deployData.clearingHouseLogic.address);
         let ClearingHouse = await hre.ethers.getContractFactory("ClearingHouse", {
             libraries: {
-                GenericLogic: genericLogic.address,
-                ClearingHouseLogic: clearingHouseLogic.address,
+                UniswapV3Broker: deployData.uniswapV3Broker.address,
+                GenericLogic: deployData.genericLogic.address,
+                ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
         });
         const clearingHouse = await waitForDeploy(await ClearingHouse.deploy())

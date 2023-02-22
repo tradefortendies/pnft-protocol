@@ -93,50 +93,42 @@
     "uniswapV3Factory": {
         "address": "0x4893376342d5D7b3e31d4184c08b265e5aB2A3f6"
     },
-    "genericLogic": {
-        "address": "0x65CCf42BFA035911C2e77ECF9b34B63CFa60203E"
+    "uniswapV3Broker": {
+        "address": "0x60500F0D427a165bB2c9842f1e9fD0C0cdDFF1C6"
     },
-    "vaultLogic": {
-        "address": "0xD5f9872549FB65CCD37fb5cF113dfE6De214730d"
+    "genericLogic": {
+        "address": "0x0bD6d508937faD788039def77eE2675641e7E6B8"
     },
     "clearingHouseLogic": {
-        "address": "0x6d6E1080D69Dd99b7Ff0E656B4CDe020e4E48DCD"
+        "address": "0xcb778c86552BC2C2fDfAf54a7F6c62eb2885e0f4"
     },
     "clearingHouseConfig": {
         "address": "0x53D711e7695100381306AAFCa4b295A141f8d955",
-        "implAddress": "0x7A770C01D8cf1B6565315D37444C57A1Cd5d0097"
+        "implAddress": "0x4060055fb846b8be10954c69f1f73984C8149A76"
     },
     "marketRegistry": {
         "address": "0x8D6aD71E77EBc89275925c32B0B3A5D7e180383a",
-        "implAddress": "0xf0ced15e691F55FeF595310e8554dF395054DAe2"
-    },
-    "orderBook": {
-        "address": "0x0B0d6dd9f11c4e0407DCA2EEc3f5B4bA89C51ce2",
-        "implAddress": "0x140d7085f478A0Fa68E4eAa6686D26229584CFFa"
+        "implAddress": "0x3477fdf38B0c7BCa6F0aE511D6696F1A11d101Bc"
     },
     "accountBalance": {
         "address": "0x47C516F9cF7a0141af67F9204643a54dfD022abd",
-        "implAddress": "0x918033038F16c7826d0FD8371ac817b91Cc54572"
+        "implAddress": "0xa62e67712e8dd266b44bdCB17A4d53D608B594b0"
     },
     "exchange": {
         "address": "0x79b2B0B20B53a8d269375B9e2C030b7Ca0C22d50",
-        "implAddress": "0x62C3184De283B8EBd5005d93137e80A16712D30c"
+        "implAddress": "0x2Ee383924303701260AD3eB50f8a405298dF2474"
     },
     "insuranceFund": {
         "address": "0xA01e4abB40E4546695E1051D82939f718e03198A",
-        "implAddress": "0x2f0EA01FEF4832DC839970Db2B3C2f2b2b65c068"
+        "implAddress": "0x93bFA1eEd7D6cbcBB12Cf9163C35AaC2ef11caD8"
     },
     "vault": {
         "address": "0x217AF33FA96dB0261bB9b570456203F81956e050",
-        "implAddress": "0xB35E620D6d0a94962E5F83b1Dc0486C11D9a1094"
-    },
-    "collateralManager": {
-        "address": "0xc31509cCeec35b29f9b35C3f3bD73f9753723e64",
-        "implAddress": "0xdb3576B1414372706683a406249385Ba62cE892c"
+        "implAddress": "0x2C3aB6b0C32eFAF7c0f9a61EB4F82ed9D16FA620"
     },
     "clearingHouse": {
         "address": "0xf55b291Acbda07E69e49e1Dfa078E6db1Ee70E42",
-        "implAddress": "0xF76c8C8B7BCEf3Ca25765314628d6eC0cdc65Af2"
+        "implAddress": "0x52D7b9c5F08cb0D6F753652e58873a94332c07C5"
     },
     "testFaucet": {
         "address": "0xafFABBC0bf710D1D0fdA35FAeEFBe1bB77c70EC2",

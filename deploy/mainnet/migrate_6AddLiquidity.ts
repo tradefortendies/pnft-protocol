@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { parseEther } from "ethers/lib/utils";
-import { ClearingHouse, Exchange, OrderBook, TestERC20, Vault } from "../../typechain";
+import { ClearingHouse, Exchange, TestERC20, Vault } from "../../typechain";
 
 import helpers from "../helpers";
 import { priceToTick } from "../../test/helper/number";
@@ -24,7 +24,6 @@ async function deploy() {
     const [admin, maker, priceAdmin] = await ethers.getSigners()
 
     // deploy UniV3 factory
-    var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
 
     let baseTokens = [
@@ -67,7 +66,7 @@ async function deploy() {
         var initLiquidity = initLiquidities[i]
 
         const baseToken = await hre.ethers.getContractAt('BaseToken', baseTokenAddress);
-        let liquidity = await orderBook.getLiquidity(baseToken.address)
+        let liquidity = await clearingHouse.getLiquidity(baseToken.address)
         if (initLiquidity.gt(liquidity)) {
             await waitForTx(
                 await clearingHouse.connect(maker).addLiquidity({

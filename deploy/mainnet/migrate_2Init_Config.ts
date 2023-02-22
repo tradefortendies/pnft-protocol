@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
@@ -24,7 +24,6 @@ async function deploy() {
     var uniswapV3Factory = await hre.ethers.getContractAt('UniswapV3Factory', deployData.uniswapV3Factory.address);
     var clearingHouseConfig = (await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address)) as ClearingHouseConfig;
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
-    var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
     var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
@@ -38,10 +37,6 @@ async function deploy() {
         await waitForTx(await exchange.setAccountBalance(accountBalance.address),
             'exchange.setAccountBalance(accountBalance.address)')
     }
-    if ((await orderBook.getExchange()).toLowerCase() != exchange.address.toLowerCase()) {
-        await waitForTx(await orderBook.setExchange(exchange.address),
-            'orderBook.setExchange(exchange.address)')
-    }
     if ((await insuranceFund.getVault()).toLowerCase() != vault.address.toLowerCase()) {
         await waitForTx(await insuranceFund.setVault(vault.address),
             'insuranceFund.setVault(vault.address)')
@@ -53,10 +48,6 @@ async function deploy() {
     if ((await marketRegistry.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(await marketRegistry.setClearingHouse(clearingHouse.address),
             'marketRegistry.setClearingHouse(clearingHouse.address)')
-    }
-    if ((await orderBook.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
-        await waitForTx(await orderBook.setClearingHouse(clearingHouse.address),
-            'orderBook.setClearingHouse(clearingHouse.address)')
     }
     if ((await exchange.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(await exchange.setClearingHouse(clearingHouse.address),
