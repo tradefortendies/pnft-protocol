@@ -94,12 +94,6 @@ export function createClearingHouseFixture(
         let genericLogic = await GenericLogic.deploy();
         let VaultLogic = await ethers.getContractFactory("VaultLogic");
         let vaultLogic = await VaultLogic.deploy();
-        let LiquidityLogic = await ethers.getContractFactory("LiquidityLogic", {
-            libraries: {
-                GenericLogic: genericLogic.address,
-            },
-        });
-        let liquidityLogic = await LiquidityLogic.deploy();
         let ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
             libraries: {
                 GenericLogic: genericLogic.address,
@@ -257,7 +251,6 @@ export function createClearingHouseFixture(
             const clearingHouseFactory = await ethers.getContractFactory("TestClearingHouse", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    LiquidityLogic: liquidityLogic.address,
                     ExchangeLogic: exchangeLogic.address,
                 },
             })
@@ -282,7 +275,6 @@ export function createClearingHouseFixture(
             const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse", {
                 libraries: {
                     GenericLogic: genericLogic.address,
-                    LiquidityLogic: liquidityLogic.address,
                     ExchangeLogic: exchangeLogic.address,
                 },
             })
@@ -417,12 +409,6 @@ export async function mockedBaseTokenTo(longerThan: boolean, targetAddr: string)
 export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseFixture> {
     let GenericLogic = await ethers.getContractFactory("GenericLogic");
     let genericLogic = await GenericLogic.deploy();
-    let LiquidityLogic = await ethers.getContractFactory("LiquidityLogic", {
-        libraries: {
-            GenericLogic: genericLogic.address,
-        },
-    });
-    let liquidityLogic = await LiquidityLogic.deploy();
     let ExchangeLogic = await ethers.getContractFactory("ExchangeLogic", {
         libraries: {
             GenericLogic: genericLogic.address,
@@ -487,7 +473,6 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
     // deploy clearingHouse
     const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse", {
         libraries: {
-            LiquidityLogic: liquidityLogic.address,
             ExchangeLogic: exchangeLogic.address,
         },
     })

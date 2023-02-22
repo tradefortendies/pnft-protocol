@@ -102,9 +102,6 @@
     "fundingLogic": {
         "address": ""
     },
-    "liquidityLogic": {
-        "address": ""
-    },
     "exchangeLogic": {
         "address": ""
     },

@@ -5,7 +5,7 @@ import helpers from "../helpers";
 
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -25,12 +25,10 @@ async function deploy() {
     //
     if (deployData.clearingHouse.implAddress == undefined || deployData.clearingHouse.implAddress == '') {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var liquidityLogic = await hre.ethers.getContractAt('LiquidityLogic', deployData.liquidityLogic.address);
         var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
         let ClearingHouse = await hre.ethers.getContractFactory("ClearingHouse", {
             libraries: {
                 GenericLogic: genericLogic.address,
-                LiquidityLogic: liquidityLogic.address,
                 ExchangeLogic: exchangeLogic.address,
             },
         });
@@ -73,8 +71,7 @@ async function deploy() {
     }
     {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        var liquidityLogic = await hre.ethers.getContractAt('LiquidityLogic', deployData.liquidityLogic.address);
-        var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.liquidityLogic.address);
+        var exchangeLogic = await hre.ethers.getContractAt('ExchangeLogic', deployData.exchangeLogic.address);
         await verifyContract(
             deployData,
             network,
@@ -82,7 +79,6 @@ async function deploy() {
             [],
             {
                 GenericLogic: genericLogic.address,
-                LiquidityLogic: liquidityLogic.address,
                 ExchangeLogic: exchangeLogic.address,
             },
             "contracts/ClearingHouse.sol:ClearingHouse",

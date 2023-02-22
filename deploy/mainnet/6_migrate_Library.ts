@@ -6,7 +6,7 @@ import helpers from "../helpers";
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
 import { FundingLogic } from "../../typechain";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -47,24 +47,11 @@ async function deploy() {
         }
     }
     var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-    const LiquidityLogic = await hre.ethers.getContractFactory("LiquidityLogic", {
-        libraries: {
-            GenericLogic: genericLogic.address,
-        },
-    });
     const ExchangeLogic = await hre.ethers.getContractFactory("ExchangeLogic", {
         libraries: {
             GenericLogic: genericLogic.address,
         },
     });
-    if (deployData.liquidityLogic.address == undefined || deployData.liquidityLogic.address == '') {
-        const liquidityLogic = await waitForDeploy(await LiquidityLogic.deploy())
-        {
-            deployData.liquidityLogic.address = liquidityLogic.address;
-            deployData = (await saveDB(network, deployData))
-            console.log('LiquidityLogic is deployed', liquidityLogic.address)
-        }
-    }
     if (deployData.exchangeLogic.address == undefined || deployData.exchangeLogic.address == '') {
         const exchangeLogic = await waitForDeploy(await ExchangeLogic.deploy())
         {
@@ -81,19 +68,6 @@ async function deploy() {
             [],
             {},
             "contracts/lib/GenericLogic.sol:GenericLogic",
-        )
-    }
-    {
-        var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
-        await verifyContract(
-            deployData,
-            network,
-            deployData.liquidityLogic.address,
-            [],
-            {
-                GenericLogic: genericLogic.address,
-            },
-            "contracts/lib/LiquidityLogic.sol:LiquidityLogic",
         )
     }
     {

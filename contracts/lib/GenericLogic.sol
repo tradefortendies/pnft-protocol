@@ -630,4 +630,136 @@ library GenericLogic {
 
         return pnlToBeRealized;
     }
+
+    function addLiquidity(
+        address chAddress,
+        DataTypes.AddLiquidityParams calldata params
+    )
+        public
+        returns (
+            // check onlyLiquidityAdmin
+            DataTypes.AddLiquidityResponse memory
+        )
+    {
+        // input requirement checks:
+        //   baseToken: in Exchange.settleFunding()
+        //   base & quote: in LiquidityAmounts.getLiquidityForAmounts() -> FullMath.mulDiv()
+        //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
+        //   minBase, minQuote & deadline: here
+
+        checkMarketOpen(params.baseToken);
+
+        // This condition is to prevent the intentional bad debt attack through price manipulation.
+        // CH_OMPS: Over the maximum price spread
+        // require(!IExchange(IClearingHouse(chAddress).getExchange()).isOverPriceSpread(params.baseToken), "CH_OMPS");
+
+        settleFundingGlobal(chAddress, params.baseToken);
+
+        // for multiplier
+        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = GenericLogic
+            .getInfoMultiplier(chAddress, params.baseToken);
+        // for multiplier
+
+        // note that we no longer check available tokens here because CH will always auto-mint in UniswapV3MintCallback
+        IOrderBook.AddLiquidityResponse memory response = IOrderBook(IClearingHouse(chAddress).getOrderBook())
+            .addLiquidity(IOrderBook.AddLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity }));
+
+        // for multiplier
+        updateInfoMultiplier(
+            chAddress,
+            params.baseToken,
+            oldLongPositionSize,
+            oldShortPositionSize,
+            oldDeltaQuote,
+            0,
+            0,
+            true
+        );
+        // for multiplier
+
+        emit LiquidityChanged(
+            params.baseToken,
+            IClearingHouse(chAddress).getQuoteToken(),
+            response.base.toInt256(),
+            response.quote.toInt256(),
+            response.liquidity.toInt128()
+        );
+
+        return
+            DataTypes.AddLiquidityResponse({
+                base: response.base,
+                quote: response.quote,
+                liquidity: response.liquidity
+            });
+    }
+
+    function _settleBalanceAndDeregister(
+        address chAddress,
+        address trader,
+        address baseToken,
+        int256 takerBase,
+        int256 takerQuote,
+        int256 realizedPnl,
+        int256 makerFee
+    ) internal {
+        IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).settleBalanceAndDeregister(
+            trader,
+            baseToken,
+            takerBase,
+            takerQuote,
+            realizedPnl,
+            makerFee
+        );
+    }
+
+    function removeLiquidity(
+        address chAddress,
+        DataTypes.RemoveLiquidityParams memory params
+    ) public returns (DataTypes.RemoveLiquidityResponse memory) {
+        // input requirement checks:
+        //   baseToken: in Exchange.settleFunding()
+        //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
+        //   liquidity: in LiquidityMath.addDelta()
+        //   minBase, minQuote & deadline: here
+
+        // CH_MP: Market paused
+        require(!IBaseToken(params.baseToken).isPaused(), "CH_MP");
+
+        settleFundingGlobal(chAddress, params.baseToken);
+
+        // for multiplier
+        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = GenericLogic
+            .getInfoMultiplier(chAddress, params.baseToken);
+        // for multiplier
+
+        // must settle funding first
+
+        IOrderBook.RemoveLiquidityResponse memory response = IOrderBook(IClearingHouse(chAddress).getOrderBook())
+            .removeLiquidity(
+                IOrderBook.RemoveLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
+            );
+
+        // for multiplier
+        updateInfoMultiplier(
+            chAddress,
+            params.baseToken,
+            oldLongPositionSize,
+            oldShortPositionSize,
+            oldDeltaQuote,
+            0,
+            0,
+            true
+        );
+        // for multiplier
+
+        emit LiquidityChanged(
+            params.baseToken,
+            IClearingHouse(chAddress).getQuoteToken(),
+            response.base.neg256(),
+            response.quote.neg256(),
+            params.liquidity.neg128()
+        );
+
+        return DataTypes.RemoveLiquidityResponse({ quote: response.quote, base: response.base });
+    }
 }

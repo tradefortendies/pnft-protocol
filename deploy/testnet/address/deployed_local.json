@@ -102,9 +102,6 @@
     "fundingLogic": {
         "address": "0xbB2C3960b6dDCDc65fBa26e75E72d5b70dd08c41"
     },
-    "liquidityLogic": {
-        "address": "0x8B930DDd24cCd99E80BE2417dC3d6dfE39995751"
-    },
     "exchangeLogic": {
         "address": "0xba0448BcBb3b9390f3844Cf9BD3e373f08B1287A"
     },
