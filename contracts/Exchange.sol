@@ -67,6 +67,17 @@ contract Exchange is
         int256 quote;
     }
 
+    struct InternalFundingGrowthGlobalAndTwapsVars {
+        uint256 longPositionSize;
+        uint256 shortPositionSize;
+        uint256 longMultiplier;
+        uint256 shortMultiplier;
+        int256 deltaTwapX96;
+        int256 deltaTwPremiumX96;
+        int256 deltaShortTwPremiumX96;
+        int256 deltaLongTwPremiumX96;
+    }
+
     //
     // CONSTANT
     //
@@ -561,17 +572,6 @@ contract Exchange is
     function _getTick(address baseToken) internal view returns (int24) {
         (, int24 tick, , , , , ) = UniswapV3Broker.getSlot0(IMarketRegistry(_marketRegistry).getPool(baseToken));
         return tick;
-    }
-
-    struct InternalFundingGrowthGlobalAndTwapsVars {
-        uint256 longPositionSize;
-        uint256 shortPositionSize;
-        uint256 longMultiplier;
-        uint256 shortMultiplier;
-        int256 deltaTwapX96;
-        int256 deltaTwPremiumX96;
-        int256 deltaShortTwPremiumX96;
-        int256 deltaLongTwPremiumX96;
     }
 
     /// @dev this function calculates the up-to-date globalFundingGrowth and twaps and pass them out

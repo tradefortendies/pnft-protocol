@@ -108,6 +108,17 @@ library GenericLogic {
 
     //====================== END Event
 
+    function requireNotMaker(address chAddress, address maker) internal view {
+        // not Maker
+        require(maker != IClearingHouse(chAddress).getMaker(), "CHD_NM");
+    }
+
+    function isLiquidatable(address chAddress, address trader) internal view returns (bool) {
+        return
+            getAccountValue(chAddress, trader) <
+            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getMarginRequirementForLiquidation(trader);
+    }
+
     function checkMarketOpen(address baseToken) public view {
         // CH_MNO: Market not opened
         require(IBaseToken(baseToken).isOpen(), "CH_MNO");
@@ -256,17 +267,6 @@ library GenericLogic {
                     IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getPartialCloseRatio()
                 )
                 : oppositeAmountBound;
-    }
-
-    function requireNotMaker(address chAddress, address maker) internal view {
-        // not Maker
-        require(maker != IClearingHouse(chAddress).getMaker(), "CHD_NM");
-    }
-
-    function isLiquidatable(address chAddress, address trader) internal view returns (bool) {
-        return
-            getAccountValue(chAddress, trader) <
-            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getMarginRequirementForLiquidation(trader);
     }
 
     function getLiquidationPenaltyRatio(address chAddress) internal view returns (uint24) {
