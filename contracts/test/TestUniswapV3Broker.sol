@@ -70,18 +70,18 @@ contract TestUniswapV3Broker is IUniswapV3MintCallback, IUniswapV3SwapCallback, 
         IERC20Metadata(token).transfer(msg.sender, amountToPay);
     }
 
-    function addLiquidity(UniswapV3Broker.AddLiquidityParams calldata params)
+    function addLiquidity(UniswapV3Broker.InternalAddLiquidityParams calldata params)
         external
         returns (UniswapV3Broker.AddLiquidityResponse memory response)
     {
-        return UniswapV3Broker.addLiquidity(params);
+        return UniswapV3Broker._addLiquidity(params);
     }
 
-    function removeLiquidity(UniswapV3Broker.RemoveLiquidityParams calldata params)
+    function removeLiquidity(UniswapV3Broker.InternalRemoveLiquidityParams calldata params)
         external
         returns (UniswapV3Broker.RemoveLiquidityResponse memory response)
     {
-        return UniswapV3Broker.removeLiquidity(params);
+        return UniswapV3Broker._removeLiquidity(params);
     }
 
     function swap(UniswapV3Broker.SwapParams calldata params)

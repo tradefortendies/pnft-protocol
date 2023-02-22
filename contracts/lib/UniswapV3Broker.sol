@@ -40,6 +40,11 @@ library UniswapV3Broker {
     //
 
     struct AddLiquidityParams {
+        address baseToken;
+        uint128 liquidity;
+    }
+
+    struct InternalAddLiquidityParams {
         address pool;
         int24 lowerTick;
         int24 upperTick;
@@ -54,6 +59,11 @@ library UniswapV3Broker {
     }
 
     struct RemoveLiquidityParams {
+        address baseToken;
+        uint128 liquidity;
+    }
+
+    struct InternalRemoveLiquidityParams {
         address pool;
         address recipient;
         int24 lowerTick;
@@ -126,7 +136,29 @@ library UniswapV3Broker {
     // INTERNAL NON-VIEW
     //
 
-    function addLiquidity(AddLiquidityParams memory params) internal returns (AddLiquidityResponse memory) {
+    struct MintCallbackData {
+        address pool;
+    }
+
+    function addLiquidity(
+        address pool,
+        AddLiquidityParams calldata params
+    ) external returns (AddLiquidityResponse memory) {
+        (int24 lowerTick, int24 upperTick) = UniswapV3Broker.getFullTickForLiquidity(pool);
+        // add liquidity to pool
+        return
+            _addLiquidity(
+                InternalAddLiquidityParams(
+                    pool,
+                    lowerTick,
+                    upperTick,
+                    params.liquidity,
+                    abi.encode(MintCallbackData(pool))
+                )
+            );
+    }
+
+    function _addLiquidity(InternalAddLiquidityParams memory params) internal returns (AddLiquidityResponse memory) {
         (uint256 addedAmount0, uint256 addedAmount1) = IUniswapV3Pool(params.pool).mint(
             address(this),
             params.lowerTick,
@@ -134,11 +166,22 @@ library UniswapV3Broker {
             params.liquidity,
             params.data
         );
-
         return AddLiquidityResponse({ base: addedAmount0, quote: addedAmount1, liquidity: params.liquidity });
     }
 
-    function removeLiquidity(RemoveLiquidityParams memory params) internal returns (RemoveLiquidityResponse memory) {
+    function removeLiquidity(
+        address pool,
+        address recipient, // _clearingHouse
+        RemoveLiquidityParams calldata params
+    ) external returns (RemoveLiquidityResponse memory) {
+        (int24 lowerTick, int24 upperTick) = getFullTickForLiquidity(pool);
+        // adremoved liquidity from pool
+        return _removeLiquidity(InternalRemoveLiquidityParams(pool, recipient, lowerTick, upperTick, params.liquidity));
+    }
+
+    function _removeLiquidity(
+        InternalRemoveLiquidityParams memory params
+    ) internal returns (RemoveLiquidityResponse memory) {
         // call burn(), which only updates tokensOwed instead of transferring the tokens
         (uint256 amount0Burned, uint256 amount1Burned) = IUniswapV3Pool(params.pool).burn(
             params.lowerTick,

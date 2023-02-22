@@ -401,6 +401,11 @@ contract ClearingHouse is
     //     return IVault(_vault).getAccountValue(trader).parseSettlementToken(_settlementTokenDecimals);
     // }
 
+    function getLiquidity(address baseToken) external view returns (uint128) {
+        address pool = IMarketRegistry(_marketRegistry).getPool(baseToken);
+        return UniswapV3Broker.getLiquidity(pool);
+    }
+
     //
     // INTERNAL NON-VIEW
     //

@@ -99,8 +99,8 @@ contract OrderBook is
         UniswapV3Broker.AddLiquidityResponse memory response;
         {
             // add liquidity to pool
-            response = UniswapV3Broker.addLiquidity(
-                UniswapV3Broker.AddLiquidityParams(
+            response = UniswapV3Broker._addLiquidity(
+                UniswapV3Broker.InternalAddLiquidityParams(
                     pool,
                     lowerTick,
                     upperTick,
@@ -118,18 +118,14 @@ contract OrderBook is
         RemoveLiquidityParams calldata params
     ) external override returns (RemoveLiquidityResponse memory) {
         _requireOnlyClearingHouse();
+
         address pool = IMarketRegistry(_marketRegistry).getPool(params.baseToken);
         (int24 lowerTick, int24 upperTick) = UniswapV3Broker.getFullTickForLiquidity(pool);
-        return
-            _removeLiquidity(
-                InternalRemoveLiquidityParams({
-                    baseToken: params.baseToken,
-                    pool: pool,
-                    lowerTick: lowerTick,
-                    upperTick: upperTick,
-                    liquidity: params.liquidity
-                })
-            );
+        UniswapV3Broker.RemoveLiquidityResponse memory response = UniswapV3Broker._removeLiquidity(
+            UniswapV3Broker.InternalRemoveLiquidityParams(pool, _clearingHouse, lowerTick, upperTick, params.liquidity)
+        );
+
+        return RemoveLiquidityResponse({ base: response.base, quote: response.quote });
     }
 
     /// @inheritdoc IUniswapV3MintCallback
@@ -150,12 +146,6 @@ contract OrderBook is
         return _exchange;
     }
 
-    /// @inheritdoc IOrderBook
-    function getLiquidity(address baseToken) external view override returns (uint128) {
-        address pool = IMarketRegistry(_marketRegistry).getPool(baseToken);
-        return UniswapV3Broker.getLiquidity(pool);
-    }
-
     //
     // PUBLIC VIEW
     //
@@ -164,25 +154,25 @@ contract OrderBook is
     // INTERNAL NON-VIEW
     //
 
-    function _removeLiquidity(
-        InternalRemoveLiquidityParams memory params
-    ) internal returns (RemoveLiquidityResponse memory) {
-        UniswapV3Broker.RemoveLiquidityResponse memory response = UniswapV3Broker.removeLiquidity(
-            UniswapV3Broker.RemoveLiquidityParams(
-                params.pool,
-                _clearingHouse,
-                params.lowerTick,
-                params.upperTick,
-                params.liquidity
-            )
-        );
+    // function _removeLiquidity(
+    //     InternalRemoveLiquidityParams memory params
+    // ) internal returns (RemoveLiquidityResponse memory) {
+    //     UniswapV3Broker.RemoveLiquidityResponse memory response = UniswapV3Broker.removeLiquidity(
+    //         UniswapV3Broker.RemoveLiquidityParams(
+    //             params.pool,
+    //             _clearingHouse,
+    //             params.lowerTick,
+    //             params.upperTick,
+    //             params.liquidity
+    //         )
+    //     );
 
-        // if flipped from initialized to uninitialized, clear the tick info
-        if (!UniswapV3Broker.getIsTickInitialized(params.pool, params.lowerTick)) {}
-        if (!UniswapV3Broker.getIsTickInitialized(params.pool, params.upperTick)) {}
+    //     // if flipped from initialized to uninitialized, clear the tick info
+    //     if (!UniswapV3Broker.getIsTickInitialized(params.pool, params.lowerTick)) {}
+    //     if (!UniswapV3Broker.getIsTickInitialized(params.pool, params.upperTick)) {}
 
-        return RemoveLiquidityResponse({ base: response.base, quote: response.quote });
-    }
+    //     return RemoveLiquidityResponse({ base: response.base, quote: response.quote });
+    // }
 
     //
     // INTERNAL VIEW

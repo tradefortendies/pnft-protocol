@@ -17,6 +17,7 @@ import { PerpMath } from "./PerpMath.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { DataTypes } from "../types/DataTypes.sol";
+import { UniswapV3Broker } from "./UniswapV3Broker.sol";
 
 library GenericLogic {
     using SafeMathUpgradeable for uint256;
@@ -597,8 +598,10 @@ library GenericLogic {
         // for multiplier
 
         // note that we no longer check available tokens here because CH will always auto-mint in UniswapV3MintCallback
-        IOrderBook.AddLiquidityResponse memory response = IOrderBook(IClearingHouse(chAddress).getOrderBook())
-            .addLiquidity(IOrderBook.AddLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity }));
+        UniswapV3Broker.AddLiquidityResponse memory response = UniswapV3Broker.addLiquidity(
+            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
+            UniswapV3Broker.AddLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
+        );
 
         // for multiplier
         updateInfoMultiplier(
@@ -651,10 +654,11 @@ library GenericLogic {
 
         // must settle funding first
 
-        IOrderBook.RemoveLiquidityResponse memory response = IOrderBook(IClearingHouse(chAddress).getOrderBook())
-            .removeLiquidity(
-                IOrderBook.RemoveLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
-            );
+        UniswapV3Broker.RemoveLiquidityResponse memory response = UniswapV3Broker.removeLiquidity(
+            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
+            chAddress,
+            UniswapV3Broker.RemoveLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
+        );
 
         // for multiplier
         updateInfoMultiplier(

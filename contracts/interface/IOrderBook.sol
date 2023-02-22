@@ -64,10 +64,6 @@ interface IOrderBook {
         RemoveLiquidityParams calldata params
     ) external returns (RemoveLiquidityResponse memory response);
 
-    /// @notice Get open order ids of a trader in the given market
-    /// @param baseToken The base token address
-    function getLiquidity(address baseToken) external view returns (uint128);
-
     /// @notice Get `Exchange` contract address
     /// @return exchange The `Exchange` contract address
     function getExchange() external view returns (address exchange);
