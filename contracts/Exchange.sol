@@ -11,7 +11,6 @@ import { IUniswapV3SwapCallback } from "@uniswap/v3-core/contracts/interfaces/ca
 import { BlockContext } from "./base/BlockContext.sol";
 import { UniswapV3Broker } from "./lib/UniswapV3Broker.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
-import { SwapMath } from "./lib/SwapMath.sol";
 import { PerpFixedPoint96 } from "./lib/PerpFixedPoint96.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { AccountMarket } from "./lib/AccountMarket.sol";
@@ -526,7 +525,7 @@ contract Exchange is
     function _replaySwap(InternalReplaySwapParams memory params) internal view returns (int24 tick) {
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(_marketRegistry).getMarketInfo(params.baseToken);
         uint24 uniswapFeeRatio = marketInfo.uniswapFeeRatio;
-        (, int256 signedScaledAmountForReplaySwap) = SwapMath.calcScaledAmountForSwaps(
+        (, int256 signedScaledAmountForReplaySwap) = PerpMath.calcScaledAmountForSwaps(
             params.isBaseToQuote,
             params.isExactInput,
             params.amount,

@@ -21,7 +21,6 @@ import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/m
 import { DataTypes } from "../types/DataTypes.sol";
 import { GenericLogic } from "../lib/GenericLogic.sol";
 import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
-import { SwapMath } from "../lib/SwapMath.sol";
 import "hardhat/console.sol";
 
 library ExchangeLogic {
@@ -534,7 +533,7 @@ library ExchangeLogic {
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry())
             .getMarketInfo(params.baseToken);
 
-        (uint256 scaledAmountForUniswapV3PoolSwap, int256 signedScaledAmountForReplaySwap) = SwapMath
+        (uint256 scaledAmountForUniswapV3PoolSwap, int256 signedScaledAmountForReplaySwap) = PerpMath
             .calcScaledAmountForSwaps(
                 params.isBaseToQuote,
                 params.isExactInput,
@@ -581,7 +580,7 @@ library ExchangeLogic {
         int256 exchangedPositionNotional;
         if (params.isBaseToQuote) {
             // short: exchangedPositionSize <= 0 && exchangedPositionNotional >= 0
-            exchangedPositionSize = SwapMath
+            exchangedPositionSize = PerpMath
                 .calcAmountScaledByFeeRatio(response.base, marketInfo.uniswapFeeRatio, false)
                 .neg256();
             // due to base to quote fee, exchangedPositionNotional contains the fee
@@ -606,7 +605,7 @@ library ExchangeLogic {
                 // quote = exchangedPositionNotional - replayResponse.fee = exact input
                 exchangedPositionNotional = params.amount.sub(replayResponse.fee).toInt256().neg256();
             } else {
-                exchangedPositionNotional = SwapMath
+                exchangedPositionNotional = PerpMath
                     .calcAmountScaledByFeeRatio(response.quote, marketInfo.uniswapFeeRatio, false)
                     .neg256();
             }
@@ -635,7 +634,7 @@ library ExchangeLogic {
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry())
             .getMarketInfo(params.baseToken);
         uint24 uniswapFeeRatio = marketInfo.uniswapFeeRatio;
-        (, int256 signedScaledAmountForReplaySwap) = SwapMath.calcScaledAmountForSwaps(
+        (, int256 signedScaledAmountForReplaySwap) = PerpMath.calcScaledAmountForSwaps(
             params.isBaseToQuote,
             params.isExactInput,
             params.amount,
