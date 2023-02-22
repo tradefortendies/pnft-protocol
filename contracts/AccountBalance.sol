@@ -18,7 +18,6 @@ import { AccountBalanceStorageV1, Market } from "./storage/AccountBalanceStorage
 import { BlockContext } from "./base/BlockContext.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { DataTypes } from "./types/DataTypes.sol";
-import "hardhat/console.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, AccountBalanceStorageV1 {
@@ -81,9 +80,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
                 shortRate
             );
         }
-
-        // console.log("longMultiplierX10_18 %d", _marketMap[baseToken].longMultiplierX10_18);
-        // console.log("shortMultiplierX10_18 %d", _marketMap[baseToken].shortMultiplierX10_18);
 
         emit MultiplierChanged(_marketMap[baseToken].longMultiplierX10_18, _marketMap[baseToken].shortMultiplierX10_18);
     }
@@ -504,9 +500,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     ) internal returns (int256, int256) {
         // for multiplier
         int256 base = getModifyBaseForMultiplier(trader, baseToken, baseAfterMultiplier);
-        // console.log("_modifyTakerBalance base");
-        // console.logInt(baseAfterMultiplier);
-        // console.logInt(base);
         //
         DataTypes.AccountMarketInfo storage accountInfo = _accountMarketMap[trader][baseToken];
         int256 oldPos = accountInfo.takerPositionSize;
@@ -548,8 +541,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
                 _marketMap[baseToken].longPositionSize += accountInfo.takerPositionSize.abs();
             }
         }
-        // console.log("total long  %d", _marketMap[baseToken].longPositionSize);
-        // console.log("total short %d", _marketMap[baseToken].shortPositionSize);
 
         // _resetMultiplier(baseToken);
 

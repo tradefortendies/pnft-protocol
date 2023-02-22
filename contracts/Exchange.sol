@@ -28,7 +28,6 @@ import { IExchange } from "./interface/IExchange.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { ExchangeLogic } from "./lib/ExchangeLogic.sol";
-import "hardhat/console.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract Exchange is
