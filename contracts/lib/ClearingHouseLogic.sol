@@ -629,7 +629,7 @@ library ClearingHouseLogic {
     function estimateSwap(
         address chAddress,
         DataTypes.OpenPositionParams memory params
-    ) public view returns (IOrderBook.ReplaySwapResponse memory response) {
+    ) public view returns (UniswapV3Broker.ReplaySwapResponse memory response) {
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry())
             .getMarketInfo(params.baseToken);
         uint24 uniswapFeeRatio = marketInfo.uniswapFeeRatio;
@@ -639,8 +639,9 @@ library ClearingHouseLogic {
             params.amount,
             uniswapFeeRatio
         );
-        response = IOrderBook(IClearingHouse(chAddress).getOrderBook()).estimateSwap(
-            IOrderBook.ReplaySwapParams({
+        response = UniswapV3Broker.estimateSwap(
+            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
+            UniswapV3Broker.ReplaySwapParams({
                 baseToken: params.baseToken,
                 isBaseToQuote: params.isBaseToQuote,
                 amount: signedScaledAmountForReplaySwap,

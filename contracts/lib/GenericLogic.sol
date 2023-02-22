@@ -404,7 +404,7 @@ library GenericLogic {
         int256 oldDeltaBase = oldLongPositionSize.toInt256().sub(oldShortPositionSize.toInt256());
         if (oldDeltaBase != 0) {
             bool isBaseToQuote = oldDeltaBase > 0 ? true : false;
-            IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -458,7 +458,7 @@ library GenericLogic {
 
         vars.deltaBase = longPositionSize.toInt256().sub(shortPositionSize.toInt256());
         if (vars.deltaBase != 0) {
-            IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -513,7 +513,7 @@ library GenericLogic {
             }
             if (!vars.isEnoughFund) {
                 // estimate cost to base
-                IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+                UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                     .estimateSwap(
                         DataTypes.OpenPositionParams({
                             baseToken: baseToken,

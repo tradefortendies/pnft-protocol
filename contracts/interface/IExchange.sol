@@ -3,6 +3,7 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 import { IOrderBook } from "./IOrderBook.sol";
 import { DataTypes } from "../types/DataTypes.sol";
+import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
 
 interface IExchange {
     /// @param amount when closing position, amount(uint256) == takerPositionSize(int256),
@@ -147,7 +148,7 @@ interface IExchange {
 
     function estimateSwap(
         DataTypes.OpenPositionParams memory params
-    ) external view returns (IOrderBook.ReplaySwapResponse memory response);
+    ) external view returns (UniswapV3Broker.ReplaySwapResponse memory response);
 
     function internalSwap(SwapParams memory params) external returns (SwapResponse memory);
 }
