@@ -11,7 +11,6 @@ import { SafeERC20Upgradeable, IERC20Upgradeable } from "@openzeppelin/contracts
 import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
-import { SettlementTokenMath } from "./lib/SettlementTokenMath.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
@@ -31,8 +30,6 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     using PerpSafeCast for uint256;
     using PerpSafeCast for int256;
     using SignedSafeMathUpgradeable for int256;
-    using SettlementTokenMath for uint256;
-    using SettlementTokenMath for int256;
     using PerpMath for int256;
     using PerpMath for uint256;
     using PerpMath for uint24;
