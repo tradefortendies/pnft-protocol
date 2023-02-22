@@ -892,7 +892,7 @@ contract Exchange is
 
     function estimateSwap(
         DataTypes.OpenPositionParams memory params
-    ) external view override returns (IOrderBook.ReplaySwapResponse memory) {
+    ) external view override returns (UniswapV3Broker.ReplaySwapResponse memory) {
         return ClearingHouseLogic.estimateSwap(_clearingHouse, params);
     }
 }

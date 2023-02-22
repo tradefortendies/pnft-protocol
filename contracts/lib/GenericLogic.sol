@@ -17,6 +17,7 @@ import { PerpMath } from "./PerpMath.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { DataTypes } from "../types/DataTypes.sol";
+import { UniswapV3Broker } from "./UniswapV3Broker.sol";
 
 library GenericLogic {
     using SafeMathUpgradeable for uint256;
@@ -403,7 +404,7 @@ library GenericLogic {
         int256 oldDeltaBase = oldLongPositionSize.toInt256().sub(oldShortPositionSize.toInt256());
         if (oldDeltaBase != 0) {
             bool isBaseToQuote = oldDeltaBase > 0 ? true : false;
-            IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -457,7 +458,7 @@ library GenericLogic {
 
         vars.deltaBase = longPositionSize.toInt256().sub(shortPositionSize.toInt256());
         if (vars.deltaBase != 0) {
-            IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -512,7 +513,7 @@ library GenericLogic {
             }
             if (!vars.isEnoughFund) {
                 // estimate cost to base
-                IOrderBook.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+                UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
                     .estimateSwap(
                         DataTypes.OpenPositionParams({
                             baseToken: baseToken,
