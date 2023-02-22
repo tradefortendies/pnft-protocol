@@ -14,7 +14,7 @@ import { IBaseToken } from "./interface/IBaseToken.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IOrderBook } from "./interface/IOrderBook.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
-import { AccountBalanceStorageV1, Market } from "./storage/AccountBalanceStorage.sol";
+import { AccountBalanceStorageV1 } from "./storage/AccountBalanceStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { DataTypes } from "./types/DataTypes.sol";
@@ -29,7 +29,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     using PerpMath for uint256;
     using PerpMath for int256;
     using PerpMath for uint160;
-    using Market for Market.Info;
 
     //
     // CONSTANT

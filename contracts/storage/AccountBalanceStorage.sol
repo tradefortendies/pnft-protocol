@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity 0.7.6;
 
-import { Market } from "../lib/Market.sol";
 import { DataTypes } from "../types/DataTypes.sol";
 
 /// @notice For future upgrades, do not change AccountBalanceStorageV1. Create a new
@@ -22,7 +21,7 @@ abstract contract AccountBalanceStorageV1 {
     // base token registry of each trader
     mapping(address => address[]) internal _baseTokensMap;
 
-    mapping(address => Market.Info) internal _marketMap;
+    mapping(address => DataTypes.MarketInfo) internal _marketMap;
 
     // first key: trader, second key: baseToken
     mapping(address => mapping(address => DataTypes.AccountMarketInfo)) internal _accountMarketMap;

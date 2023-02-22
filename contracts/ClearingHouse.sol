@@ -26,7 +26,6 @@ import { BaseRelayRecipient } from "./gsn/BaseRelayRecipient.sol";
 import { ClearingHouseStorage } from "./storage/ClearingHouseStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
-import { AccountMarket } from "./lib/AccountMarket.sol";
 import { ExchangeLogic } from "./lib/ExchangeLogic.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";

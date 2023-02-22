@@ -10,6 +10,21 @@ library DataTypes {
         int256 twLongPremiumX96;
         int256 twShortPremiumX96;
     }
+
+    struct MarketInfo {
+        uint256 longMultiplierX10_18; //X10_18
+        uint256 shortMultiplierX10_18; //X10_18
+        uint256 longPositionSize;
+        uint256 shortPositionSize;
+    }
+
+    struct AccountMarketInfo {
+        int256 takerPositionSize;
+        int256 takerOpenNotional;
+        int256 lastLongTwPremiumGrowthGlobalX96;
+        int256 lastShortTwPremiumGrowthGlobalX96;
+    }
+
     struct AddLiquidityParams {
         address baseToken;
         uint128 liquidity;
@@ -20,13 +35,6 @@ library DataTypes {
         uint256 base;
         uint256 quote;
         uint128 liquidity;
-    }
-
-    struct AccountMarketInfo {
-        int256 takerPositionSize;
-        int256 takerOpenNotional;
-        int256 lastLongTwPremiumGrowthGlobalX96;
-        int256 lastShortTwPremiumGrowthGlobalX96;
     }
 
     struct RemoveLiquidityParams {
