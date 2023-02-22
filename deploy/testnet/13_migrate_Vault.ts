@@ -5,7 +5,7 @@ import helpers from "../helpers";
 
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -22,12 +22,7 @@ async function deploy() {
     var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
     // 
     if (deployData.vault.implAddress == undefined || deployData.vault.implAddress == '') {
-        var vaultLogic = await hre.ethers.getContractAt('VaultLogic', deployData.vaultLogic.address);
-        let Vault = await hre.ethers.getContractFactory("Vault", {
-            libraries: {
-                VaultLogic: vaultLogic.address,
-            },
-        });
+        let Vault = await hre.ethers.getContractFactory("Vault");
         const vault = await waitForDeploy(await Vault.deploy())
         {
             deployData.vault.implAddress = vault.address;
@@ -66,9 +61,7 @@ async function deploy() {
             network,
             deployData.vault.implAddress,
             [],
-            {
-                VaultLogic: deployData.vaultLogic.address,
-            },
+            {},
             "contracts/Vault.sol:Vault",
         )
     }

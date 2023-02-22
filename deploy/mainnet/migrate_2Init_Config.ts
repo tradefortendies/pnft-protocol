@@ -3,11 +3,11 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, CollateralManager, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
-const { waitForTx, tryWaitForTx , loadDB} = helpers;
+const { waitForTx, tryWaitForTx, loadDB } = helpers;
 
 
 async function main() {
@@ -29,7 +29,6 @@ async function deploy() {
     var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
-    var collateralManager = (await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address)) as CollateralManager;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
 
@@ -42,10 +41,6 @@ async function deploy() {
     if ((await orderBook.getExchange()).toLowerCase() != exchange.address.toLowerCase()) {
         await waitForTx(await orderBook.setExchange(exchange.address),
             'orderBook.setExchange(exchange.address)')
-    }
-    if ((await vault.getCollateralManager()).toLowerCase() != collateralManager.address.toLowerCase()) {
-        await waitForTx(await vault.setCollateralManager(collateralManager.address),
-            'vault.setCollateralManager(collateralManager.address)')
     }
     if ((await insuranceFund.getVault()).toLowerCase() != vault.address.toLowerCase()) {
         await waitForTx(await insuranceFund.setVault(vault.address),

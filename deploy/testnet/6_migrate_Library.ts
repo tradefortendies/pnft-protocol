@@ -28,15 +28,6 @@ async function deploy() {
             console.log('GenericLogic is deployed', genericLogic.address)
         }
     }
-    const VaultLogic = await hre.ethers.getContractFactory("VaultLogic");
-    if (deployData.vaultLogic.address == undefined || deployData.vaultLogic.address == '') {
-        const vaultLogic = await waitForDeploy(await VaultLogic.deploy())
-        {
-            deployData.vaultLogic.address = vaultLogic.address;
-            deployData = (await saveDB(network, deployData))
-            console.log('VaultLogic is deployed', vaultLogic.address)
-        }
-    }
     const FundingLogic = await hre.ethers.getContractFactory("FundingLogic");
     if (deployData.fundingLogic.address == undefined || deployData.fundingLogic.address == '') {
         const fundingLogic = await waitForDeploy(await FundingLogic.deploy())
