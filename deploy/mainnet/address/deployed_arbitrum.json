@@ -99,9 +99,6 @@
     "vaultLogic": {
         "address": ""
     },
-    "fundingLogic": {
-        "address": ""
-    },
     "exchangeLogic": {
         "address": ""
     },

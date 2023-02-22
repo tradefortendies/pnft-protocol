@@ -4,7 +4,6 @@ import hre, { ethers } from "hardhat";
 import helpers from "../helpers";
 
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
-import { FundingLogic } from "../../typechain";
 
 const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
@@ -26,15 +25,6 @@ async function deploy() {
             deployData.genericLogic.address = genericLogic.address;
             deployData = (await saveDB(network, deployData))
             console.log('GenericLogic is deployed', genericLogic.address)
-        }
-    }
-    const FundingLogic = await hre.ethers.getContractFactory("FundingLogic");
-    if (deployData.fundingLogic.address == undefined || deployData.fundingLogic.address == '') {
-        const fundingLogic = await waitForDeploy(await FundingLogic.deploy())
-        {
-            deployData.fundingLogic.address = fundingLogic.address;
-            deployData = (await saveDB(network, deployData))
-            console.log('FundingLogic is deployed', fundingLogic.address)
         }
     }
     var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);

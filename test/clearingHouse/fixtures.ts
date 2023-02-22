@@ -97,9 +97,6 @@ export function createClearingHouseFixture(
         });
         let exchangeLogic = await ExchangeLogic.deploy();
 
-        let FundingLogic = await ethers.getContractFactory("FundingLogic");
-        let fundingLogic = await FundingLogic.deploy();
-
         const wethDecimals = await WETH.decimals()
 
         let baseToken: BaseToken, quoteToken: QuoteToken, mockedNFTPriceFeed: MockContract
@@ -151,7 +148,6 @@ export function createClearingHouseFixture(
                 libraries: {
                     GenericLogic: genericLogic.address,
                     ExchangeLogic: exchangeLogic.address,
-                    FundingLogic: fundingLogic.address,
                 },
             })
             exchange = (await exchangeFactory.deploy()) as TestExchange
@@ -163,7 +159,6 @@ export function createClearingHouseFixture(
                 libraries: {
                     GenericLogic: genericLogic.address,
                     ExchangeLogic: exchangeLogic.address,
-                    FundingLogic: fundingLogic.address,
                 },
             })
             exchange = (await exchangeFactory.deploy()) as Exchange

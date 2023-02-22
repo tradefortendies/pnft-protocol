@@ -73,7 +73,9 @@ describe("Deployment check", () => {
         deployData.exchange = {} as ContractData
         deployData.insuranceFund = {} as ContractData
         deployData.vault = {} as ContractData
+        deployData.collateralManager = {} as ContractData
         deployData.genericLogic = {} as ContractData
+        deployData.vaultLogic = {} as ContractData
         deployData.exchangeLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
 
@@ -191,6 +193,13 @@ describe("Deployment check", () => {
             const genericLogic = await waitForDeploy(await GenericLogic.deploy())
             {
                 deployData.genericLogic.address = genericLogic.address;
+            }
+        }
+        const VaultLogic = await ethers.getContractFactory("VaultLogic");
+        if (deployData.vaultLogic.address == undefined || deployData.vaultLogic.address == '') {
+            const vaultLogic = await waitForDeploy(await VaultLogic.deploy())
+            {
+                deployData.vaultLogic.address = vaultLogic.address;
             }
         }
         var genericLogic = await ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
@@ -338,7 +347,12 @@ describe("Deployment check", () => {
                 deployData.insuranceFund.address = transparentUpgradeableProxy.address;
             }
         }
-        let Vault = await ethers.getContractFactory("Vault");
+        var vaultLogic = await ethers.getContractAt('VaultLogic', deployData.vaultLogic.address);
+        let Vault = await ethers.getContractFactory("Vault", {
+            libraries: {
+                VaultLogic: vaultLogic.address,
+            },
+        });
         {
             const vault = await waitForDeploy(await Vault.deploy())
             {
@@ -363,6 +377,37 @@ describe("Deployment check", () => {
             );
             {
                 deployData.vault.address = transparentUpgradeableProxy.address;
+            }
+        }
+        const CollateralManager = await ethers.getContractFactory("CollateralManager");
+        if (deployData.collateralManager.implAddress == undefined || deployData.collateralManager.implAddress == '') {
+            const collateralManager = await waitForDeploy(await CollateralManager.deploy())
+            {
+                deployData.collateralManager.implAddress = collateralManager.address;
+            }
+        }
+        if (deployData.collateralManager.address == undefined || deployData.collateralManager.address == '') {
+            var collateralManager = await ethers.getContractAt('CollateralManager', deployData.collateralManager.implAddress);
+            var initializeData = collateralManager.interface.encodeFunctionData('initialize', [
+                deployData.clearingHouseConfig.address,
+                deployData.vault.address,
+                3, // maxCollateralTokensPerAccount
+                "750000", // debtNonSettlementTokenValueRatio
+                "500000", // liquidationRatio
+                "5000", // mmRatioBuffer
+                "12500", // clInsuranceFundFeeRatio
+                parseUnits("10", deployData.wETH.decimals), // debtThreshold
+                parseUnits("0.3", deployData.wETH.decimals), // collateralValueDust
+            ]);
+            var transparentUpgradeableProxy = await waitForDeploy(
+                await TransparentUpgradeableProxy.deploy(
+                    deployData.collateralManager.implAddress,
+                    proxyAdmin.address,
+                    initializeData,
+                )
+            );
+            {
+                deployData.collateralManager.address = transparentUpgradeableProxy.address;
             }
         }
         let ClearingHouse = await ethers.getContractFactory("ClearingHouse", {
@@ -411,6 +456,7 @@ describe("Deployment check", () => {
             var exchange = await ethers.getContractAt('Exchange', deployData.exchange.address);
             var insuranceFund = await ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
             var vault = await ethers.getContractAt('Vault', deployData.vault.address);
+            var collateralManager = await ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
 
             await waitForTx(await vault.setWETH9(deployData.wETH.address), 'vault.setWETH9(deployData.wETH.address)')
@@ -419,6 +465,7 @@ describe("Deployment check", () => {
 
             await exchange.setAccountBalance(accountBalance.address)
             await orderBook.setExchange(exchange.address)
+            await vault.setCollateralManager(collateralManager.address)
             await insuranceFund.setVault(vault.address)
             await accountBalance.setVault(vault.address)
             await clearingHouseConfig.setSettlementTokenBalanceCap(ethers.constants.MaxUint256)
@@ -456,8 +503,6 @@ describe("Deployment check", () => {
             await vBAYC.mintMaximumTo(clearingHouse.address)
             await vMAYC.mintMaximumTo(clearingHouse.address)
 
-            let cardinalityNext = 500
-
             // initMarket
             var maxTickCrossedWithinBlock: number = getMaxTickRange()
             // vBAYC
@@ -467,8 +512,8 @@ describe("Deployment check", () => {
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
                 await waitForTx(
-                    await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                    'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
+                    await uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1),
+                    'uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1)'
                 )
                 await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
                 await exchange.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
@@ -480,8 +525,8 @@ describe("Deployment check", () => {
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
                 await waitForTx(
-                    await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                    'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
+                    await uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1),
+                    'uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1)'
                 )
                 await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
                 await exchange.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
@@ -497,6 +542,7 @@ describe("Deployment check", () => {
             var exchange = await ethers.getContractAt('Exchange', deployData.exchange.address);
             var insuranceFund = await ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
             var vault = await ethers.getContractAt('Vault', deployData.vault.address);
+            var collateralManager = await ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
 
             var wETH = (await ethers.getContractAt('TestWETH9', deployData.wETH.address)) as TestWETH9;

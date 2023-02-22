@@ -99,9 +99,6 @@
     "vaultLogic": {
         "address": "0xd902c27230ae075c6861143292783291e1362E20"
     },
-    "fundingLogic": {
-        "address": "0xCa88965c966293e289E0C0817b49CC5188B83744"
-    },
     "exchangeLogic": {
         "address": "0xb2746650e1be6f2535b2396B0175A788463Df4de"
     },
