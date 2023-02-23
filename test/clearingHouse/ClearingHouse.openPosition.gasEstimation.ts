@@ -22,7 +22,7 @@ describe.skip("ClearingHouse.openPosition gasEstimation", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let orderBook: OrderBook
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -36,7 +36,7 @@ describe.skip("ClearingHouse.openPosition gasEstimation", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         collateral = fixture.USDC

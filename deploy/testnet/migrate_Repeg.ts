@@ -5,7 +5,7 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, CollateralManager, Exchange, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, CollateralManager, VPool, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -30,7 +30,7 @@ async function deploy() {
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address) as VPool);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var collateralManager = (await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address)) as CollateralManager;
@@ -62,13 +62,13 @@ async function deploy() {
                 'clearingHouse.repeg(' + baseTokenAddr + ')'
             )
         } else {
-            let isOverPriceSpread = await exchange.isOverPriceSpread(baseTokenAddr)
+            let isOverPriceSpread = await vPool.isOverPriceSpread(baseTokenAddr)
             console.log(
                 baseTokenAddr,
                 'isOverPriceSpread',
                 isOverPriceSpread
             )
-            let overPriceSpreadTimestamp = await exchange.getOverPriceSpreadTimestamp(baseTokenAddr)
+            let overPriceSpreadTimestamp = await vPool.getOverPriceSpreadTimestamp(baseTokenAddr)
             console.log(
                 baseTokenAddr,
                 'overPriceSpreadTimestamp',
@@ -86,8 +86,8 @@ async function deploy() {
             }
             if (isUpdateOverPriceSpreadTimestamp) {
                 await waitForTx(
-                    await exchange.connect(platformFund).updateOverPriceSpreadTimestamp(baseTokenAddr),
-                    'exchange.updateOverPriceSpreadTimestamp(' + baseTokenAddr + ')'
+                    await vPool.connect(platformFund).updateOverPriceSpreadTimestamp(baseTokenAddr),
+                    'vPool.updateOverPriceSpreadTimestamp(' + baseTokenAddr + ')'
                 )
             }
         }

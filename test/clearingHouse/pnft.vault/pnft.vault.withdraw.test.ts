@@ -6,7 +6,7 @@ import {
     BaseToken,
     ClearingHouseConfig,
     CollateralManager,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -30,11 +30,11 @@ describe("Vault test deposit", () => {
     let clearingHouse: TestClearingHouse
     let clearingHouseConfig: ClearingHouseConfig
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let quoteToken: QuoteToken
@@ -68,11 +68,11 @@ describe("Vault test deposit", () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         clearingHouseConfig = fixture.clearingHouseConfig as ClearingHouseConfig
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         pool = fixture.pool as UniswapV3Pool
         collateral = fixture.WETH

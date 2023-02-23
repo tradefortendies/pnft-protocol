@@ -13,7 +13,7 @@ describe("ClearingHouse removeLiquidity slippage", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let orderBook: OrderBook
+    
     let vault: Vault
     let collateral: TestERC20
     let baseToken: BaseToken
@@ -22,7 +22,7 @@ describe("ClearingHouse removeLiquidity slippage", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         vault = fixture.vault
         collateral = fixture.USDC
         baseToken = fixture.baseToken

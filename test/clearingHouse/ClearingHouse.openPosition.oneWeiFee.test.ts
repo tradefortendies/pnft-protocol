@@ -5,7 +5,7 @@ import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     MarketRegistry,
     OrderBook,
     QuoteToken,
@@ -26,8 +26,8 @@ describe("ClearingHouse openPosition oneWeiFee", () => {
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
     let clearingHouseConfig: ClearingHouseConfig
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -43,11 +43,11 @@ describe("ClearingHouse openPosition oneWeiFee", () => {
 
         fixture = await loadFixture(createClearingHouseFixture(true, uniFeeRatio))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         clearingHouseConfig = fixture.clearingHouseConfig
         vault = fixture.vault
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         marketRegistry = fixture.marketRegistry
         collateral = fixture.USDC
         baseToken = fixture.baseToken

@@ -9,7 +9,6 @@ import {
     BaseToken,
     InsuranceFund,
     MarketRegistry,
-    OrderBook,
     TestClearingHouse,
     TestERC20,
     Vault,
@@ -32,7 +31,6 @@ describe("ClearingHouse liquidate trader", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
     let accountBalance: AccountBalance
     let insuranceFund: InsuranceFund
     let vault: Vault
@@ -47,7 +45,7 @@ describe("ClearingHouse liquidate trader", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture(true, 3000))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance
         insuranceFund = fixture.insuranceFund as InsuranceFund
         vault = fixture.vault

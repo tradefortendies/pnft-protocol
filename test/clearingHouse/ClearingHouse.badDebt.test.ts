@@ -2,7 +2,7 @@ import { MockContract } from "@eth-optimism/smock"
 import { expect } from "chai"
 import { parseUnits } from "ethers/lib/utils"
 import { waffle } from "hardhat"
-import { BaseToken, TestClearingHouse, TestERC20, TestExchange, UniswapV3Pool, Vault } from "../../typechain"
+import { BaseToken, TestClearingHouse, TestERC20, TestVPool, UniswapV3Pool, Vault } from "../../typechain"
 import { addOrder, b2qExactInput, closePosition, q2bExactInput } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
@@ -15,7 +15,7 @@ describe("ClearingHouse badDebt", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let exchange: TestExchange
+    let vPool: TestVPool
     let collateral: TestERC20
     let vault: Vault
     let baseToken: BaseToken
@@ -28,7 +28,7 @@ describe("ClearingHouse badDebt", () => {
 
         fixture = await loadFixture(createClearingHouseFixture(undefined, uniFeeRatio))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        exchange = fixture.exchange as TestExchange
+        vPool = fixture.vPool as TestVPool
         vault = fixture.vault
         mockedBaseAggregator = fixture.mockedBaseAggregator
         collateral = fixture.USDC
@@ -121,7 +121,7 @@ describe("ClearingHouse badDebt", () => {
 
             it("cannot close position with partial close when trader has bad debt", async () => {
                 // set max price impact to 0.1% to trigger partial close
-                await exchange.setMaxTickCrossedWithinBlock(baseToken.address, 10)
+                await vPool.setMaxTickCrossedWithinBlock(baseToken.address, 10)
 
                 // partial close bob's position: 7.866 * 25% = 1.88784
                 // exchanged notional: 1.629

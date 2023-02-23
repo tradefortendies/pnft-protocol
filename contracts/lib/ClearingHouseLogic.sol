@@ -6,7 +6,7 @@ import { IInsuranceFund } from "../interface/IInsuranceFund.sol";
 import { IBaseToken } from "../interface/IBaseToken.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
-import { IExchange } from "../interface/IExchange.sol";
+import { IVPool } from "../interface/IVPool.sol";
 import { IVault } from "../interface/IVault.sol";
 import { IMarketRegistry } from "../interface/IMarketRegistry.sol";
 import { IRewardMiner } from "../interface/IRewardMiner.sol";
@@ -87,12 +87,12 @@ library ClearingHouseLogic {
     function _openPosition(
         address chAddress,
         InternalOpenPositionParams memory params
-    ) internal returns (IExchange.SwapResponse memory) {
+    ) internal returns (IVPool.SwapResponse memory) {
         // must settle funding first
         (, int256 fundingPayment) = GenericLogic.settleFunding(chAddress, params.trader, params.baseToken);
 
-        IExchange.SwapResponse memory response = IExchange(IClearingHouse(chAddress).getExchange()).swap(
-            IExchange.SwapParams({
+        IVPool.SwapResponse memory response = IVPool(IClearingHouse(chAddress).getVPool()).swap(
+            IVPool.SwapParams({
                 trader: params.trader,
                 baseToken: params.baseToken,
                 isBaseToQuote: params.isBaseToQuote,
@@ -209,7 +209,7 @@ library ClearingHouseLogic {
         // register token if it's the first time
         GenericLogic.registerBaseToken(chAddress, trader, params.baseToken);
 
-        IExchange.SwapResponse memory response = _openPosition(
+        IVPool.SwapResponse memory response = _openPosition(
             chAddress,
             InternalOpenPositionParams({
                 trader: trader,
@@ -265,7 +265,7 @@ library ClearingHouseLogic {
         // old position is short. when closing, it's quoteToBase && exactOutput (buy exact base back)
         bool isBaseToQuote = positionSize > 0;
 
-        IExchange.SwapResponse memory response = _openPosition(
+        IVPool.SwapResponse memory response = _openPosition(
             chAddress,
             InternalOpenPositionParams({
                 trader: trader,
@@ -347,8 +347,8 @@ library ClearingHouseLogic {
         uint256 takerFee
     ) internal returns (int256 realizedPnl) {
         if (exchangedPositionSize != 0) {
-            realizedPnl = IExchange(IClearingHouse(chAddress).getExchange()).getPnlToBeRealized(
-                IExchange.RealizePnlParams({
+            realizedPnl = IVPool(IClearingHouse(chAddress).getVPool()).getPnlToBeRealized(
+                IVPool.RealizePnlParams({
                     trader: trader,
                     baseToken: baseToken,
                     base: exchangedPositionSize,
@@ -526,7 +526,7 @@ library ClearingHouseLogic {
     }
 
     //
-    function swap(address chAddress, IExchange.SwapParams memory params) public returns (InternalSwapResponse memory) {
+    function swap(address chAddress, IVPool.SwapParams memory params) public returns (InternalSwapResponse memory) {
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry())
             .getMarketInfo(params.baseToken);
 
@@ -561,7 +561,7 @@ library ClearingHouseLogic {
                 scaledAmountForUniswapV3PoolSwap,
                 params.sqrtPriceLimitX96,
                 abi.encode(
-                    IExchange.SwapCallbackData({
+                    IVPool.SwapCallbackData({
                         trader: params.trader,
                         baseToken: params.baseToken,
                         pool: marketInfo.pool,

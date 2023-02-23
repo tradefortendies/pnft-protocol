@@ -5,7 +5,7 @@ import hre, { ethers } from "hardhat";
 import bn from "bignumber.js"
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, Exchange, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, VPool, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
@@ -33,7 +33,7 @@ async function deploy() {
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address)) as Exchange;
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address)) as VPool;
     var insuranceFund = await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var collateralManager = await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
@@ -98,8 +98,8 @@ async function deploy() {
             '------------------------',
         )
 
-        if ((await exchange.getInsuranceFundFeeRatio(baseToken.address, true)).eq(500) && (await exchange.getInsuranceFundFeeRatio(baseToken.address, false)).eq(500)) {
-            let markTwapX96 = await exchange.getSqrtMarkTwapX96(baseToken.address, 0)
+        if ((await vPool.getInsuranceFundFeeRatio(baseToken.address, true)).eq(500) && (await vPool.getInsuranceFundFeeRatio(baseToken.address, false)).eq(500)) {
+            let markTwapX96 = await vPool.getSqrtMarkTwapX96(baseToken.address, 0)
             let markTwap = new bn(formatSqrtPriceX96ToPrice(markTwapX96, 18))
             let indexPrice = new bn(formatEther((await baseToken.getIndexPrice(0))))
 

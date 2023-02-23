@@ -3,8 +3,8 @@ import { TestClearingHouse } from "../../typechain"
 
 // There are two kinds of timestamps:
 // 1. the real one by hardhat
-// 2. mocked ones as written in TestClearingHouse, TestExchange and TestAccountBalance
-// By mocking timestamps in ClearingHouse, Exchange and AccountBalance, we can get the accurate funding payments
+// 2. mocked ones as written in TestClearingHouse, TestVPool and TestAccountBalance
+// By mocking timestamps in ClearingHouse, VPool and AccountBalance, we can get the accurate funding payments
 // that won't be affected by txs sent by hardhat, as each tx increases timestamp by 1 second (the automine feature by hardhat)
 
 // default increase amount by 10 as we cannot set a timestamp <= than the current one

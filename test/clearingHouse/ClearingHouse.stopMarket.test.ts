@@ -13,7 +13,7 @@ import {
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     UniswapV3Pool,
     Vault,
 } from "../../typechain"
@@ -34,8 +34,8 @@ describe("Clearinghouse StopMarket", async () => {
     let accountBalance: TestAccountBalance
     let insuranceFund: InsuranceFund
     let marketRegistry: MarketRegistry
-    let exchange: TestExchange
-    let orderBook: OrderBook
+    let vPool: TestVPool
+    
     let vault: Vault
     let collateral: TestERC20
     let baseToken: BaseToken
@@ -54,8 +54,8 @@ describe("Clearinghouse StopMarket", async () => {
         clearingHouseConfig = fixture.clearingHouseConfig
         accountBalance = fixture.accountBalance as TestAccountBalance
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange as TestExchange
+        
+        vPool = fixture.vPool as TestVPool
         marketRegistry = fixture.marketRegistry
         vault = fixture.vault
         collateral = fixture.USDC
@@ -164,27 +164,27 @@ describe("Clearinghouse StopMarket", async () => {
             })
 
             it("fundingPayment should not change anymore in paused market", async () => {
-                const pendingFundingPayment1 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment1 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).not.eq("0")
 
                 // forward 5 mins
                 await forwardBothTimestamps(clearingHouse, 5 * 60)
-                const pendingFundingPayment2 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment2 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment2)
 
                 // forward 30 mins which is more than the twap interval
                 await forwardBothTimestamps(clearingHouse, 30 * 60)
-                const pendingFundingPayment3 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment3 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment3)
 
                 // forward 7 days = 7 * 24 * 60 * 60
                 await forwardBothTimestamps(clearingHouse, 604800)
-                const pendingFundingPayment4 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment4 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment4)
             })
 
             it("should be able to settle funding", async () => {
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 const [owedRealizedBefore] = await accountBalance.getPnlAndPendingFee(bob.address)
 
                 await clearingHouse.connect(bob).settleAllFunding(bob.address)
@@ -207,7 +207,7 @@ describe("Clearinghouse StopMarket", async () => {
 
                 // accountValue: 10055.1280557316, totalCollateralValue: 10000
                 // freeCollateral = 10000 - 20(quote debt) * 0.1 = 9998
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 const freeCollateralBefore = await vault.getFreeCollateral(bob.address)
                 expect(freeCollateralBefore).to.be.closeTo(
                     parseUnits("9998", collateralDecimals).sub(pendingFundingPayment.div(1e12)),
@@ -419,7 +419,7 @@ describe("Clearinghouse StopMarket", async () => {
                     bob.address,
                     baseToken.address,
                 )
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
 
                 const expectedPnl = closedMarketPositionSize.mul("1000").add(closedMarketQuoteBalance)
 
@@ -458,7 +458,7 @@ describe("Clearinghouse StopMarket", async () => {
                     bob.address,
                     baseToken.address,
                 )
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
 
                 const expectedPnl = closedMarketPositionSize.mul("50").add(closedMarketQuoteBalance)
 
@@ -499,7 +499,7 @@ describe("Clearinghouse StopMarket", async () => {
 
                 // accountValue: 10055.1280557316, totalCollateralValue: 10000
                 // freeCollateral = 10000 - 20(quote debt) * 0.1 = 9998
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 const freeCollateralBefore = await vault.getFreeCollateral(bob.address)
                 expect(freeCollateralBefore).to.be.closeTo(
                     parseUnits("9998", collateralDecimals).sub(pendingFundingPayment.div(1e12)),
@@ -639,27 +639,27 @@ describe("Clearinghouse StopMarket", async () => {
             })
 
             it("fundingPayment should not change anymore in paused market", async () => {
-                const pendingFundingPayment1 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment1 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).not.eq("0")
 
                 // forward 5 mins
                 await forwardBothTimestamps(clearingHouse, 5 * 60)
-                const pendingFundingPayment2 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment2 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment2)
 
                 // forward 30 mins which is more than the twap interval
                 await forwardBothTimestamps(clearingHouse, 30 * 60)
-                const pendingFundingPayment3 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment3 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment3)
 
                 // forward 7 days = 7 * 24 * 60 * 60
                 await forwardBothTimestamps(clearingHouse, 604800)
-                const pendingFundingPayment4 = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment4 = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 expect(pendingFundingPayment1).to.be.eq(pendingFundingPayment4)
             })
 
             it("should be able to settle funding", async () => {
-                const pendingFundingPayment = await exchange.getPendingFundingPayment(bob.address, baseToken.address)
+                const pendingFundingPayment = await vPool.getPendingFundingPayment(bob.address, baseToken.address)
                 const [owedRealizedBefore] = await accountBalance.getPnlAndPendingFee(bob.address)
 
                 await clearingHouse.connect(bob).settleAllFunding(bob.address)

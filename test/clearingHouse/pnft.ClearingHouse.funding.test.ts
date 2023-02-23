@@ -6,11 +6,10 @@ import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
     ClearingHouseConfig,
-    OrderBook,
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     Vault,
 } from "../../typechain"
 import { QuoteToken } from "../../typechain/QuoteToken"
@@ -26,8 +25,7 @@ describe("ClearingHouse funding", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let clearingHouse: TestClearingHouse
     let clearingHouseConfig: ClearingHouseConfig
-    let exchange: TestExchange
-    let orderBook: OrderBook
+    let vPool: TestVPool
     let accountBalance: TestAccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -41,8 +39,7 @@ describe("ClearingHouse funding", () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         clearingHouseConfig = fixture.clearingHouseConfig
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange as TestExchange
+        vPool = fixture.vPool as TestVPool
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         collateral = fixture.WETH
@@ -104,7 +101,7 @@ describe("ClearingHouse funding", () => {
                 await forwardBothTimestamps(clearingHouse, 86400)
 
                 // bob's funding payment = -0.099 * (153.9531248192 - 150.953124) * 300 / 86400 = -0.001031250282
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
 
@@ -126,11 +123,11 @@ describe("ClearingHouse funding", () => {
 
                 // maker's funding payment shouldn't change after carol swaps
                 // -(-0.099 * (153.9531248192 - 150.953124) * 300 / 86400) = -0.001031250282
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
 
-                // let [, markTwap, indexTwap] = await exchange.getFundingGrowthGlobalAndTwaps(baseToken.address)
+                // let [, markTwap, indexTwap] = await vPool.getFundingGrowthGlobalAndTwaps(baseToken.address)
                 // console.log(
                 //     'markTwap indexTwap',
                 //     formatEther(markTwap),
@@ -150,15 +147,15 @@ describe("ClearingHouse funding", () => {
 
                 // notice that markTwap here is not 154.3847760162 as in "two takers; first positive then negative funding", though having the same amount swapped
                 // bob's funding payment = -1 * ((99.979958944630260000 - 101) * 86400) / 86400 * 0.25 = 0.000329085991037307
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0.255010263842434168"),
                 )
                 // carol's funding payment = 0.09 * (154.1996346489 - 156.953124) * 450 / 86400 * (0.099 / 0.09) * 0.25 = -0.000329085991037307
-                expect(await exchange.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
                     parseEther("-0.255010263842434168"),
                 )
                 // maker's funding payment = 0
-                expect(await exchange.getPendingFundingPayment(maker.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(maker.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
 
@@ -186,7 +183,7 @@ describe("ClearingHouse funding", () => {
                 //     .to.emit(exchange, "FundingUpdated")
                 //     .withArgs(baseToken.address, parseEther("154.199634648900471640"), parseEther("156.953124"))
 
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
 
@@ -201,16 +198,16 @@ describe("ClearingHouse funding", () => {
                 // delta price > 2.5%
 
                 // bob's funding payment = (-0.0990000001 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0) * (0.09 / 0.0990000001) = -0.002195742712544159
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("-0.002199763149419581"),
                 )
                 // carol's funding payment = 0.09 * (154.1996346489 - 156.953124) * 450 / 86400 * (0.099 / 0.09) * 0.25 + 0.09 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0 = 0.001862676687991911
-                expect(await exchange.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
                     parseEther("0.001870677158382273"),
                 )
                 // maker's funding payment = 0
                 // there is minor imprecision in this case
-                expect(await exchange.getPendingFundingPayment(maker.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(maker.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
 
@@ -235,11 +232,11 @@ describe("ClearingHouse funding", () => {
                 )
 
                 // bob's funding payment = (-0.0990000001 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0) * (0.09 / 0.0990000001) = -0.002195742712544159
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
                 // carol's funding payment = 0.09 * (154.1996346489 - 156.953124) * 450 / 86400 * (0.099 / 0.09) * 0.25 + 0.09 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0 = 0.001862676687991911
-                expect(await exchange.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
                     parseEther("0.001870677158382273"),
                 )
 
@@ -253,11 +250,11 @@ describe("ClearingHouse funding", () => {
                 )
 
                 // bob's funding payment = (-0.0990000001 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0) * (0.09 / 0.0990000001) = -0.002195742712544159
-                expect(await exchange.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(bob.address, baseToken.address)).to.eq(
                     parseEther("0"),
                 )
                 // carol's funding payment = 0.09 * (154.1996346489 - 156.953124) * 450 / 86400 * (0.099 / 0.09) * 0.25 + 0.09 * (154.2767498877 - 145.953124) * 250 / 86400 * 1.0 = 0.001862676687991911
-                expect(await exchange.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
+                expect(await vPool.getPendingFundingPayment(carol.address, baseToken.address)).to.eq(
                     parseEther("0.001870677158382273"),
                 )
             })

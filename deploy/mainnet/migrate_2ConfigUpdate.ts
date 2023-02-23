@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
@@ -25,7 +25,7 @@ async function deploy() {
     var clearingHouseConfig = (await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address)) as ClearingHouseConfig;
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address) as VPool);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
@@ -33,9 +33,9 @@ async function deploy() {
 
     const vETH = (await ethers.getContractAt('QuoteToken', deployData.vETH.address)) as QuoteToken;
 
-    if ((await exchange.getAccountBalance()).toLowerCase() != accountBalance.address.toLowerCase()) {
-        await waitForTx(await exchange.setAccountBalance(accountBalance.address),
-            'exchange.setAccountBalance(accountBalance.address)')
+    if ((await vPool.getAccountBalance()).toLowerCase() != accountBalance.address.toLowerCase()) {
+        await waitForTx(await vPool.setAccountBalance(accountBalance.address),
+            'vPool.setAccountBalance(accountBalance.address)')
     }
     if ((await insuranceFund.getVault()).toLowerCase() != vault.address.toLowerCase()) {
         await waitForTx(await insuranceFund.setVault(vault.address),
@@ -49,9 +49,9 @@ async function deploy() {
         await waitForTx(await marketRegistry.setClearingHouse(clearingHouse.address),
             'marketRegistry.setClearingHouse(clearingHouse.address)')
     }
-    if ((await exchange.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
-        await waitForTx(await exchange.setClearingHouse(clearingHouse.address),
-            'exchange.setClearingHouse(clearingHouse.address)')
+    if ((await vPool.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
+        await waitForTx(await vPool.setClearingHouse(clearingHouse.address),
+            'vPool.setClearingHouse(clearingHouse.address)')
     }
     if ((await accountBalance.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(await accountBalance.setClearingHouse(clearingHouse.address),

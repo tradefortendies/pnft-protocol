@@ -12,7 +12,7 @@ import {
     QuoteToken,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     UniswapV3Pool,
     Vault,
 } from "../../typechain"
@@ -35,8 +35,8 @@ describe("ClearingHouse accounting verification in xyk pool", () => {
     const [admin, maker, taker, maker2, taker2, maker3, taker3] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let clearingHouse: TestClearingHouse
-    let exchange: TestExchange
-    let orderBook: OrderBook
+    let vPool: TestVPool
+    
     let accountBalance: AccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
@@ -59,8 +59,8 @@ describe("ClearingHouse accounting verification in xyk pool", () => {
 
         fixture = await loadFixture(createClearingHouseFixture(undefined, uniFeeRatio))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange as TestExchange
+        
+        vPool = fixture.vPool as TestVPool
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         collateral = fixture.USDC
@@ -674,12 +674,12 @@ describe("ClearingHouse accounting verification in xyk pool", () => {
             expect(fee).to.be.gt("0")
 
             await forwardBothTimestamps(clearingHouse, 200)
-            expect(await exchange.getPendingFundingPayment(taker.address, baseToken.address)).to.be.gt("0")
+            expect(await vPool.getPendingFundingPayment(taker.address, baseToken.address)).to.be.gt("0")
 
             await clearingHouse.connect(taker).settleAllFunding(taker.address)
 
             await forwardBothTimestamps(clearingHouse, 200)
-            expect(await exchange.getPendingFundingPayment(taker.address, baseToken.address)).to.be.gt("0")
+            expect(await vPool.getPendingFundingPayment(taker.address, baseToken.address)).to.be.gt("0")
 
             // Due to current tick hits the MAX_TICK-1, that means the mark price will be super large.
             // Can not add more liquidity since it will be failed by price spread checking.

@@ -6,7 +6,7 @@ import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     MarketRegistry,
     OrderBook,
     QuoteToken,
@@ -29,8 +29,8 @@ describe("ClearingHouse openPosition", () => {
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
     let clearingHouseConfig: ClearingHouseConfig
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -47,11 +47,11 @@ describe("ClearingHouse openPosition", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         clearingHouseConfig = fixture.clearingHouseConfig
         vault = fixture.vault
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         marketRegistry = fixture.marketRegistry
         collateral = fixture.USDC
         baseToken = fixture.baseToken
@@ -1456,8 +1456,8 @@ describe("ClearingHouse openPosition", () => {
             quoteTokenBalanceInit = await quoteToken.balanceOf(clearingHouse.address)
             expect(await baseTokenBalanceInit).to.be.not.eq(0)
             expect(await quoteTokenBalanceInit).to.be.not.eq(0)
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
 
         it("open long position, clearingHouse transfer quoteToken to pool and receive baseToken", async () => {
@@ -1471,8 +1471,8 @@ describe("ClearingHouse openPosition", () => {
             expect(baseTokenBalance.sub(baseTokenBalanceInit)).to.be.eq(baseBalance)
 
             // Should not transfer any token to exchange
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
 
         it("open short position, cleaningHouse transfer baseToken to pool and receive quoteToken", async () => {
@@ -1491,8 +1491,8 @@ describe("ClearingHouse openPosition", () => {
             expect(baseTokenBalanceInit.sub(baseTokenBalance)).to.be.eq(parseEther("0.680345299948217261"))
 
             // Should not transfer any token to exchange
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
     })
 })

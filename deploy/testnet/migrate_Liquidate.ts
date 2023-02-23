@@ -5,7 +5,7 @@ import hre, { ethers } from "hardhat";
 import bn from "bignumber.js"
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, Exchange, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, VPool, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
@@ -33,7 +33,7 @@ async function deploy() {
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address)) as Exchange;
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address)) as VPool;
     var insuranceFund = await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var collateralManager = await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
@@ -56,7 +56,7 @@ async function deploy() {
 
     if (isLiquidatable) {
         // only liquidate if fee < 0.5%
-        if ((await exchange.getInsuranceFundFeeRatio(baseTokenAddr, true)).lt(5000) && (await exchange.getInsuranceFundFeeRatio(baseTokenAddr, false)).lt(5000)) {
+        if ((await vPool.getInsuranceFundFeeRatio(baseTokenAddr, true)).lt(5000) && (await vPool.getInsuranceFundFeeRatio(baseTokenAddr, false)).lt(5000)) {
 
             let buyingPower = (await vault.getFreeCollateral(liquidator.address)).mul(5).mul(80).div(100).abs() // use 80% balance
             let positionValue = (await accountBalance.getTotalPositionValue(traderAddr, baseTokenAddr)).abs()
@@ -65,7 +65,7 @@ async function deploy() {
             // update liqPositionSize if buyingPower < positionValue
             
             // var isBaseToQuote = liqPositionSize.gt(0) ? true : false
-            // let relaySwapResp = await exchange.estimateSwap({
+            // let relaySwapResp = await vPool.estimateSwap({
             //     baseToken: baseTokenAddr,
             //     isBaseToQuote: isBaseToQuote,
             //     isExactInput: !isBaseToQuote,

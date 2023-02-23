@@ -8,7 +8,7 @@ import {
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     Vault,
 } from "../../typechain"
 import { addOrder, closePosition, q2bExactInput, q2bExactOutput } from "../helper/clearingHouseHelper"
@@ -22,9 +22,9 @@ describe("ClearingHouse closePosition", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let orderBook: OrderBook
+    
     let accountBalance: TestAccountBalance
-    let exchange: TestExchange
+    let vPool: TestVPool
     let collateral: TestERC20
     let vault: Vault
     let baseToken: BaseToken
@@ -35,8 +35,8 @@ describe("ClearingHouse closePosition", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        exchange = fixture.exchange as TestExchange
-        orderBook = fixture.orderBook
+        vPool = fixture.vPool as TestVPool
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         collateral = fixture.USDC
@@ -754,7 +754,7 @@ describe("ClearingHouse closePosition", () => {
             await forwardBothTimestamps(clearingHouse, 3000)
 
             // set MaxTickCrossedWithinBlock so that trigger over price limit
-            await exchange.setMaxTickCrossedWithinBlock(baseToken.address, 1000)
+            await vPool.setMaxTickCrossedWithinBlock(baseToken.address, 1000)
             await expect(closePosition(fixture, alice)).to.be.revertedWith("EX_OPLAS")
 
             // // expect partial close 5 * 25% = 1.25

@@ -20,20 +20,20 @@ import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IBaseToken } from "./interface/IBaseToken.sol";
-import { ExchangeStorageV2 } from "./storage/ExchangeStorage.sol";
-import { IExchange } from "./interface/IExchange.sol";
+import { VPoolStorageV2 } from "./storage/VPoolStorage.sol";
+import { IVPool } from "./interface/IVPool.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { ClearingHouseLogic } from "./lib/ClearingHouseLogic.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
-contract Exchange is
+contract VPool is
     IUniswapV3SwapCallback,
-    IExchange,
+    IVPool,
     BlockContext,
     ClearingHouseCallee,
     UniswapV3CallbackBridge,
-    ExchangeStorageV2
+    VPoolStorageV2
 {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint256;
@@ -162,7 +162,7 @@ contract Exchange is
     /// @param params The parameters of the swap
     /// @return The result of the swap
     /// @dev can only be called from ClearingHouse
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function swap(SwapParams memory params) external override returns (SwapResponse memory) {
         _requireOnlyClearingHouse();
 
@@ -275,7 +275,7 @@ contract Exchange is
             });
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function settleFundingGlobal(
         address baseToken
     ) external override returns (DataTypes.Growth memory fundingGrowthGlobal) {
@@ -345,7 +345,7 @@ contract Exchange is
         return balanceCoefficientInFundingPayment.div(_DEFAULT_FUNDING_PERIOD);
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function settleFunding(
         address trader,
         address baseToken
@@ -398,22 +398,22 @@ contract Exchange is
     // EXTERNAL VIEW
     //
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getAccountBalance() external view override returns (address) {
         return _accountBalance;
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getClearingHouseConfig() external view override returns (address) {
         return _clearingHouseConfig;
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getMaxTickCrossedWithinBlock(address baseToken) external view override returns (uint24) {
         return _maxTickCrossedWithinBlockMap[baseToken];
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getPnlToBeRealized(RealizePnlParams memory params) external view override returns (int256) {
         DataTypes.AccountMarketInfo memory info = IAccountBalance(_accountBalance).getAccountInfo(
             params.trader,
@@ -440,7 +440,7 @@ contract Exchange is
                 : 0;
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getAllPendingFundingPayment(address trader) external view override returns (int256 pendingFundingPayment) {
         address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
         uint256 baseTokenLength = baseTokens.length;
@@ -451,7 +451,7 @@ contract Exchange is
         return pendingFundingPayment;
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function isOverPriceSpread(address baseToken) external view override returns (bool) {
         return _isOverPriceSpread(baseToken);
     }
@@ -472,7 +472,7 @@ contract Exchange is
     // PUBLIC VIEW
     //
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getPendingFundingPayment(address trader, address baseToken) public view override returns (int256) {
         (DataTypes.Growth memory fundingGrowthGlobal, , ) = _getFundingGrowthGlobalAndTwaps(baseToken);
         return
@@ -484,7 +484,7 @@ contract Exchange is
             );
     }
 
-    /// @inheritdoc IExchange
+    /// @inheritdoc IVPool
     function getSqrtMarkTwapX96(address baseToken, uint32 twapInterval) public view override returns (uint160) {
         return UniswapV3Broker.getSqrtMarkTwapX96(IMarketRegistry(_marketRegistry).getPool(baseToken), twapInterval);
     }

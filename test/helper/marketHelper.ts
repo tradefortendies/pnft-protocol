@@ -31,7 +31,7 @@ export async function initMarket(
     // await marketRegistry.setInsuranceFundFeeRatio(baseToken, ifFeeRatio)
 
     if (maxTickCrossedWithinBlock != 0) {
-        await fixture.exchange.setMaxTickCrossedWithinBlock(baseToken, maxTickCrossedWithinBlock)
+        await fixture.vPool.setMaxTickCrossedWithinBlock(baseToken, maxTickCrossedWithinBlock)
     }
 
     const tickSpacing = await uniPool.tickSpacing()

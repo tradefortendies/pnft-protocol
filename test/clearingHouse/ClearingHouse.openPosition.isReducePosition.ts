@@ -3,7 +3,7 @@ import { parseEther } from "@ethersproject/units"
 import { expect } from "chai"
 import { parseUnits } from "ethers/lib/utils"
 import { waffle } from "hardhat"
-import { AccountBalance, BaseToken, Exchange, TestClearingHouse, TestERC20, Vault } from "../../typechain"
+import { AccountBalance, BaseToken, VPool, TestClearingHouse, TestERC20, Vault } from "../../typechain"
 import { addOrder, b2qExactInput, b2qExactOutput, q2bExactOutput } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
@@ -13,7 +13,7 @@ describe("ClearingHouse isIncreasePosition when trader is both of maker and take
     const [admin, alice, bob, carol] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let clearingHouse: TestClearingHouse
-    let exchange: Exchange
+    let vPool: VPool
     let accountBalance: AccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -27,7 +27,7 @@ describe("ClearingHouse isIncreasePosition when trader is both of maker and take
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         collateral = fixture.USDC
@@ -170,7 +170,7 @@ describe("ClearingHouse isIncreasePosition when trader is both of maker and take
             )
 
             // set MaxTickCrossedWithinBlock so that trigger over price limit
-            await exchange.setMaxTickCrossedWithinBlock(baseToken.address, 1000)
+            await vPool.setMaxTickCrossedWithinBlock(baseToken.address, 1000)
             // expect revert due to over price limit
             // alice reduce position
             await expect(b2qExactOutput(fixture, alice, 5)).to.be.revertedWith("EX_OPLBS")

@@ -5,7 +5,7 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange, priceToTick } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -21,7 +21,7 @@ import migrateUniswapV3 from "./6_migrate_UniswapV3";
 import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
 import migrateMarketRegistry from "./8_migrate_MarketRegistry";
 import migrateAccountBalance from "./10_migrate_AccountBalance";
-import migrateExchange from "./11_migrate_Exchange";
+import migrateVPool from "./11_migrate_VPool";
 import migrateInsuranceFund from "./12_migrate_InsuranceFund";
 import migrateVault from "./13_migrate_Vault";
 import migrateClearingHouse from "./15_migrate_ClearingHouse";
@@ -113,11 +113,11 @@ async function deploy() {
         console.log('migrateAccountBalance -- END --')
     }
 
-    // import migrateExchange from "./11_migrate_Exchange";
+    // import migrateVPool from "./11_migrate_VPool";
     {
-        console.log('migrateExchange -- START --')
-        await migrateExchange();
-        console.log('migrateExchange -- END --')
+        console.log('migrateVPool -- START --')
+        await migrateVPool();
+        console.log('migrateVPool -- END --')
     }
 
     // import migrateInsuranceFund from "./12_migrate_InsuranceFund";
@@ -173,7 +173,7 @@ async function deploy() {
     var clearingHouseConfig = (await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address)) as ClearingHouseConfig;
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address) as VPool);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
@@ -282,7 +282,7 @@ async function deploy() {
 
     //     var isBaseToQuote = true;
 
-    //     let currPriceX96 = await exchange.getSqrtMarkTwapX96(baseToken.address, 0)
+    //     let currPriceX96 = await vPool.getSqrtMarkTwapX96(baseToken.address, 0)
     //     let currPrice = new bn(formatSqrtPriceX96ToPrice(currPriceX96, 18))
 
     //     let limitTick = 100
@@ -290,7 +290,7 @@ async function deploy() {
     //     let limitPriceTick = currentPriceTick + (isBaseToQuote ? -limitTick : limitTick)
     //     let limitPrice = new bn(1.0001).pow(limitPriceTick)
 
-    //     let estimateSwap = await exchange.estimateSwap({
+    //     let estimateSwap = await vPool.estimateSwap({
     //         baseToken: baseToken.address,
     //         isBaseToQuote: isBaseToQuote,
     //         isExactInput: !isBaseToQuote,
@@ -362,11 +362,11 @@ async function deploy() {
     // }
 
     // console.log(
-    //     (await exchange.getOverPriceSpreadInfo(deployData.vAZUKI.address))[0].toString()
+    //     (await vPool.getOverPriceSpreadInfo(deployData.vAZUKI.address))[0].toString()
     // )
 
     // console.log(
-    //     (await exchange.getInsuranceFundFeeRatio(deployData.vBAYC.address, false)).toString()
+    //     (await vPool.getInsuranceFundFeeRatio(deployData.vBAYC.address, false)).toString()
     // )
 
     // console.log(
@@ -407,7 +407,7 @@ async function deploy() {
     // let addr = '0x1a8a3373bf1aeb5e1a21015e71541ff4be09ee41'
     // let balance = await vault.getBalanceByToken(addr, wETH.address)
     // let pnlAndFee = (await accountBalance.getPnlAndPendingFee(addr))
-    // let fundingFee = (await exchange.getAllPendingFundingPayment(addr))
+    // let fundingFee = (await vPool.getAllPendingFundingPayment(addr))
     // console.log(
     //     'clearingHouse.isLiquidatable',
     //     addr,
@@ -453,7 +453,7 @@ async function deploy() {
     // let e = await findPFundingPaymentSettledEvents(clearingHouse, receipt)[0];
     // console.log(e)
 
-    // let info = await exchange.getGlobalFundingGrowthInfo(deployData.vBAYC.address)
+    // let info = await vPool.getGlobalFundingGrowthInfo(deployData.vBAYC.address)
     // console.log(
     //     'getGlobalFundingGrowthInfo',
     //     (info[1].twLongPremiumX96).toString(),
@@ -529,7 +529,7 @@ async function deploy() {
 
     // return IAccountBalance(_accountBalance).getMarginRequirementForLiquidation(trader)
 
-    // let markTwapX96 = await exchange.getSqrtMarkTwapX96(baseTokenAddr, 0)
+    // let markTwapX96 = await vPool.getSqrtMarkTwapX96(baseTokenAddr, 0)
     // let markTwap = new bn(formatSqrtPriceX96ToPrice(markTwapX96, 18))
     // console.log(
     //     'markTwap',
@@ -594,10 +594,10 @@ async function deploy() {
 
     // {
     //     var vBAYC = (await hre.ethers.getContractAt('BaseToken', deployData.vBAYC.address)) as BaseToken;
-    //     let currPriceX96 = await exchange.getSqrtMarkTwapX96(vBAYC.address, 0)
+    //     let currPriceX96 = await vPool.getSqrtMarkTwapX96(vBAYC.address, 0)
     //     let currPrice = new bn(formatSqrtPriceX96ToPrice(currPriceX96, 18))
     //     var isBaseToQuote = true;
-    //     let estimateSwap = await exchange.estimateSwap({
+    //     let estimateSwap = await vPool.estimateSwap({
     //         baseToken: vBAYC.address,
     //         isBaseToQuote: isBaseToQuote,
     //         isExactInput: !isBaseToQuote,
@@ -709,9 +709,9 @@ async function deploy() {
     //     {
     //         // var maxTickCrossedWithinBlock: number = 200
     //         var maxTickCrossedWithinBlock: number = 1774544
-    //         if ((await exchange.getMaxTickCrossedWithinBlock(baseToken.address)).toString() != maxTickCrossedWithinBlock.toString()) {
+    //         if ((await vPool.getMaxTickCrossedWithinBlock(baseToken.address)).toString() != maxTickCrossedWithinBlock.toString()) {
     //             await tryWaitForTx(
-    //                 await exchange.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock), 'exchange.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock)'
+    //                 await vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock), 'vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock)'
     //             )
     //         }
     //         // {

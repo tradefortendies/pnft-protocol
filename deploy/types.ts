@@ -53,7 +53,7 @@ type DeployData = {
     clearingHouseConfig: ContractData,
     marketRegistry: ContractData,
     accountBalance: ContractData,
-    exchange: ContractData,
+    vPool: ContractData,
     insuranceFund: ContractData,
     vault: ContractData,
     pNFTToken: TokenData,

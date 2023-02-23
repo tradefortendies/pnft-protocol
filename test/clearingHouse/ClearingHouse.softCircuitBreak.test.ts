@@ -6,7 +6,7 @@ import { parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     QuoteToken,
     TestAccountBalance,
@@ -28,7 +28,7 @@ describe("ClearingHouse softCircuitBreak", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let exchange: Exchange
+    let vPool: VPool
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
@@ -80,7 +80,7 @@ describe("ClearingHouse softCircuitBreak", () => {
             ),
         )
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund

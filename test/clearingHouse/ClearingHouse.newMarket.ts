@@ -9,7 +9,7 @@ import {
     QuoteToken,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     Vault,
 } from "../../typechain"
 import { addOrder, b2qExactOutput, closePosition, q2bExactInput, removeAllOrders } from "../helper/clearingHouseHelper"
@@ -25,8 +25,8 @@ describe("ClearingHouse new market listing", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let exchange: TestExchange
-    let orderBook: OrderBook
+    let vPool: TestVPool
+    
     let insuranceFund: InsuranceFund
     let vault: Vault
     let collateral: TestERC20
@@ -44,8 +44,8 @@ describe("ClearingHouse new market listing", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange as TestExchange
+        
+        vPool = fixture.vPool as TestVPool
         insuranceFund = fixture.insuranceFund as InsuranceFund
         vault = fixture.vault
         collateral = fixture.USDC
@@ -138,14 +138,14 @@ describe("ClearingHouse new market listing", () => {
             await addOrder(fixture, alice, 100, 10000, 48000, 52000, false, baseToken3.address)
 
             // open market
-            await exchange.setMaxTickCrossedWithinBlock(baseToken3.address, "1000")
+            await vPool.setMaxTickCrossedWithinBlock(baseToken3.address, "1000")
 
             // open position, bob long, davis short
             await q2bExactInput(fixture, bob, 4, baseToken3.address)
             await b2qExactOutput(fixture, davis, 2, baseToken3.address)
 
             // pause market
-            await exchange.setMaxTickCrossedWithinBlock(baseToken3.address, "0")
+            await vPool.setMaxTickCrossedWithinBlock(baseToken3.address, "0")
         })
 
         it("force error when close position", async () => {
@@ -177,12 +177,12 @@ describe("ClearingHouse new market listing", () => {
             await clearingHouse.connect(davis).settleAllFunding(davis.address)
 
             await forwardBothTimestamps(clearingHouse, 100)
-            const bobPendingFundingBefore = await exchange.getPendingFundingPayment(bob.address, baseToken3.address)
-            const davisPendingFundingBefore = await exchange.getPendingFundingPayment(davis.address, baseToken3.address)
+            const bobPendingFundingBefore = await vPool.getPendingFundingPayment(bob.address, baseToken3.address)
+            const davisPendingFundingBefore = await vPool.getPendingFundingPayment(davis.address, baseToken3.address)
 
             await forwardBothTimestamps(clearingHouse, 100)
-            const bobPendingFundingAfter = await exchange.getPendingFundingPayment(bob.address, baseToken3.address)
-            const davisPendingFundingAfter = await exchange.getPendingFundingPayment(davis.address, baseToken3.address)
+            const bobPendingFundingAfter = await vPool.getPendingFundingPayment(bob.address, baseToken3.address)
+            const davisPendingFundingAfter = await vPool.getPendingFundingPayment(davis.address, baseToken3.address)
 
             expect(bobPendingFundingAfter.abs()).to.be.gt(bobPendingFundingBefore.abs())
             expect(davisPendingFundingAfter.abs()).to.be.gt(davisPendingFundingBefore.abs())
@@ -194,11 +194,11 @@ describe("ClearingHouse new market listing", () => {
             await clearingHouse.connect(bob).settleAllFunding(bob.address)
 
             // Bob's funding has been settled
-            const bobBefore = await exchange.getPendingFundingPayment(bob.address, baseToken3.address)
+            const bobBefore = await vPool.getPendingFundingPayment(bob.address, baseToken3.address)
             expect(bobBefore).to.be.eq(0)
 
             // Davis's funding still cumulate
-            const davisBefore = await exchange.getPendingFundingPayment(davis.address, baseToken3.address)
+            const davisBefore = await vPool.getPendingFundingPayment(davis.address, baseToken3.address)
             expect(davisBefore.abs()).to.be.gt(0)
 
             const emergencyPriceFeed = await emergencyPriceFeedFixture(pool3Addr, baseToken3)
@@ -214,15 +214,15 @@ describe("ClearingHouse new market listing", () => {
 
             // Should not cumulate funding after forwarding timestamp
             await forwardBothTimestamps(clearingHouse, 100)
-            const bobAfter100 = await exchange.getPendingFundingPayment(bob.address, baseToken3.address)
+            const bobAfter100 = await vPool.getPendingFundingPayment(bob.address, baseToken3.address)
             expect(bobAfter100).to.be.eq(0)
-            const davisAfter100 = await exchange.getPendingFundingPayment(davis.address, baseToken3.address)
+            const davisAfter100 = await vPool.getPendingFundingPayment(davis.address, baseToken3.address)
             expect(davisAfter100).to.be.eq(davisBefore)
 
             // Davis should get zero pending funding after funding settlement
             await clearingHouse.connect(davis).settleAllFunding(davis.address)
             await forwardBothTimestamps(clearingHouse, 100)
-            const davisAfterSettle = await exchange.getPendingFundingPayment(davis.address, baseToken3.address)
+            const davisAfterSettle = await vPool.getPendingFundingPayment(davis.address, baseToken3.address)
             expect(davisAfterSettle).to.be.eq(0)
         })
     })
@@ -238,15 +238,15 @@ describe("ClearingHouse new market listing", () => {
             await addOrder(fixture, bob, 1, 10, lowerTick, upperTick, false, baseToken3.address)
 
             // open market
-            await exchange.setMaxTickCrossedWithinBlock(baseToken.address, "1000")
-            await exchange.setMaxTickCrossedWithinBlock(baseToken3.address, "1000")
+            await vPool.setMaxTickCrossedWithinBlock(baseToken.address, "1000")
+            await vPool.setMaxTickCrossedWithinBlock(baseToken3.address, "1000")
 
             // bob open position in baseToken, baseToken3 market
             await q2bExactInput(fixture, bob, 800, baseToken.address)
             await q2bExactInput(fixture, bob, 800, baseToken3.address)
 
             // pause baseToken3 market
-            await exchange.setMaxTickCrossedWithinBlock(baseToken3.address, "0")
+            await vPool.setMaxTickCrossedWithinBlock(baseToken3.address, "0")
 
             // drop baseToken market price
             mockedBaseAggregator.smocked.latestRoundData.will.return.with(async () => {

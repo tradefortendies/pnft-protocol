@@ -15,7 +15,7 @@ abstract contract ClearingHouseStorage {
 
     address internal _clearingHouseConfig;
     address internal _vault;
-    address internal _exchange;
+    address internal _vPool;
     address internal __orderBook;
     address internal _accountBalance;
     address internal _marketRegistry;

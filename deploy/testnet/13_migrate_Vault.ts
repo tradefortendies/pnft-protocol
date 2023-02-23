@@ -36,7 +36,7 @@ async function deploy() {
             deployData.insuranceFund.address,
             deployData.clearingHouseConfig.address,
             deployData.accountBalance.address,
-            deployData.exchange.address,
+            deployData.vPool.address,
             deployData.makerFundAddress,
         ]);
         var transparentUpgradeableProxy = await waitForDeploy(
@@ -71,7 +71,7 @@ async function deploy() {
             deployData.insuranceFund.address,
             deployData.clearingHouseConfig.address,
             deployData.accountBalance.address,
-            deployData.exchange.address,
+            deployData.vPool.address,
             deployData.makerFundAddress,
         ]);
         await verifyContract(

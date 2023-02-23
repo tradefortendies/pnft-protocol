@@ -7,7 +7,7 @@ import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/Sa
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import "../ClearingHouse.sol";
 import "./TestAccountBalance.sol";
-import "./TestExchange.sol";
+import "./TestVPool.sol";
 
 contract TestClearingHouse is ClearingHouse {
     using PerpSafeCast for uint256;
@@ -45,7 +45,7 @@ contract TestClearingHouse is ClearingHouse {
 
     function setBlockTimestamp(uint256 blockTimestamp) external {
         TestAccountBalance(_accountBalance).setBlockTimestamp(blockTimestamp);
-        TestExchange(_exchange).setBlockTimestamp(blockTimestamp);
+        TestVPool(_vPool).setBlockTimestamp(blockTimestamp);
         _testBlockTimestamp = blockTimestamp;
     }
 
@@ -74,12 +74,12 @@ contract TestClearingHouse is ClearingHouse {
         uint160 sqrtPriceLimitX96; // price slippage protection
     }
 
-    function swap(SwapParams memory params) external nonReentrant() returns (IExchange.SwapResponse memory) {
+    function swap(SwapParams memory params) external nonReentrant() returns (IVPool.SwapResponse memory) {
         IAccountBalance(_accountBalance).registerBaseToken(_msgSender(), params.baseToken);
 
-        IExchange.SwapResponse memory response =
-            IExchange(_exchange).swap(
-                IExchange.SwapParams({
+        IVPool.SwapResponse memory response =
+            IVPool(_vPool).swap(
+                IVPool.SwapParams({
                     trader: _msgSender(),
                     baseToken: params.baseToken,
                     isBaseToQuote: params.isBaseToQuote,

@@ -8,7 +8,7 @@ import {
     AccountBalance,
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -41,11 +41,11 @@ describe("ClearingHouse multiplier", () => {
     let clearingHouse: TestClearingHouse
     let clearingHouseConfig: ClearingHouseConfig
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let quoteToken: QuoteToken
@@ -58,11 +58,11 @@ describe("ClearingHouse multiplier", () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         clearingHouseConfig = fixture.clearingHouseConfig as ClearingHouseConfig
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         pool = fixture.pool as UniswapV3Pool
         collateral = fixture.WETH
@@ -108,7 +108,7 @@ describe("ClearingHouse multiplier", () => {
             })
         }
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -130,7 +130,7 @@ describe("ClearingHouse multiplier", () => {
             })
         }
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -152,7 +152,7 @@ describe("ClearingHouse multiplier", () => {
         }
         // 
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -174,7 +174,7 @@ describe("ClearingHouse multiplier", () => {
             })
         }
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -182,11 +182,11 @@ describe("ClearingHouse multiplier", () => {
             )
         }
         console.log("before repeg");
-        await exchange.connect(maker).isOverPriceSpread(baseToken.address);
+        await vPool.connect(maker).isOverPriceSpread(baseToken.address);
         await clearingHouse.connect(maker).repeg(baseToken.address);
 
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -197,7 +197,7 @@ describe("ClearingHouse multiplier", () => {
         await forwardBothTimestamps(clearingHouse, 3 * 86400)
 
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),
@@ -216,7 +216,7 @@ describe("ClearingHouse multiplier", () => {
         ).wait();
 
         {
-            let info = await exchange.getGlobalFundingGrowthInfo(baseToken.address)
+            let info = await vPool.getGlobalFundingGrowthInfo(baseToken.address)
             console.log(
                 'getGlobalFundingGrowthInfo',
                 (info[1].twLongPremiumX96).toString(),

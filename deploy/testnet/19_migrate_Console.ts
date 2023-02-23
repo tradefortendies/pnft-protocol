@@ -5,7 +5,7 @@ import hre, { ethers } from "hardhat";
 import bn from "bignumber.js"
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, Exchange, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, VPool, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
@@ -32,7 +32,7 @@ async function deploy() {
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address)) as Exchange;
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address)) as VPool;
     var insuranceFund = await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var collateralManager = await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
@@ -57,7 +57,7 @@ async function deploy() {
     // let [longMultiplier, shortMultiplier] = await accountBalance.getMarketMultiplier(vBAYC.address)
     // console.log('getMarketMultiplier', longMultiplier.toString(), shortMultiplier.toString())
 
-    let fpAmount = await exchange.getPendingFundingPayment('0x088D8A4a03266870EDcbbbADdA3F475f404dB9B2', vCRYPTOPUNKS.address)
+    let fpAmount = await vPool.getPendingFundingPayment('0x088D8A4a03266870EDcbbbADdA3F475f404dB9B2', vCRYPTOPUNKS.address)
     console.log(
         'getPendingFundingPayment',
         formatEther(fpAmount),
@@ -94,7 +94,7 @@ async function deploy() {
     //     'clearingHouse.connect(hieuq).openPosition long'
     // )
 
-    // let marketInfo = await exchange.getDetalTawpInsuranceFundFee
+    // let marketInfo = await vPool.getDetalTawpInsuranceFundFee
 
     // let [longSize, shortSize] = await accountBalance.getMarketPositionSize(vBAYC.address)
     // console.log('getMarketPositionSize', formatEther(longSize), formatEther(shortSize))
@@ -110,7 +110,7 @@ async function deploy() {
     //     (new bn(accountInfo.lastShortTwPremiumGrowthGlobalX96.toString()).div(new bn('2').pow(new bn('96')))).toString(),
     // )
 
-    // let [fundingGrowthData, markTwap, indexTwap] = (await exchange.getFundingGrowthGlobalAndTwaps(vBAYC.address))
+    // let [fundingGrowthData, markTwap, indexTwap] = (await vPool.getFundingGrowthGlobalAndTwaps(vBAYC.address))
     // console.log(
     //     'getFundingGrowthGlobalAndTwaps',
     //     fundingGrowthData.twLongPremiumX96.div((new bn(2).pow(96)).toString()).toString(),
@@ -187,7 +187,7 @@ async function deploy() {
 
 
 
-    // let [lastSettledTimestamp, fundingGrowth] = (await exchange.getGlobalFundingGrowthInfo(vBAYC.address))
+    // let [lastSettledTimestamp, fundingGrowth] = (await vPool.getGlobalFundingGrowthInfo(vBAYC.address))
     // console.log(
     //     'getGlobalFundingGrowthInfo',
     //     lastSettledTimestamp,
@@ -195,20 +195,20 @@ async function deploy() {
     //     fundingGrowth.twShortPremiumX96.div((new bn(2).pow(96)).toString()).toString(),
     // )
     // console.log(
-    //     '(await exchange.getSqrtMarkTwapX96(vBAYC.address, 0)',
-    //     formatSqrtPriceX96ToPrice((await exchange.getSqrtMarkTwapX96(vBAYC.address, 0)), 18),
+    //     '(await vPool.getSqrtMarkTwapX96(vBAYC.address, 0)',
+    //     formatSqrtPriceX96ToPrice((await vPool.getSqrtMarkTwapX96(vBAYC.address, 0)), 18),
     // )
     // console.log(
     //     '(await vBAYC.getIndexPrice(0)',
     //     formatEther((await vBAYC.getIndexPrice(0)).toString()),
     // )
     // console.log(
-    //     'await exchange.getPendingFundingPayment(trader1.address, vBAYC.address)',
-    //     formatEther((await exchange.getPendingFundingPayment(trader1.address, vBAYC.address)).toString()),
+    //     'await vPool.getPendingFundingPayment(trader1.address, vBAYC.address)',
+    //     formatEther((await vPool.getPendingFundingPayment(trader1.address, vBAYC.address)).toString()),
     // )
     // console.log(
-    //     'await exchange.getPendingFundingPayment(trader2.address, vBAYC.address)',
-    //     formatEther((await exchange.getPendingFundingPayment(trader2.address, vBAYC.address)).toString()),
+    //     'await vPool.getPendingFundingPayment(trader2.address, vBAYC.address)',
+    //     formatEther((await vPool.getPendingFundingPayment(trader2.address, vBAYC.address)).toString()),
     // )
 
 
@@ -287,8 +287,8 @@ async function deploy() {
     // )
 
     // await waitForTx(
-    //     await exchange.connect(trader1).settleFunding(trader1.address, vBAYC.address),
-    //     'exchange.connect(trader1).settleFunding(trader1.address, vBAYC.address)'
+    //     await vPool.connect(trader1).settleFunding(trader1.address, vBAYC.address),
+    //     'vPool.connect(trader1).settleFunding(trader1.address, vBAYC.address)'
     // )
 }
 

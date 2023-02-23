@@ -10,7 +10,7 @@ import { ClearingHouseCallee } from "./base/ClearingHouseCallee.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { IVault } from "./interface/IVault.sol";
-import { IExchange } from "./interface/IExchange.sol";
+import { IVPool } from "./interface/IVPool.sol";
 import { IBaseToken } from "./interface/IBaseToken.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
@@ -631,7 +631,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
 
     function _getReferencePrice(address baseToken) internal view returns (uint256) {
         return
-            IExchange(IVault(_vault).getExchange())
+            IVPool(IVault(_vault).getVPool())
                 .getSqrtMarkTwapX96(baseToken, IClearingHouseConfig(_clearingHouseConfig).getTwapInterval())
                 .formatSqrtPriceX96ToPriceX96()
                 .formatX96ToX10_18();

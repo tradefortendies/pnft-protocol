@@ -8,7 +8,7 @@ import {
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     UniswapV3Pool,
     Vault,
 } from "../../typechain"
@@ -37,7 +37,7 @@ describe("Vault test", () => {
     let clearingHouse: TestClearingHouse
     let insuranceFund: InsuranceFund
     let accountBalance: TestAccountBalance
-    let exchange: TestExchange
+    let vPool: TestVPool
     let pool: UniswapV3Pool
     let baseToken: BaseToken
     let mockedBaseAggregator: MockContract
@@ -54,7 +54,7 @@ describe("Vault test", () => {
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         insuranceFund = fixture.insuranceFund
         accountBalance = fixture.accountBalance as TestAccountBalance
-        exchange = fixture.exchange as TestExchange
+        vPool = fixture.vPool as TestVPool
         pool = fixture.pool
         baseToken = fixture.baseToken
         mockedBaseAggregator = fixture.mockedBaseAggregator
@@ -66,7 +66,7 @@ describe("Vault test", () => {
         await syncIndexToMarketPrice(mockedBaseAggregator, pool)
 
         // set a higher price limit for large orders
-        await exchange.setMaxTickCrossedWithinBlock(baseToken.address, "100000")
+        await vPool.setMaxTickCrossedWithinBlock(baseToken.address, "100000")
 
         // mint and add liquidity
         const amount = parseUnits("1000", usdcDecimals)
@@ -286,7 +286,7 @@ describe("Vault test", () => {
             // owedRealizedPnl (realized funding payment): -0.162868
             // check getBalance = 100 - 10 - (-0.162868) = 90.162868
             expect(await vault.getBalance(alice.address)).to.be.eq(parseUnits("90.162868", usdcDecimals))
-            expect(await exchange.getPendingFundingPayment(alice.address, baseToken.address)).to.be.eq("0")
+            expect(await vPool.getPendingFundingPayment(alice.address, baseToken.address)).to.be.eq("0")
             expect((await accountBalance.getPnlAndPendingFee(alice.address))[2]).to.be.eq("0")
         })
     })

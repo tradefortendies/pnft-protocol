@@ -9,7 +9,7 @@ import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
 import { syncIndexToMarketPrice } from "../shared/utilities"
 
-describe("Exchange complicated test", () => {
+describe("VPool complicated test", () => {
     const [admin, maker, taker] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let vault: Vault

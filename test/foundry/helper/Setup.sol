@@ -261,7 +261,7 @@ contract Setup is Test, DeployConfig {
 
         // orderBook
         orderBook.setClearingHouse(address(clearingHouse));
-        orderBook.setExchange(address(exchange));
+        orderBook.setVPool(address(exchange));
 
         // exchange
         exchange.setClearingHouse(address(clearingHouse));
