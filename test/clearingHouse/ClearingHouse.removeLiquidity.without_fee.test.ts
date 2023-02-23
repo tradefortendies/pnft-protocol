@@ -6,7 +6,7 @@ import { parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
-    Exchange,
+    VPool,
     OrderBook,
     QuoteToken,
     TestClearingHouse,
@@ -23,8 +23,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let collateral: TestERC20
     let baseToken: BaseToken
     let quoteToken: QuoteToken
@@ -35,8 +35,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange
+        
+        vPool = fixture.vPool
         collateral = fixture.USDC
         baseToken = fixture.baseToken
         quoteToken = fixture.quoteToken
@@ -465,8 +465,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
             quoteTokenBalanceInit = await quoteToken.balanceOf(clearingHouse.address)
             expect(await baseTokenBalanceInit).to.be.not.eq(0)
             expect(await quoteTokenBalanceInit).to.be.not.eq(0)
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
 
             // will mint x base and y quote and transfer to pool
             await addOrder(fixture, alice, 100, "9999.999999999999999999", 50000, 50400, false, baseToken.address)
@@ -478,8 +478,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
             expect(baseTokenBalanceInit.sub(baseTokenBalanceAddLiq)).to.be.eq(openOrder.baseDebt)
             expect(quoteTokenBalanceInit.sub(quoteTokenBalanceAddLiq)).to.be.eq(openOrder.quoteDebt)
             // Should not transfer any token to exchange
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
 
         it("remove zero liquidity, should not transfer baseToken and quoteToken", async () => {
@@ -489,8 +489,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
             expect(await quoteToken.balanceOf(clearingHouse.address)).to.be.eq(quoteTokenBalanceAddLiq)
 
             // Should not transfer any token to exchange
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
 
         it("remove non-zero liquidity, should only transfer baseToken and quoteToken to cleaningHouse", async () => {
@@ -502,8 +502,8 @@ describe("ClearingHouse removeLiquidity without fee", () => {
             expect(await quoteToken.balanceOf(clearingHouse.address)).to.be.closeTo(quoteTokenBalanceInit, 1)
 
             // Should not transfer any token to exchange
-            expect(await baseToken.balanceOf(exchange.address)).to.be.eq(0)
-            expect(await quoteToken.balanceOf(exchange.address)).to.be.eq(0)
+            expect(await baseToken.balanceOf(vPool.address)).to.be.eq(0)
+            expect(await quoteToken.balanceOf(vPool.address)).to.be.eq(0)
         })
     })
 })

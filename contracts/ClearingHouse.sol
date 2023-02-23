@@ -13,7 +13,7 @@ import { PerpMath } from "./lib/PerpMath.sol";
 import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IVault } from "./interface/IVault.sol";
-import { IExchange } from "./interface/IExchange.sol";
+import { IVPool } from "./interface/IVPool.sol";
 import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
@@ -86,7 +86,7 @@ contract ClearingHouse is
 
     modifier checkSwapCallback() {
         // only exchange
-        require(_msgSender() == _exchange, "CH_OE");
+        require(_msgSender() == _vPool, "CH_OE");
         _;
     }
 
@@ -140,7 +140,7 @@ contract ClearingHouse is
         _vault = vaultArg;
         _quoteToken = quoteTokenArg;
         _uniswapV3Factory = uniV3FactoryArg;
-        _exchange = exchangeArg;
+        _vPool = exchangeArg;
         _accountBalance = accountBalanceArg;
         _marketRegistry = marketRegistryArg;
         _insuranceFund = insuranceFundArg;
@@ -327,13 +327,13 @@ contract ClearingHouse is
         //   data: X
         // For caller validation purposes it would be more efficient and more reliable to use
         // "msg.sender" instead of "_msgSender()" as contracts never call each other through GSN.
-        // require(msg.sender == _exchange, "CH_OE");
+        // require(msg.sender == _vPool, "CH_OE");
 
         // swaps entirely within 0-liquidity regions are not supported -> 0 swap is forbidden
         // CH_F0S: forbidden 0 swap
         require((amount0Delta > 0 && amount1Delta < 0) || (amount0Delta < 0 && amount1Delta > 0), "CH_F0S");
 
-        IExchange.SwapCallbackData memory callbackData = abi.decode(data, (IExchange.SwapCallbackData));
+        IVPool.SwapCallbackData memory callbackData = abi.decode(data, (IVPool.SwapCallbackData));
         IUniswapV3Pool uniswapV3Pool = IUniswapV3Pool(callbackData.pool);
 
         // amount0Delta & amount1Delta are guaranteed to be positive when being the amount to be paid
@@ -370,8 +370,8 @@ contract ClearingHouse is
     }
 
     /// @inheritdoc IClearingHouse
-    function getExchange() external view override returns (address) {
-        return _exchange;
+    function getVPool() external view override returns (address) {
+        return _vPool;
     }
 
     /// @inheritdoc IClearingHouse
@@ -484,10 +484,10 @@ contract ClearingHouse is
         if (longPositionSize + shortPositionSize == 0) {
             return true;
         }
-        if (!IExchange(_exchange).isOverPriceSpread(baseToken)) {
+        if (!IVPool(_vPool).isOverPriceSpread(baseToken)) {
             return false;
         }
-        if (!IExchange(_exchange).isOverPriceSpreadTimestamp(baseToken)) {
+        if (!IVPool(_vPool).isOverPriceSpreadTimestamp(baseToken)) {
             return false;
         }
         return true;
@@ -526,8 +526,8 @@ contract ClearingHouse is
             // maker openPosition -> spot price
             bool isRepegUp = repegParams.spotPrice > repegParams.oldMarkPrice;
             //internal swap
-            IExchange(_exchange).internalSwap(
-                IExchange.SwapParams({
+            IVPool(_vPool).internalSwap(
+                IVPool.SwapParams({
                     trader: msg.sender,
                     baseToken: baseToken,
                     isBaseToQuote: !isRepegUp,
@@ -563,7 +563,7 @@ contract ClearingHouse is
                 false
             );
             // for multiplier
-            IExchange(_exchange).updateOverPriceSpreadTimestamp(baseToken);
+            IVPool(_vPool).updateOverPriceSpreadTimestamp(baseToken);
             // emit event
             emit Repeg(baseToken, repegParams.oldMarkPrice, repegParams.newMarkPrice);
         }

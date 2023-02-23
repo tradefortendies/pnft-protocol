@@ -15,7 +15,7 @@ describe("ClearingHouse removeLiquidity with fee", () => {
     const [admin, alice, bob, carol, davis] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let clearingHouse: TestClearingHouse
-    let orderBook: OrderBook
+    
     let accountBalance: AccountBalance
     let collateral: TestERC20
     let vault: Vault

@@ -5,7 +5,7 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, Exchange, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange, priceToTick } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -19,7 +19,7 @@ import migrateLibrary from "./6_migrate_Library";
 import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
 import migrateMarketRegistry from "./8_migrate_MarketRegistry";
 import migrateAccountBalance from "./9_migrate_AccountBalance";
-import migrateExchange from "./10_migrate_Exchange";
+import migrateVPool from "./10_migrate_VPool";
 import migrateInsuranceFund from "./11_migrate_InsuranceFund";
 import migrateVault from "./12_migrate_Vault";
 import migrateClearingHouse from "./13_migrate_ClearingHouse";
@@ -52,7 +52,7 @@ async function deploy() {
     var clearingHouseConfig = (await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address)) as ClearingHouseConfig;
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address) as Exchange);
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address) as VPool);
     var insuranceFund = (await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address)) as InsuranceFund;
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;

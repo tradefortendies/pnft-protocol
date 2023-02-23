@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { parseEther } from "ethers/lib/utils";
-import { ClearingHouse, Exchange, TestERC20, Vault } from "../../typechain";
+import { ClearingHouse, VPool, TestERC20, Vault } from "../../typechain";
 
 import helpers from "../helpers";
 import { priceToTick } from "../../test/helper/number";

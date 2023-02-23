@@ -5,11 +5,9 @@ import {
     AccountBalance,
     ClearingHouse,
     ClearingHouseConfig,
-    CollateralManager,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
-    OrderBook,
     TestERC20,
     UniswapV3Factory,
     Vault,
@@ -22,7 +20,6 @@ interface MockedVaultFixture {
     mockedInsuranceFund: MockContract
     mockedAccountBalance: MockContract
     mockedClearingHouseConfig: MockContract
-    mockedCollateralManager: MockContract
 }
 
 export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
@@ -44,19 +41,14 @@ export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
     const marketRegistry = (await marketRegistryFactory.deploy()) as MarketRegistry
     await marketRegistry.initialize(uniV3Factory.address, USDC.address)
 
-    const orderBookFactory = await ethers.getContractFactory("OrderBook")
-    const orderBook = (await orderBookFactory.deploy()) as OrderBook
-    await orderBook.initialize(marketRegistry.address)
-
     const clearingHouseConfigFactory = await ethers.getContractFactory("ClearingHouseConfig")
     const clearingHouseConfig = (await clearingHouseConfigFactory.deploy()) as ClearingHouseConfig
     const mockedClearingHouseConfig = await smockit(clearingHouseConfig)
 
-    const exchangeFactory = await ethers.getContractFactory("Exchange")
-    const exchange = (await exchangeFactory.deploy()) as Exchange
-    await exchange.initialize(marketRegistry.address, orderBook.address, clearingHouseConfig.address)
-    const mockedExchange = await smockit(exchange)
-    await orderBook.setExchange(exchange.address)
+    const vPoolFactory = await ethers.getContractFactory("VPool")
+    const vPool = (await vPoolFactory.deploy()) as VPool
+    await vPool.initialize(marketRegistry.address, clearingHouseConfig.address)
+    const mockedVPool = await smockit(vPool)
 
     const accountBalanceFactory = await ethers.getContractFactory("AccountBalance")
     const accountBalance = (await accountBalanceFactory.deploy()) as AccountBalance
@@ -70,27 +62,11 @@ export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
         mockedInsuranceFund.address,
         mockedClearingHouseConfig.address,
         mockedAccountBalance.address,
-        mockedExchange.address,
+        mockedVPool.address,
         maker.address,
     )
 
-    const collateralManagerFactory = await ethers.getContractFactory("CollateralManager")
-    const collateralManager = (await collateralManagerFactory.deploy()) as CollateralManager
-    await collateralManager.initialize(
-        clearingHouseConfig.address,
-        vault.address,
-        5,
-        "800000",
-        "500000",
-        "2000",
-        "30000",
-        parseEther("10000"),
-        parseEther("500"),
-    )
-    const mockedCollateralManager = await smockit(collateralManager)
-
     const { baseToken: quoteToken } = await createBaseTokenFixture("RandomTestToken0", "randomToken0")()
-    mockedExchange.smocked.getOrderBook.will.return.with(orderBook.address)
     const clearingHouseFactory = await ethers.getContractFactory("ClearingHouse")
     const clearingHouse = (await clearingHouseFactory.deploy()) as ClearingHouse
     await clearingHouse.initialize(
@@ -98,7 +74,7 @@ export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
         vault.address,
         quoteToken.address,
         uniV3Factory.address,
-        mockedExchange.address,
+        mockedVPool.address,
         mockedAccountBalance.address,
         marketRegistry.address,
         insuranceFund.address,
@@ -108,7 +84,6 @@ export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
     const mockedClearingHouse = await smockit(clearingHouse)
 
     await vault.setClearingHouse(mockedClearingHouse.address)
-    await vault.setCollateralManager(mockedCollateralManager.address)
 
     return {
         vault,
@@ -116,6 +91,5 @@ export async function mockedVaultFixture(): Promise<MockedVaultFixture> {
         mockedInsuranceFund,
         mockedAccountBalance,
         mockedClearingHouseConfig,
-        mockedCollateralManager,
     }
 }

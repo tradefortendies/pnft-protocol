@@ -191,7 +191,7 @@ interface IVault {
 
     /// @notice Get `Exchange` contract address
     /// @return exchange The address of `Exchange` contract
-    function getExchange() external view returns (address exchange);
+    function getVPool() external view returns (address exchange);
 
     /// @notice Get `ClearingHouse` contract address
     /// @return clearingHouse The address of `ClearingHouse` contract

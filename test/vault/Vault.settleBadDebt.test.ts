@@ -7,7 +7,7 @@ import {
     ClearingHouse,
     ClearingHouseConfig,
     CollateralManager,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -34,8 +34,8 @@ describe("Vault settleBadDebt (assume zero IF fee)", () => {
     let wbtcPriceFeed: MockContract
     let insuranceFund: InsuranceFund
     let accountBalance: TestAccountBalance
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let collateralManager: CollateralManager
     let pool: UniswapV3Pool
     let baseToken: BaseToken

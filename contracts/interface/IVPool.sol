@@ -4,7 +4,7 @@ pragma abicoder v2;
 import { DataTypes } from "../types/DataTypes.sol";
 import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
 
-interface IExchange {
+interface IVPool {
     /// @param amount when closing position, amount(uint256) == takerPositionSize(int256),
     /// as amount is assigned as takerPositionSize in ClearingHouse.closePosition()
     struct SwapParams {

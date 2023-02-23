@@ -14,7 +14,7 @@ import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
-import { IExchange } from "./interface/IExchange.sol";
+import { IVPool } from "./interface/IVPool.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
@@ -96,7 +96,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         _insuranceFund = insuranceFundArg;
         _clearingHouseConfig = clearingHouseConfigArg;
         _accountBalance = accountBalanceArg;
-        _exchange = exchangeArg;
+        _vPool = exchangeArg;
         _maker = makerArg;
     }
 
@@ -269,8 +269,8 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     }
 
     /// @inheritdoc IVault
-    function getExchange() external view override returns (address) {
-        return _exchange;
+    function getVPool() external view override returns (address) {
+        return _vPool;
     }
 
     /// @inheritdoc IVault
@@ -560,7 +560,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     function _getSettlementTokenBalanceAndUnrealizedPnl(
         address trader
     ) internal view returns (int256 settlementTokenBalanceX10_18, int256 unrealizedPnlX10_18) {
-        int256 fundingPaymentX10_18 = IExchange(_exchange).getAllPendingFundingPayment(trader);
+        int256 fundingPaymentX10_18 = IVPool(_vPool).getAllPendingFundingPayment(trader);
 
         int256 owedRealizedPnlX10_18;
         uint256 pendingFeeX10_18;

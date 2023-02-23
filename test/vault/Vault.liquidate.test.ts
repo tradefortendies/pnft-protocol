@@ -12,7 +12,7 @@ import {
     OrderBook,
     TestAccountBalance,
     TestERC20,
-    TestExchange,
+    TestVPool,
     TestVault,
     UniswapV3Pool,
 } from "../../typechain"
@@ -42,8 +42,8 @@ describe("Vault liquidate test (assume zero IF fee)", () => {
     let wbtcPriceFeed: MockContract
     let insuranceFund: InsuranceFund
     let accountBalance: TestAccountBalance
-    let exchange: TestExchange
-    let orderBook: OrderBook
+    let vPool: TestVPool
+    
     let collateralManager: CollateralManager
     let pool: UniswapV3Pool
     let baseToken: BaseToken
@@ -65,7 +65,7 @@ describe("Vault liquidate test (assume zero IF fee)", () => {
         wbtcPriceFeed = _fixture.mockedWbtcPriceFeed
         insuranceFund = _fixture.insuranceFund
         accountBalance = _fixture.accountBalance as TestAccountBalance
-        exchange = _fixture.exchange as TestExchange
+        exchange = _fixture.exchange as TestVPool
         orderBook = _fixture.orderBook
         collateralManager = _fixture.collateralManager
         pool = _fixture.pool

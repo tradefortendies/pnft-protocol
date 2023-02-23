@@ -114,7 +114,7 @@
         "address": "0xCEa415359477055Ef9A04706d385b49E529634Fa",
         "implAddress": "0xD8E40a0a79d38eB9BA89223D293B46686ce4E9Bb"
     },
-    "exchange": {
+    "vPool": {
         "address": "0x06539783E16eC080E7E31b14173266eB2fA13FC4",
         "implAddress": "0x87026CDC72cBd69497967a44Be9535c005d4a087"
     },

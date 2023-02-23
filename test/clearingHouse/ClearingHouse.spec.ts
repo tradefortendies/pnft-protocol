@@ -3,7 +3,7 @@ import { BigNumber } from "@ethersproject/bignumber"
 import { parseEther } from "@ethersproject/units"
 import { expect } from "chai"
 import { ethers, waffle } from "hardhat"
-import { ClearingHouse, ClearingHouseConfig, Exchange, UniswapV3Pool } from "../../typechain"
+import { ClearingHouse, ClearingHouseConfig, VPool, UniswapV3Pool } from "../../typechain"
 import { mockedClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse Spec", () => {
@@ -18,7 +18,7 @@ describe("ClearingHouse Spec", () => {
     let baseToken: MockContract
     let quoteToken: MockContract
     let uniV3Factory: MockContract
-    let exchange: Exchange
+    let vPool: VPool
     let insuranceFund: MockContract
     let vault: MockContract
     let accountBalance: MockContract
@@ -55,7 +55,7 @@ describe("ClearingHouse Spec", () => {
                     wallet.address,
                     quoteToken.address,
                     uniV3Factory.address,
-                    exchange.address,
+                    vPool.address,
                     accountBalance.address,
                     insuranceFund.address,
                 ),
@@ -71,7 +71,7 @@ describe("ClearingHouse Spec", () => {
                     vault.address,
                     wallet.address,
                     uniV3Factory.address,
-                    exchange.address,
+                    vPool.address,
                     accountBalance.address,
                     insuranceFund.address,
                 ),
@@ -87,7 +87,7 @@ describe("ClearingHouse Spec", () => {
                     vault.address,
                     quoteToken.address,
                     wallet.address,
-                    exchange.address,
+                    vPool.address,
                     accountBalance.address,
                     insuranceFund.address,
                 ),
@@ -98,7 +98,7 @@ describe("ClearingHouse Spec", () => {
     describe("onlyOwner setters", () => {
         it("setMaxTickCrossedWithinBlock", async () => {
             marketRegistry.smocked.getPool.will.return.with(EMPTY_ADDRESS)
-            await expect(exchange.setMaxTickCrossedWithinBlock(baseToken.address, 200)).to.be.revertedWith("EX_BTNE")
+            await expect(vPool.setMaxTickCrossedWithinBlock(baseToken.address, 200)).to.be.revertedWith("EX_BTNE")
 
             // add pool
             const poolFactory = await ethers.getContractFactory("UniswapV3Pool")
@@ -108,19 +108,19 @@ describe("ClearingHouse Spec", () => {
             mockedPool.smocked.slot0.will.return.with(["100", 0, 0, 0, 0, 0, false])
             marketRegistry.smocked.hasPool.will.return.with(true)
 
-            await exchange.setMaxTickCrossedWithinBlock(baseToken.address, 200)
-            expect(await exchange.getMaxTickCrossedWithinBlock(baseToken.address)).eq(200)
+            await vPool.setMaxTickCrossedWithinBlock(baseToken.address, 200)
+            expect(await vPool.getMaxTickCrossedWithinBlock(baseToken.address)).eq(200)
 
             // out of range [0, 2 * 887272]
             // MIN_TICK = -887272
             // MAX_TICK = 887272
-            await expect(exchange.setMaxTickCrossedWithinBlock(baseToken.address, 2 * 887272 + 1)).to.be.revertedWith(
+            await expect(vPool.setMaxTickCrossedWithinBlock(baseToken.address, 2 * 887272 + 1)).to.be.revertedWith(
                 "EX_MTCLOOR",
             )
         })
 
         it("force error, invalid base token address when setMaxTickCrossedWithinBlock", async () => {
-            await expect(exchange.setMaxTickCrossedWithinBlock(wallet.address, 1)).to.be.revertedWith("EX_BNC")
+            await expect(vPool.setMaxTickCrossedWithinBlock(wallet.address, 1)).to.be.revertedWith("EX_BNC")
         })
 
         // it("force error, invalid trustedForwarder address when setTrustedForwarder", async () => {

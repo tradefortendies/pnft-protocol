@@ -5,7 +5,7 @@ import { parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     OrderBook,
     QuoteToken,
@@ -28,8 +28,8 @@ describe("ClearingHouse liquidate (assume zero IF fee)", () => {
     let hundred: BigNumber
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
@@ -65,8 +65,8 @@ describe("ClearingHouse liquidate (assume zero IF fee)", () => {
         fixture = await loadFixture(createClearingHouseFixture())
 
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange
+        
+        vPool = fixture.vPool
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund

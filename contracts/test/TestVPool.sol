@@ -2,9 +2,9 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "../Exchange.sol";
+import "../VPool.sol";
 
-contract TestExchange is Exchange {
+contract TestVPool is VPool {
     using AddressUpgradeable for address;
 
     uint256 private _testBlockTimestamp;

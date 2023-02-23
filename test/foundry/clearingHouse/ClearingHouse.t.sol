@@ -3,7 +3,7 @@ pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "../helper/Setup.sol";
-import "../../../contracts/interface/IExchange.sol";
+import "../../../contracts/interface/IVPool.sol";
 import "../../../contracts/interface/IClearingHouse.sol";
 import "../../../contracts/BaseToken.sol";
 import { IPriceFeed } from "./oracle/interface/IPriceFeed.sol";

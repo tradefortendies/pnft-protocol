@@ -3,10 +3,10 @@ pragma solidity 0.7.6;
 
 import { DataTypes } from "../types/DataTypes.sol";
 
-/// @notice For future upgrades, do not change ExchangeStorageV1. Create a new
-/// contract which implements ExchangeStorageV1 and following the naming convention
-/// ExchangeStorageVX.
-abstract contract ExchangeStorageV1 {
+/// @notice For future upgrades, do not change VPoolStorageV1. Create a new
+/// contract which implements VPoolStorageV1 and following the naming convention
+/// VPoolStorageVX.
+abstract contract VPoolStorageV1 {
     address internal __orderBook;
     address internal _accountBalance;
     address internal _clearingHouseConfig;
@@ -29,7 +29,7 @@ abstract contract ExchangeStorageV1 {
     mapping(address => mapping(address => uint256)) internal _lastOverPriceLimitTimestampMap;
 }
 
-abstract contract ExchangeStorageV2 is ExchangeStorageV1 {
+abstract contract VPoolStorageV2 is VPoolStorageV1 {
     // the last timestamp when tick is updated; for price limit check
     // key: base token
     // value: the last timestamp to update the tick

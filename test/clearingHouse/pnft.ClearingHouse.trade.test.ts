@@ -7,7 +7,7 @@ import { format } from "path"
 import {
     AccountBalance,
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -49,11 +49,11 @@ describe("ClearingHouse fee updated", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
+    
     let accountBalance: AccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let quoteToken: QuoteToken
@@ -65,11 +65,11 @@ describe("ClearingHouse fee updated", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         pool = fixture.pool as UniswapV3Pool
         collateral = fixture.WETH

@@ -13,7 +13,7 @@ describe("ClearingHouse getNetQuoteBalanceAndPendingFee", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let accountBalance: TestAccountBalance
-    let orderBook: OrderBook
+    
     let vault: Vault
     let collateral: TestERC20
     let baseToken: BaseToken
@@ -23,7 +23,7 @@ describe("ClearingHouse getNetQuoteBalanceAndPendingFee", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance as TestAccountBalance
         collateral = fixture.USDC
         vault = fixture.vault

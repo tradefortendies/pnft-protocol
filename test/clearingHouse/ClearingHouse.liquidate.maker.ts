@@ -7,7 +7,7 @@ import { ethers, waffle } from "hardhat"
 import {
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -28,8 +28,8 @@ describe("ClearingHouse liquidate maker", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let vault: Vault
     let clearingHouseConfig: ClearingHouseConfig
     let insuranceFund: InsuranceFund
@@ -59,8 +59,8 @@ describe("ClearingHouse liquidate maker", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
-        exchange = fixture.exchange
+        
+        vPool = fixture.vPool
         marketRegistry = fixture.marketRegistry
         vault = fixture.vault
         clearingHouseConfig = fixture.clearingHouseConfig

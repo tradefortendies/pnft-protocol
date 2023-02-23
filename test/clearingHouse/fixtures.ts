@@ -6,13 +6,13 @@ import {
     BaseToken,
     ClearingHouse,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     RewardMiner,
     TestClearingHouse,
     TestERC20,
-    TestExchange,
+    TestVPool,
     TestLimitOrderBook,
     TestUniswapV3Broker,
     UniswapV3Factory,
@@ -32,7 +32,7 @@ export interface ClearingHouseFixture {
     accountBalance: TestAccountBalance | AccountBalance
     marketRegistry: MarketRegistry
     clearingHouseConfig: ClearingHouseConfig
-    exchange: TestExchange | Exchange
+    vPool: TestVPool | VPool
     vault: Vault
     insuranceFund: InsuranceFund
     uniV3Factory: UniswapV3Factory
@@ -145,40 +145,40 @@ export function createClearingHouseFixture(
         await marketRegistry.initialize(uniV3Factory.address, quoteToken.address)
 
         let accountBalance
-        let exchange
+        let vPool
         if (canMockTime) {
             const accountBalanceFactory = await ethers.getContractFactory("TestAccountBalance")
             accountBalance = (await accountBalanceFactory.deploy()) as TestAccountBalance
 
-            const exchangeFactory = await ethers.getContractFactory("TestExchange", {
+            const vPoolFactory = await ethers.getContractFactory("TestVPool", {
                 libraries: {
                     UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
-            exchange = (await exchangeFactory.deploy()) as TestExchange
+            vPool = (await vPoolFactory.deploy()) as TestVPool
         } else {
             const accountBalanceFactory = await ethers.getContractFactory("AccountBalance")
             accountBalance = (await accountBalanceFactory.deploy()) as AccountBalance
 
-            const exchangeFactory = await ethers.getContractFactory("Exchange", {
+            const vPoolFactory = await ethers.getContractFactory("VPool", {
                 libraries: {
                     UniswapV3Broker: uniswapV3Broker.address,
                     GenericLogic: genericLogic.address,
                     ClearingHouseLogic: clearingHouseLogic.address,
                 },
             })
-            exchange = (await exchangeFactory.deploy()) as Exchange
+            vPool = (await vPoolFactory.deploy()) as VPool
         }
 
         const insuranceFundFactory = await ethers.getContractFactory("InsuranceFund")
         const insuranceFund = (await insuranceFundFactory.deploy()) as InsuranceFund
         await insuranceFund.initialize(WETH.address)
 
-        // deploy exchange
-        await exchange.initialize(marketRegistry.address, clearingHouseConfig.address)
-        await exchange.setAccountBalance(accountBalance.address)
+        // deploy vPool
+        await vPool.initialize(marketRegistry.address, clearingHouseConfig.address)
+        await vPool.setAccountBalance(accountBalance.address)
 
         await accountBalance.initialize(clearingHouseConfig.address)
 
@@ -191,7 +191,7 @@ export function createClearingHouseFixture(
             insuranceFund.address,
             clearingHouseConfig.address,
             accountBalance.address,
-            exchange.address,
+            vPool.address,
             maker.address,
         )
 
@@ -233,7 +233,7 @@ export function createClearingHouseFixture(
                 vault.address,
                 quoteToken.address,
                 uniV3Factory.address,
-                exchange.address,
+                vPool.address,
                 accountBalance.address,
                 marketRegistry.address,
                 insuranceFund.address,
@@ -258,7 +258,7 @@ export function createClearingHouseFixture(
                 vault.address,
                 quoteToken.address,
                 uniV3Factory.address,
-                exchange.address,
+                vPool.address,
                 accountBalance.address,
                 marketRegistry.address,
                 insuranceFund.address,
@@ -279,7 +279,7 @@ export function createClearingHouseFixture(
         await baseToken.addWhitelist(clearingHouse.address)
         await baseToken2.addWhitelist(clearingHouse.address)
         await marketRegistry.setClearingHouse(clearingHouse.address)
-        await exchange.setClearingHouse(clearingHouse.address)
+        await vPool.setClearingHouse(clearingHouse.address)
         await accountBalance.setClearingHouse(clearingHouse.address)
         await vault.setClearingHouse(clearingHouse.address)
 
@@ -292,7 +292,7 @@ export function createClearingHouseFixture(
             accountBalance,
             marketRegistry,
             clearingHouseConfig,
-            exchange,
+            vPool,
             vault,
             insuranceFund,
             uniV3Factory,
@@ -332,13 +332,13 @@ export async function mockPNTTokenFixture(): Promise<MockPNFTToken> {
 interface MockedClearingHouseFixture {
     clearingHouse: ClearingHouse
     clearingHouseConfig: ClearingHouseConfig
-    exchange: Exchange
+    vPool: VPool
     mockedUniV3Factory: MockContract
     mockedVault: MockContract
     mockedQuoteToken: MockContract
     mockedWETH: MockContract
     mockedBaseToken: MockContract
-    mockedExchange: MockContract
+    mockedVPool: MockContract
     mockedInsuranceFund: MockContract
     mockedAccountBalance: MockContract
     mockedMarketRegistry: MockContract
@@ -422,10 +422,10 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
     const mockedMarketRegistry = await smockit(marketRegistry)
     const orderBookFactory = await ethers.getContractFactory("OrderBook")
 
-    const exchangeFactory = await ethers.getContractFactory("Exchange")
-    const exchange = (await exchangeFactory.deploy()) as Exchange
-    await exchange.initialize(mockedMarketRegistry.address, clearingHouseConfig.address)
-    const mockedExchange = await smockit(exchange)
+    const vPoolFactory = await ethers.getContractFactory("VPool")
+    const vPool = (await vPoolFactory.deploy()) as VPool
+    await vPool.initialize(mockedMarketRegistry.address, clearingHouseConfig.address)
+    const mockedVPool = await smockit(vPool)
 
     const accountBalanceFactory = await ethers.getContractFactory("AccountBalance")
     const accountBalance = (await accountBalanceFactory.deploy()) as AccountBalance
@@ -448,7 +448,7 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
         mockedVault.address,
         mockedQuoteToken.address,
         mockedUniV3Factory.address,
-        mockedExchange.address,
+        mockedVPool.address,
         mockedAccountBalance.address,
         marketRegistry.address,
         insuranceFund.address,
@@ -458,8 +458,8 @@ export async function mockedClearingHouseFixture(): Promise<MockedClearingHouseF
     return {
         clearingHouse,
         clearingHouseConfig,
-        exchange,
-        mockedExchange,
+        vPool,
+        mockedVPool,
         mockedUniV3Factory,
         mockedVault,
         mockedQuoteToken,

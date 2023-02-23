@@ -16,7 +16,7 @@ abstract contract VaultStorageV1 {
     address internal _clearingHouseConfig;
     address internal _accountBalance;
     address internal _insuranceFund;
-    address internal _exchange;
+    address internal _vPool;
     address internal _clearingHouse;
     address internal _maker;
     // _totalDebt is deprecated

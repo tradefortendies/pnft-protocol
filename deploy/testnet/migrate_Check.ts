@@ -68,7 +68,7 @@ describe("Deployment check", () => {
         deployData.clearingHouseConfig = {} as ContractData
         deployData.marketRegistry = {} as ContractData
         deployData.accountBalance = {} as ContractData
-        deployData.exchange = {} as ContractData
+        deployData.vPool = {} as ContractData
         deployData.insuranceFund = {} as ContractData
         deployData.vault = {} as ContractData
         deployData.uniswapV3Broker = {} as ContractData
@@ -283,31 +283,31 @@ describe("Deployment check", () => {
                 deployData.accountBalance.address = transparentUpgradeableProxy.address;
             }
         }
-        let Exchange = await ethers.getContractFactory("Exchange", {
+        let VPool = await ethers.getContractFactory("VPool", {
             libraries: {
                 UniswapV3Broker: deployData.uniswapV3Broker.address,
                 GenericLogic: deployData.genericLogic.address,
                 ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
         });
-        if (deployData.exchange.implAddress == undefined || deployData.exchange.implAddress == '') {
-            const exchange = await waitForDeploy(await Exchange.deploy())
+        if (deployData.vPool.implAddress == undefined || deployData.vPool.implAddress == '') {
+            const vPool = await waitForDeploy(await VPool.deploy())
             {
-                deployData.exchange.implAddress = exchange.address;
+                deployData.vPool.implAddress = vPool.address;
             }
         }
         {
-            var exchange = await ethers.getContractAt('Exchange', deployData.exchange.implAddress);
-            var initializeData = exchange.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
+            var vPool = await ethers.getContractAt('VPool', deployData.vPool.implAddress);
+            var initializeData = vPool.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
             var transparentUpgradeableProxy = await waitForDeploy(
                 await TransparentUpgradeableProxy.deploy(
-                    deployData.exchange.implAddress,
+                    deployData.vPool.implAddress,
                     proxyAdmin.address,
                     initializeData,
                 )
             );
             {
-                deployData.exchange.address = transparentUpgradeableProxy.address;
+                deployData.vPool.address = transparentUpgradeableProxy.address;
             }
         }
         const InsuranceFund = await ethers.getContractFactory("InsuranceFund");
@@ -344,7 +344,7 @@ describe("Deployment check", () => {
                 deployData.insuranceFund.address,
                 deployData.clearingHouseConfig.address,
                 deployData.accountBalance.address,
-                deployData.exchange.address,
+                deployData.vPool.address,
                 deployData.makerFundAddress,
             ]);
             var transparentUpgradeableProxy = await waitForDeploy(
@@ -378,7 +378,7 @@ describe("Deployment check", () => {
                 deployData.vault.address,
                 deployData.vETH.address,
                 deployData.uniswapV3Factory.address,
-                deployData.exchange.address,
+                deployData.vPool.address,
                 deployData.accountBalance.address,
                 deployData.marketRegistry.address,
                 deployData.insuranceFund.address,
@@ -401,7 +401,7 @@ describe("Deployment check", () => {
             var clearingHouseConfig = await ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
             var marketRegistry = (await ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address));
             var accountBalance = (await ethers.getContractAt('AccountBalance', deployData.accountBalance.address));
-            var exchange = await ethers.getContractAt('Exchange', deployData.exchange.address);
+            var vPool = await ethers.getContractAt('VPool', deployData.vPool.address);
             var insuranceFund = await ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
             var vault = await ethers.getContractAt('Vault', deployData.vault.address);
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
@@ -410,12 +410,12 @@ describe("Deployment check", () => {
 
             var uniFeeTier = 3000 // 1%
 
-            await exchange.setAccountBalance(accountBalance.address)
+            await vPool.setAccountBalance(accountBalance.address)
             await insuranceFund.setVault(vault.address)
             await accountBalance.setVault(vault.address)
             await clearingHouseConfig.setSettlementTokenBalanceCap(ethers.constants.MaxUint256)
             await marketRegistry.setClearingHouse(clearingHouse.address)
-            await exchange.setClearingHouse(clearingHouse.address)
+            await vPool.setClearingHouse(clearingHouse.address)
             await accountBalance.setClearingHouse(clearingHouse.address)
             await vault.setClearingHouse(clearingHouse.address)
             await insuranceFund.setClearingHouse(clearingHouse.address)
@@ -462,7 +462,7 @@ describe("Deployment check", () => {
                     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
                 )
                 await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
-                await exchange.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
+                await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
             }
             // vMAYC
             {
@@ -475,7 +475,7 @@ describe("Deployment check", () => {
                     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
                 )
                 await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
-                await exchange.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
+                await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
             }
         }
         {
@@ -484,7 +484,7 @@ describe("Deployment check", () => {
             var clearingHouseConfig = await ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
             var marketRegistry = (await ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address));
             var accountBalance = (await ethers.getContractAt('AccountBalance', deployData.accountBalance.address));
-            var exchange = await ethers.getContractAt('Exchange', deployData.exchange.address);
+            var vPool = await ethers.getContractAt('VPool', deployData.vPool.address);
             var insuranceFund = await ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
             var vault = await ethers.getContractAt('Vault', deployData.vault.address);
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);

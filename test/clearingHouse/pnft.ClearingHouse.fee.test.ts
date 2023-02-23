@@ -7,10 +7,9 @@ import { format } from "path"
 import {
     AccountBalance,
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
-    OrderBook,
     TestClearingHouse,
     TestERC20,
     Vault,
@@ -20,8 +19,6 @@ import {
     findLiquidityChangedEvents,
     findPnlRealizedEvents,
     q2bExactOutput,
-    removeAllOrders,
-    removeOrder,
 } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
 import { IGNORABLE_DUST } from "../helper/number"
@@ -34,11 +31,11 @@ describe("ClearingHouse fee updated", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
+
     let accountBalance: AccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let mockedNFTPriceFeed: MockContract
@@ -50,11 +47,11 @@ describe("ClearingHouse fee updated", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         collateral = fixture.WETH
         baseToken = fixture.baseToken
@@ -78,13 +75,7 @@ describe("ClearingHouse fee updated", () => {
         // maker add liquidity
         await clearingHouse.connect(maker).addLiquidity({
             baseToken: baseToken.address,
-            base: parseEther("1000"),
-            quote: parseEther("100000"),
-            lowerTick,
-            upperTick,
-            minBase: 0,
-            minQuote: 0,
-            useTakerBalance: false,
+            liquidity: parseEther("1000"),
             deadline: ethers.constants.MaxUint256,
         })
         // 
@@ -124,8 +115,8 @@ describe("ClearingHouse fee updated", () => {
         mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
             return parseUnits("96", 18)
         })
-        console.log((await exchange.getInsuranceFundFeeRatio(baseToken.address, true)).toString())
-        console.log((await exchange.getInsuranceFundFeeRatio(baseToken.address, false)).toString())
+        console.log((await vPool.getInsuranceFundFeeRatio(baseToken.address, true)).toString())
+        console.log((await vPool.getInsuranceFundFeeRatio(baseToken.address, false)).toString())
         return
         // short 100$
         await clearingHouse.connect(trader).openPosition({

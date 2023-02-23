@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, Exchange, MarketRegistry, NftPriceFeed, QuoteToken, UniswapV3Pool } from "../../typechain";
+import { AccountBalance, BaseToken, VPool, MarketRegistry, NftPriceFeed, QuoteToken, UniswapV3Pool } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
@@ -33,7 +33,7 @@ async function deploy() {
     var clearingHouseConfig = await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
-    var exchange = (await hre.ethers.getContractAt('Exchange', deployData.exchange.address)) as Exchange;
+    var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address)) as VPool;
     var insuranceFund = await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
     var vault = await hre.ethers.getContractAt('Vault', deployData.vault.address);
     var clearingHouse = await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
@@ -132,9 +132,9 @@ async function deploy() {
         }
         {
             var maxTickCrossedWithinBlock: number = 100
-            if ((await exchange.getMaxTickCrossedWithinBlock(baseToken.address)).toString() != maxTickCrossedWithinBlock.toString()) {
+            if ((await vPool.getMaxTickCrossedWithinBlock(baseToken.address)).toString() != maxTickCrossedWithinBlock.toString()) {
                 await tryWaitForTx(
-                    await exchange.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock), 'exchange.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock)'
+                    await vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock), 'vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock)'
                 )
             }
             if ((await marketRegistry.getInsuranceFundFeeRatio(baseToken.address)).toString() != '500') {

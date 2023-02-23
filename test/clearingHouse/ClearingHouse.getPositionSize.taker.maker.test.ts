@@ -27,7 +27,7 @@ describe("ClearingHouse getPositionSize for taker + maker in xyk pool", () => {
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let accountBalance: AccountBalance
-    let orderBook: OrderBook
+    
     let baseToken: BaseToken
     let mockedBaseAggregator: MockContract
     let pool: UniswapV3Pool
@@ -56,7 +56,7 @@ describe("ClearingHouse getPositionSize for taker + maker in xyk pool", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         accountBalance = fixture.accountBalance
-        orderBook = fixture.orderBook
+        
         baseToken = fixture.baseToken
         mockedBaseAggregator = fixture.mockedBaseAggregator
         pool = fixture.pool

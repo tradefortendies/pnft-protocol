@@ -21,64 +21,64 @@ async function deploy() {
     // 
     var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
     // 
-    if (deployData.exchange.implAddress == undefined || deployData.exchange.implAddress == '') {
-        let Exchange = await hre.ethers.getContractFactory("Exchange", {
+    if (deployData.vPool.implAddress == undefined || deployData.vPool.implAddress == '') {
+        let VPool = await hre.ethers.getContractFactory("VPool", {
             libraries: {
                 UniswapV3Broker: deployData.uniswapV3Broker.address,
                 GenericLogic: deployData.genericLogic.address,
                 ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
         });
-        const exchange = await waitForDeploy(await Exchange.deploy())
+        const vPool = await waitForDeploy(await VPool.deploy())
         {
-            deployData.exchange.implAddress = exchange.address;
+            deployData.vPool.implAddress = vPool.address;
             deployData = (await saveDB(network, deployData))
-            console.log('exchange is deployed', exchange.address)
+            console.log('vPool is deployed', vPool.address)
         }
     }
-    if (deployData.exchange.address == undefined || deployData.exchange.address == '') {
-        var exchange = await hre.ethers.getContractAt('Exchange', deployData.exchange.implAddress);
-        var initializeData = exchange.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
+    if (deployData.vPool.address == undefined || deployData.vPool.address == '') {
+        var vPool = await hre.ethers.getContractAt('VPool', deployData.vPool.implAddress);
+        var initializeData = vPool.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
         var transparentUpgradeableProxy = await waitForDeploy(
             await TransparentUpgradeableProxy.deploy(
-                deployData.exchange.implAddress,
+                deployData.vPool.implAddress,
                 proxyAdmin.address,
                 initializeData,
             )
         );
         {
-            deployData.exchange.address = transparentUpgradeableProxy.address;
+            deployData.vPool.address = transparentUpgradeableProxy.address;
             deployData = (await saveDB(network, deployData))
-            console.log('exchange TransparentUpgradeableProxy is deployed', transparentUpgradeableProxy.address)
+            console.log('vPool TransparentUpgradeableProxy is deployed', transparentUpgradeableProxy.address)
         }
     }
     {
-        await upgradeContract(proxyAdmin as ProxyAdmin, deployData.exchange.address, deployData.exchange.implAddress)
+        await upgradeContract(proxyAdmin as ProxyAdmin, deployData.vPool.address, deployData.vPool.implAddress)
     }
     {
         var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
         await verifyContract(
             deployData,
             network,
-            deployData.exchange.implAddress,
+            deployData.vPool.implAddress,
             [],
             {
                 UniswapV3Broker: deployData.uniswapV3Broker.address,
                 GenericLogic: deployData.genericLogic.address,
                 ClearingHouseLogic: deployData.clearingHouseLogic.address,
             },
-            "contracts/Exchange.sol:Exchange",
+            "contracts/VPool.sol:VPool",
         )
     }
     {
-        var exchange = await hre.ethers.getContractAt('Exchange', deployData.exchange.implAddress);
-        var initializeData = exchange.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
+        var vPool = await hre.ethers.getContractAt('VPool', deployData.vPool.implAddress);
+        var initializeData = vPool.interface.encodeFunctionData('initialize', [deployData.marketRegistry.address, deployData.clearingHouseConfig.address]);
         await verifyContract(
             deployData,
             network,
-            deployData.exchange.address,
+            deployData.vPool.address,
             [
-                deployData.exchange.implAddress,
+                deployData.vPool.implAddress,
                 proxyAdmin.address,
                 initializeData,
             ],

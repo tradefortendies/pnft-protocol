@@ -284,7 +284,7 @@ interface IClearingHouse {
 
     /// @notice Get `Exchange` address
     /// @return exchange `Exchange` address
-    function getExchange() external view returns (address exchange);
+    function getVPool() external view returns (address exchange);
 
     /// @notice Get AccountBalance address
     /// @return accountBalance `AccountBalance` address

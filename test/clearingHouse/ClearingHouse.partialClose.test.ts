@@ -6,7 +6,7 @@ import {
     AccountBalance,
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     MarketRegistry,
     TestClearingHouse,
     TestERC20,
@@ -24,7 +24,7 @@ describe("ClearingHouse partial close in xyk pool", () => {
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
     let clearingHouseConfig: ClearingHouseConfig
-    let exchange: Exchange
+    let vPool: VPool
     let accountBalance: AccountBalance
     let vault: Vault
     let collateral: TestERC20
@@ -38,7 +38,7 @@ describe("ClearingHouse partial close in xyk pool", () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
         clearingHouseConfig = fixture.clearingHouseConfig
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         accountBalance = fixture.accountBalance
         marketRegistry = fixture.marketRegistry
         vault = fixture.vault
@@ -117,7 +117,7 @@ describe("ClearingHouse partial close in xyk pool", () => {
             // price delta for every tick is 0.01%
             // if we want to limit price impact to 1%, and 1% / 0.01% = 100
             // so limiting price impact to 1% means tick should not cross 100 ticks
-            await exchange.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
+            await vPool.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
         })
 
         it("carol reduces position with openPosition and it's not over price limit", async () => {
@@ -207,7 +207,7 @@ describe("ClearingHouse partial close in xyk pool", () => {
                 referralCode: ethers.constants.HashZero,
             })
 
-            await exchange.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
+            await vPool.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
 
             // 3. carol can only close partial position, -(0.5 - 0.5/4) = -0.375
             await clearingHouse.connect(carol).closePosition({
@@ -259,7 +259,7 @@ describe("ClearingHouse partial close in xyk pool", () => {
                 referralCode: ethers.constants.HashZero,
             })
 
-            await exchange.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
+            await vPool.connect(admin).setMaxTickCrossedWithinBlock(baseToken.address, 100)
 
             // 3. carol can only close partial position, -(0.5 - 0.5/4) = -0.375
             await clearingHouse.connect(carol).closePosition({

@@ -8,7 +8,7 @@ import { formatPriceToPriceSqrt } from "../shared/utilities"
 import {
     AccountBalance,
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -35,11 +35,11 @@ describe("ClearingHouse fee updated", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let orderBook: OrderBook
+    
     let accountBalance: AccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let mockedNFTPriceFeed: MockContract
@@ -51,11 +51,11 @@ describe("ClearingHouse fee updated", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         collateral = fixture.WETH
         baseToken = fixture.baseToken
@@ -86,14 +86,14 @@ describe("ClearingHouse fee updated", () => {
             return parseUnits("120", 18)
         })
         console.log("before repeg");
-        await exchange.connect(maker).isOverPriceSpread(baseToken.address);
+        await vPool.connect(maker).isOverPriceSpread(baseToken.address);
         await clearingHouse.connect(trader).repeg(baseToken.address);
         console.log("after repeg");
-        await exchange.connect(maker).isOverPriceSpread(baseToken.address);
+        await vPool.connect(maker).isOverPriceSpread(baseToken.address);
 
         //estimate
         // short 100 base
-        // await exchange.connect(trader).estimateSwap({
+        // await vPool.connect(trader).estimateSwap({
         //     baseToken: baseToken.address,
         //     isBaseToQuote: true,
         //     isExactInput: true,
@@ -104,7 +104,7 @@ describe("ClearingHouse fee updated", () => {
         //     referralCode: ethers.constants.HashZero,
         // })
         // //long 100 base
-        // await exchange.connect(trader).estimateSwap({
+        // await vPool.connect(trader).estimateSwap({
         //     baseToken: baseToken.address,
         //     isBaseToQuote: false,
         //     isExactInput: false,
@@ -116,7 +116,7 @@ describe("ClearingHouse fee updated", () => {
         // })
         return
 
-        // await exchange.connect(trader).estimateSwap({
+        // await vPool.connect(trader).estimateSwap({
         //     baseToken: baseToken.address,
         //     isBaseToQuote: true,
         //     isExactInput: false,

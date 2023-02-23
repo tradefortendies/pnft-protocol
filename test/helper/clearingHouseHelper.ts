@@ -3,7 +3,7 @@ import { LogDescription } from "@ethersproject/abi"
 import { TransactionReceipt } from "@ethersproject/abstract-provider"
 import { BigNumberish, ContractTransaction, ethers, Wallet } from "ethers"
 import { parseEther, parseUnits } from "ethers/lib/utils"
-import { ClearingHouse, OrderBook, UniswapV3Pool } from "../../typechain"
+import { ClearingHouse,  UniswapV3Pool } from "../../typechain"
 import { ClearingHouseFixture } from "../clearingHouse/fixtures"
 import { formatSqrtPriceX96ToPrice } from "../shared/utilities"
 

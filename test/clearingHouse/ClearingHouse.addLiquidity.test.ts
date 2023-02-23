@@ -30,7 +30,7 @@ describe("ClearingHouse addLiquidity", () => {
     let marketRegistry: MarketRegistry
     let clearingHouseConfig: ClearingHouseConfig
     let accountBalance: TestAccountBalance
-    let orderBook: OrderBook
+    
     let vault: Vault
     let collateral: TestERC20
     let baseToken: BaseToken
@@ -44,7 +44,7 @@ describe("ClearingHouse addLiquidity", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         clearingHouseConfig = fixture.clearingHouseConfig
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault

@@ -6,7 +6,7 @@ import { IBaseToken } from "../interface/IBaseToken.sol";
 import { IIndexPrice } from "../interface/IIndexPrice.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
-import { IExchange } from "../interface/IExchange.sol";
+import { IVPool } from "../interface/IVPool.sol";
 import { IVault } from "../interface/IVault.sol";
 import { IMarketRegistry } from "../interface/IMarketRegistry.sol";
 import { IInsuranceFund } from "../interface/IInsuranceFund.sol";
@@ -132,7 +132,7 @@ library GenericLogic {
         address chAddress,
         address baseToken
     ) public returns (DataTypes.Growth memory fundingGrowthGlobal) {
-        (fundingGrowthGlobal) = IExchange(IClearingHouse(chAddress).getExchange()).settleFundingGlobal(baseToken);
+        (fundingGrowthGlobal) = IVPool(IClearingHouse(chAddress).getVPool()).settleFundingGlobal(baseToken);
         return fundingGrowthGlobal;
     }
 
@@ -141,7 +141,7 @@ library GenericLogic {
         address trader,
         address baseToken
     ) public returns (DataTypes.Growth memory fundingGrowthGlobal, int256 fundingPayment) {
-        (fundingPayment, fundingGrowthGlobal) = IExchange(IClearingHouse(chAddress).getExchange()).settleFunding(
+        (fundingPayment, fundingGrowthGlobal) = IVPool(IClearingHouse(chAddress).getVPool()).settleFunding(
             trader,
             baseToken
         );
@@ -177,7 +177,7 @@ library GenericLogic {
     }
 
     function getSqrtMarkX96(address chAddress, address baseToken) public view returns (uint160) {
-        return IExchange(IClearingHouse(chAddress).getExchange()).getSqrtMarkTwapX96(baseToken, 0);
+        return IVPool(IClearingHouse(chAddress).getVPool()).getSqrtMarkTwapX96(baseToken, 0);
     }
 
     function requireEnoughFreeCollateral(address chAddress, address trader) public view {
@@ -286,7 +286,7 @@ library GenericLogic {
         address baseToken,
         bool isBaseToQuote
     ) public view returns (uint256) {
-        (, uint256 markTwap, uint256 indexTwap) = IExchange(exchange).getFundingGrowthGlobalAndTwaps(baseToken);
+        (, uint256 markTwap, uint256 indexTwap) = IVPool(exchange).getFundingGrowthGlobalAndTwaps(baseToken);
         int256 deltaTwapRatio = (markTwap.toInt256().sub(indexTwap.toInt256())).mulDiv(1e6, indexTwap);
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(marketRegistry).getMarketInfo(baseToken);
         // delta <= 2.5%
@@ -307,7 +307,7 @@ library GenericLogic {
         return
             PerpMath.min(
                 deltaTwapRatio.abs(),
-                uint256(IClearingHouseConfig(IExchange(exchange).getClearingHouseConfig()).getMaxFundingRate())
+                uint256(IClearingHouseConfig(IVPool(exchange).getClearingHouseConfig()).getMaxFundingRate())
             );
     }
 
@@ -403,7 +403,7 @@ library GenericLogic {
         int256 oldDeltaBase = oldLongPositionSize.toInt256().sub(oldShortPositionSize.toInt256());
         if (oldDeltaBase != 0) {
             bool isBaseToQuote = oldDeltaBase > 0 ? true : false;
-            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -457,7 +457,7 @@ library GenericLogic {
 
         vars.deltaBase = longPositionSize.toInt256().sub(shortPositionSize.toInt256());
         if (vars.deltaBase != 0) {
-            UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -512,7 +512,7 @@ library GenericLogic {
             }
             if (!vars.isEnoughFund) {
                 // estimate cost to base
-                UniswapV3Broker.ReplaySwapResponse memory estimate = IExchange(IClearingHouse(chAddress).getExchange())
+                UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
                     .estimateSwap(
                         DataTypes.OpenPositionParams({
                             baseToken: baseToken,
@@ -587,7 +587,7 @@ library GenericLogic {
 
         // This condition is to prevent the intentional bad debt attack through price manipulation.
         // CH_OMPS: Over the maximum price spread
-        // require(!IExchange(IClearingHouse(chAddress).getExchange()).isOverPriceSpread(params.baseToken), "CH_OMPS");
+        // require(!IVPool(IClearingHouse(chAddress).getVPool()).isOverPriceSpread(params.baseToken), "CH_OMPS");
 
         settleFundingGlobal(chAddress, params.baseToken);
 

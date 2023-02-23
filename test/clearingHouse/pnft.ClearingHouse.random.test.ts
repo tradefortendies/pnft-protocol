@@ -8,7 +8,7 @@ import {
     AccountBalance,
     BaseToken,
     ClearingHouseConfig,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     QuoteToken,
@@ -43,7 +43,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
     let accountBalance: TestAccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
-    let exchange: Exchange
+    let vPool: VPool
     let collateral: TestERC20
     let baseToken: BaseToken
     let quoteToken: QuoteToken
@@ -60,7 +60,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         accountBalance = fixture.accountBalance as TestAccountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund as InsuranceFund
-        exchange = fixture.exchange as Exchange
+        vPool = fixture.vPool as VPool
         marketRegistry = fixture.marketRegistry
         pool = fixture.pool as UniswapV3Pool
         collateral = fixture.WETH
@@ -185,7 +185,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
                 formatEther(minerInfo.pnlAmount),
             )
 
-            await exchange.updateOverPriceSpreadTimestamp(baseToken.address)
+            await vPool.updateOverPriceSpreadTimestamp(baseToken.address)
 
             await clearingHouse.repeg(baseToken.address)
 

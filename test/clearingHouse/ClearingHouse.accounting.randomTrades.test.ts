@@ -8,7 +8,7 @@ import _ from "lodash"
 import {
     AccountBalance,
     BaseToken,
-    Exchange,
+    VPool,
     InsuranceFund,
     MarketRegistry,
     OrderBook,
@@ -29,8 +29,8 @@ describe.skip("ClearingHouse accounting", () => {
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
     let marketRegistry: MarketRegistry
-    let exchange: Exchange
-    let orderBook: OrderBook
+    let vPool: VPool
+    
     let accountBalance: AccountBalance
     let vault: Vault
     let insuranceFund: InsuranceFund
@@ -55,11 +55,11 @@ describe.skip("ClearingHouse accounting", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture(undefined, 3000))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        orderBook = fixture.orderBook
+        
         accountBalance = fixture.accountBalance
         vault = fixture.vault
         insuranceFund = fixture.insuranceFund
-        exchange = fixture.exchange
+        vPool = fixture.vPool
         marketRegistry = fixture.marketRegistry
         collateral = fixture.USDC
         baseToken = fixture.baseToken
@@ -87,7 +87,7 @@ describe.skip("ClearingHouse accounting", () => {
         }
 
         getFundingPayment = (receipt: ContractReceipt): BigNumber => {
-            const logs = filterLogs(receipt, exchange.interface.getEventTopic("FundingPaymentSettled"), clearingHouse)
+            const logs = filterLogs(receipt, vPool.interface.getEventTopic("FundingPaymentSettled"), clearingHouse)
             let fundingPayment = BigNumber.from(0)
             for (const log of logs) {
                 fundingPayment = fundingPayment.add(log.args.fundingPayment)
@@ -196,7 +196,7 @@ describe.skip("ClearingHouse accounting", () => {
         // maker remove all liquidity and settle all funding payment
         for (const user of [maker, taker1, taker2, taker3]) {
             totalFundingPayment = totalFundingPayment.add(
-                await exchange.getPendingFundingPayment(user.address, baseToken.address),
+                await vPool.getPendingFundingPayment(user.address, baseToken.address),
             )
         }
         expect(totalFundingPayment).to.closeTo("0", 50)

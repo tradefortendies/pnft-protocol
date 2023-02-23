@@ -1,9 +1,9 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 
-import "../../../contracts/interface/IExchange.sol";
+import "../../../contracts/interface/IVPool.sol";
 
-interface ITestExchange is IExchange {
+interface ITestExchange is IVPool {
     function initialize(
         address marketRegistryArg,
         address orderBookArg,
