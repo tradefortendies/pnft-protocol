@@ -78,12 +78,12 @@ async function deploy() {
     //     console.log('migrateBaseTokenAll -- END --')
     // }
 
-    // import migrateLibrary from "./6_migrate_Library";
-    {
-        console.log('migrateLibrary -- START --')
-        await migrateLibrary();
-        console.log('migrateLibrary -- END --')
-    }
+    // // import migrateLibrary from "./6_migrate_Library";
+    // {
+    //     console.log('migrateLibrary -- START --')
+    //     await migrateLibrary();
+    //     console.log('migrateLibrary -- END --')
+    // }
 
     // // import migrateUniswapV3 from "./6_migrate_UniswapV3";
     // {
@@ -92,54 +92,54 @@ async function deploy() {
     //     console.log('migrateUniswapV3 -- END --')
     // }
 
-    // import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
-    {
-        console.log('migrateClearingHouseConfig -- START --')
-        await migrateClearingHouseConfig();
-        console.log('migrateClearingHouseConfig -- END --')
-    }
+    // // import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
+    // {
+    //     console.log('migrateClearingHouseConfig -- START --')
+    //     await migrateClearingHouseConfig();
+    //     console.log('migrateClearingHouseConfig -- END --')
+    // }
 
-    // import migrateMarketRegistry from "./8_migrate_MarketRegistry";
-    {
-        console.log('migrateMarketRegistry -- START --')
-        await migrateMarketRegistry();
-        console.log('migrateMarketRegistry -- END --')
-    }
+    // // import migrateMarketRegistry from "./8_migrate_MarketRegistry";
+    // {
+    //     console.log('migrateMarketRegistry -- START --')
+    //     await migrateMarketRegistry();
+    //     console.log('migrateMarketRegistry -- END --')
+    // }
 
-    // import migrateAccountBalance from "./10_migrate_AccountBalance";
-    {
-        console.log('migrateAccountBalance -- START --')
-        await migrateAccountBalance();
-        console.log('migrateAccountBalance -- END --')
-    }
+    // // import migrateAccountBalance from "./10_migrate_AccountBalance";
+    // {
+    //     console.log('migrateAccountBalance -- START --')
+    //     await migrateAccountBalance();
+    //     console.log('migrateAccountBalance -- END --')
+    // }
 
-    // import migrateVPool from "./11_migrate_VPool";
-    {
-        console.log('migrateVPool -- START --')
-        await migrateVPool();
-        console.log('migrateVPool -- END --')
-    }
+    // // import migrateVPool from "./11_migrate_VPool";
+    // {
+    //     console.log('migrateVPool -- START --')
+    //     await migrateVPool();
+    //     console.log('migrateVPool -- END --')
+    // }
 
-    // import migrateInsuranceFund from "./12_migrate_InsuranceFund";
-    {
-        console.log('migrateInsuranceFund -- START --')
-        await migrateInsuranceFund();
-        console.log('migrateInsuranceFund -- END --')
-    }
+    // // import migrateInsuranceFund from "./12_migrate_InsuranceFund";
+    // {
+    //     console.log('migrateInsuranceFund -- START --')
+    //     await migrateInsuranceFund();
+    //     console.log('migrateInsuranceFund -- END --')
+    // }
 
-    // import migrateVault from "./13_migrate_Vault";
-    {
-        console.log('migrateVault -- START --')
-        await migrateVault();
-        console.log('migrateVault -- END --')
-    }
+    // // import migrateVault from "./13_migrate_Vault";
+    // {
+    //     console.log('migrateVault -- START --')
+    //     await migrateVault();
+    //     console.log('migrateVault -- END --')
+    // }
 
-    // import migrateClearingHouse from "./15_migrate_ClearingHouse";
-    {
-        console.log('migrateClearingHouse -- START --')
-        await migrateClearingHouse();
-        console.log('migrateClearingHouse -- END --')
-    }
+    // // import migrateClearingHouse from "./15_migrate_ClearingHouse";
+    // {
+    //     console.log('migrateClearingHouse -- START --')
+    //     await migrateClearingHouse();
+    //     console.log('migrateClearingHouse -- END --')
+    // }
 
     // // import migratePNFTToken from "./20_migrate_PNFTToken";
     // {
@@ -155,7 +155,7 @@ async function deploy() {
     //     console.log('migrateRewardMiner -- END --')
     // }
 
-    return
+    // return
 
 
     const network = hre.network.name;

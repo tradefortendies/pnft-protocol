@@ -59,13 +59,21 @@ async function deploy() {
     // }
 
     let initLiquidities = [
-        parseEther('460.55'),
-        parseEther('510.39'),
-        parseEther('254.84'),
-        parseEther('793.12'),
-        parseEther('522.05'),
-        parseEther('928.31'),
-        parseEther('892.10'),
+        // parseEther('460.55'),
+        // parseEther('510.39'),
+        // parseEther('254.84'),
+        // parseEther('793.12'),
+        // parseEther('522.05'),
+        // parseEther('928.31'),
+        // parseEther('892.10'),
+        
+        // parseEther('451.44'),
+        // parseEther('980.06'),
+        // parseEther('498.17'),
+        // parseEther('1514.54'),
+        // parseEther('1043.49'),
+        // parseEther('1733.13'),
+        // parseEther('1652.70'),
     ];
 
     for (let i = 0; i < baseTokens.length; i++) {
