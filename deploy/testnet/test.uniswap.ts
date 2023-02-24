@@ -10,7 +10,6 @@ import {
     InsuranceFund,
     MarketRegistry,
     NftPriceFeed,
-    OrderBook,
     TestClearingHouse,
     TestERC20,
     UniswapV3Pool,
@@ -21,8 +20,6 @@ import {
     findLiquidityChangedEvents,
     findPnlRealizedEvents,
     q2bExactOutput,
-    removeAllOrders,
-    removeOrder,
 } from "../../test/helper/clearingHouseHelper"
 import { initMarket } from "../../test/helper/marketHelper"
 import { IGNORABLE_DUST } from "../../test/helper/number"
@@ -40,7 +37,7 @@ describe("Deployment check", () => {
 
     it("check", async () => {
         let deployData = {} as DeployData
-        deployData.priceAdminAddress = admin.address
+        // deployData.priceAdminAddress = admin.address
         deployData.platformFundAddress = admin.address
         deployData.makerFundAddress = admin.address
         deployData.nftPriceFeedBAYC = {
@@ -69,12 +66,10 @@ describe("Deployment check", () => {
         deployData.uniswapV3Factory = {} as ContractData
         deployData.clearingHouseConfig = {} as ContractData
         deployData.marketRegistry = {} as ContractData
-        deployData.orderBook = {} as ContractData
         deployData.accountBalance = {} as ContractData
         deployData.vPool = {} as ContractData
         deployData.insuranceFund = {} as ContractData
         deployData.vault = {} as ContractData
-        deployData.collateralManager = {} as ContractData
         deployData.genericLogic = {} as ContractData
         deployData.clearingHouseLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
@@ -207,14 +202,14 @@ describe("Deployment check", () => {
                 const poolAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
                 const uniPool = (await ethers.getContractAt('UniswapV3Pool', poolAddr)) as UniswapV3Pool;
                 await uniPool.initialize(encodePriceSqrt("100", "1"))
-                await uniPool.increaseObservationCardinalityNext(500)
+                // await uniPool.increaseObservationCardinalityNext(500)
             }
             // vMAYC
             {
                 const poolAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
                 const uniPool = (await ethers.getContractAt('UniswapV3Pool', poolAddr)) as UniswapV3Pool;
                 await uniPool.initialize(encodePriceSqrt("100", "1"))
-                await uniPool.increaseObservationCardinalityNext(500)
+                // await uniPool.increaseObservationCardinalityNext(500)
             }
 
             {
