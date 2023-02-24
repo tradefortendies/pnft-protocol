@@ -457,10 +457,10 @@ describe("Deployment check", () => {
                 const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
-                await waitForTx(
-                    await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                    'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
-                )
+                // await waitForTx(
+                //     await uniPool.increaseObservationCardinalityNext(cardinalityNext),
+                //     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
+                // )
                 await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
                 await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
             }
@@ -470,10 +470,10 @@ describe("Deployment check", () => {
                 const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
-                await waitForTx(
-                    await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                    'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
-                )
+                // await waitForTx(
+                //     await uniPool.increaseObservationCardinalityNext(cardinalityNext),
+                //     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
+                // )
                 await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
                 await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
             }

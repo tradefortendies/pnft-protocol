@@ -182,6 +182,14 @@ async function deploy() {
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
 
+    // await waitForTx(
+    //     await clearingHouse.setRewardMiner(ethers.constants.AddressZero)
+    // )
+
+    console.log(
+        await clearingHouse.getRewardMiner()
+    )
+
     // console.log(formatSqrtPriceX96ToPrice(BigNumber.from((new bn('8dd3e0fd20a8974258e3cae12', 16)).toString()), 18))
 
     // {

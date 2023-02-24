@@ -22,7 +22,7 @@ export async function initMarket(
     await uniPool.initialize(encodePriceSqrt(initPrice, "1"))
     const uniFeeRatio = await uniPool.fee()
     // the initial number of oracle can be recorded is 1; thus, have to expand it
-    await uniPool.increaseObservationCardinalityNext(500)
+    // await uniPool.increaseObservationCardinalityNext(500)
 
     // update config
     const marketRegistry = fixture.marketRegistry

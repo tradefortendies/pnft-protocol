@@ -94,41 +94,41 @@
         "address": "0x4893376342d5D7b3e31d4184c08b265e5aB2A3f6"
     },
     "uniswapV3Broker": {
-        "address": "0x60500F0D427a165bB2c9842f1e9fD0C0cdDFF1C6"
+        "address": "0x99e9F3f0Fbe637386977D8331b9A30490bA7f179"
     },
     "genericLogic": {
-        "address": "0x0bD6d508937faD788039def77eE2675641e7E6B8"
+        "address": "0xC96e5462D443122C71299F00D3ed2703AC11096c"
     },
     "clearingHouseLogic": {
-        "address": "0xcb778c86552BC2C2fDfAf54a7F6c62eb2885e0f4"
+        "address": "0x3de21Df20972110927b114763BA0CD8791A5029F"
     },
     "clearingHouseConfig": {
         "address": "0x53D711e7695100381306AAFCa4b295A141f8d955",
-        "implAddress": "0x4060055fb846b8be10954c69f1f73984C8149A76"
+        "implAddress": "0x28A499dD66383aFf78F6b40cdC1c7b169d9704e8"
     },
     "marketRegistry": {
         "address": "0x8D6aD71E77EBc89275925c32B0B3A5D7e180383a",
-        "implAddress": "0x3477fdf38B0c7BCa6F0aE511D6696F1A11d101Bc"
+        "implAddress": "0x70b1624a29a079bB6cDcfa5755e728bA31e83107"
     },
     "accountBalance": {
         "address": "0x47C516F9cF7a0141af67F9204643a54dfD022abd",
-        "implAddress": "0xa62e67712e8dd266b44bdCB17A4d53D608B594b0"
+        "implAddress": "0x45a6A9a6aFa06acb24779da975b6d643DaA2E54D"
     },
     "vPool": {
         "address": "0x79b2B0B20B53a8d269375B9e2C030b7Ca0C22d50",
-        "implAddress": "0x2Ee383924303701260AD3eB50f8a405298dF2474"
+        "implAddress": "0x12f8dcb557B09a6638839a4B84fFEbC0EE521ECa"
     },
     "insuranceFund": {
         "address": "0xA01e4abB40E4546695E1051D82939f718e03198A",
-        "implAddress": "0x93bFA1eEd7D6cbcBB12Cf9163C35AaC2ef11caD8"
+        "implAddress": "0x7Aadc6F35fbB9CE426FCa62fEBf5d82CfF18BDBe"
     },
     "vault": {
         "address": "0x217AF33FA96dB0261bB9b570456203F81956e050",
-        "implAddress": "0x2C3aB6b0C32eFAF7c0f9a61EB4F82ed9D16FA620"
+        "implAddress": "0xd9ddEEBC012F57C5b7F4E8dD9e9c8D66a301106F"
     },
     "clearingHouse": {
         "address": "0xf55b291Acbda07E69e49e1Dfa078E6db1Ee70E42",
-        "implAddress": "0x52D7b9c5F08cb0D6F753652e58873a94332c07C5"
+        "implAddress": "0xB704002C6ea5B96ad90b5b54a77c2e934630324c"
     },
     "testFaucet": {
         "address": "0xafFABBC0bf710D1D0fdA35FAeEFBe1bB77c70EC2",
@@ -146,7 +146,7 @@
     },
     "rewardMiner": {
         "address": "0x4C4DaE0793a5259f44612ef27158A6E2E5E53679",
-        "implAddress": "0xFbAfC2A2b0Ac3c7D0f1786D3C18C42fEF107084e"
+        "implAddress": "0xe11B950Ea9852ef3Fb3f4F35f627088f6e07b1a6"
     },
     "testCheck": {
         "addLiquidity": false,

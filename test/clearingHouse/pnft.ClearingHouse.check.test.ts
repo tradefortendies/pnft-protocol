@@ -114,29 +114,48 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         // await rewardMiner.startPnlMiner(1, '666666')
 
         // maker add liquidity
+
         await clearingHouse.connect(maker).addLiquidity({
             baseToken: baseToken.address,
-            liquidity: parseEther('1000'),
+            liquidity: parseEther('1000000'),
             deadline: ethers.constants.MaxUint256,
         })
 
-        let r = await (
-            await clearingHouse.connect(trader1).openPosition({
-                baseToken: baseToken.address,
-                isBaseToQuote: true,
-                isExactInput: true,
-                oppositeAmountBound: 0,
-                amount: parseEther('1'),
-                sqrtPriceLimitX96: 0,
-                deadline: ethers.constants.MaxUint256,
-                referralCode: ethers.constants.HashZero,
-            })
-        ).wait()
+        for (let index = 0; index < 1000; index++) {
+            let r = await (
+                await clearingHouse.connect(trader1).openPosition({
+                    baseToken: baseToken.address,
+                    isBaseToQuote: true,
+                    isExactInput: true,
+                    oppositeAmountBound: 0,
+                    amount: parseEther('10'),
+                    sqrtPriceLimitX96: 0,
+                    deadline: ethers.constants.MaxUint256,
+                    referralCode: ethers.constants.HashZero,
+                })
+            ).wait()
 
-        console.log(
-            'r.gasUsed',
-            r.gasUsed.toString()
-        )
+            console.log(
+                index,
+                'open r.gasUsed',
+                r.gasUsed.toString()
+            )
+            r = await (
+                await clearingHouse.connect(trader1).closePosition({
+                    baseToken: baseToken.address,
+                    sqrtPriceLimitX96: parseEther("0"),
+                    oppositeAmountBound: parseEther("0"),
+                    deadline: ethers.constants.MaxUint256,
+                    referralCode: ethers.constants.HashZero,
+                })
+            ).wait()
+            console.log(
+                index,
+                'close r.gasUsed',
+                r.gasUsed.toString()
+            )
+        }
+
     })
 
 
