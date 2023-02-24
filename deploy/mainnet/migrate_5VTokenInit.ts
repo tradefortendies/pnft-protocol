@@ -129,10 +129,6 @@ async function deploy() {
                 await uniPool.initialize(encodePriceSqrt(initPrice, "1")),
                 'uniPool.initialize(encodePriceSqrt(price, "1"))'
             )
-            // await tryWaitForTx(
-            //     await uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1),
-            //     'uniPool.increaseObservationCardinalityNext((2 ^ 16) - 1)'
-            // )
             if (!(await marketRegistry.hasPool(baseToken.address))) {
                 const uniFeeRatio = await uniPool.fee()
                 await tryWaitForTx(
