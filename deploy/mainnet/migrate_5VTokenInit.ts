@@ -7,7 +7,7 @@ import { AccountBalance, BaseToken, VPool, MarketRegistry, NftPriceFeed, QuoteTo
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
-const { waitForTx, tryWaitForTx, loadDB } = helpers;
+const { waitForTx, tryWaitForTx, loadDB, saveDB } = helpers;
 
 
 async function main() {
@@ -25,8 +25,11 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
     // 
-
     const [admin, maker, priceAdmin] = await ethers.getSigners()
+    {
+        deployData.priceAdminAddress = maker.address
+        deployData = (await saveDB(network, deployData))
+    }
 
     // deploy UniV3 factory
     var uniswapV3Factory = await hre.ethers.getContractAt('UniswapV3Factory', deployData.uniswapV3Factory.address);
@@ -44,30 +47,18 @@ async function deploy() {
 
     let baseTokens = [
         deployData.vBAYC,
-        deployData.vMAYC,
         deployData.vCRYPTOPUNKS,
-        deployData.vMOONBIRD,
         deployData.vAZUKI,
-        deployData.vCLONEX,
-        deployData.vDOODLE,
     ];
     let nftPriceFeeds = [
         deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
         deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
         deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
     ];
     let priceKeys = [
         'priceBAYC',
-        'priceMAYC',
         'priceCRYPTOPUNKS',
-        'priceMOONBIRD',
         'priceAZUKI',
-        'priceCLONEX',
-        'priceDOODLE'
     ];
     for (let i = 0; i < 7; i++) {
         console.log(

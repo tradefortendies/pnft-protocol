@@ -29,21 +29,13 @@ async function deploy() {
 
     let nftPriceFeeds = [
         deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
         deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
         deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
     ];
     let priceKeys = [
         'priceBAYC',
-        'priceMAYC',
         'priceCRYPTOPUNKS',
-        'priceMOONBIRD',
         'priceAZUKI',
-        'priceCLONEX',
-        'priceDOODLE'
     ];
     for (let i = 0; i < nftPriceFeeds.length; i++) {
         console.log(

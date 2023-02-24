@@ -48,21 +48,13 @@ async function deploy() {
     var baseToken = await hre.ethers.getContractAt('BaseToken', deployData.baseToken.implAddress);
     let baseTokens = [
         deployData.vBAYC,
-        deployData.vMAYC,
         deployData.vCRYPTOPUNKS,
-        deployData.vMOONBIRD,
         deployData.vAZUKI,
-        deployData.vCLONEX,
-        deployData.vDOODLE,
     ];
     let nftPriceFeeds = [
         deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
         deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
         deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
     ];
     for (let i = 0; i < baseTokens.length; i++) {
         var baseVToken = baseTokens[i]

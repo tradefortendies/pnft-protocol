@@ -28,31 +28,19 @@ async function deploy() {
 
     let baseTokens = [
         deployData.vBAYC,
-        deployData.vMAYC,
         deployData.vCRYPTOPUNKS,
-        deployData.vMOONBIRD,
         deployData.vAZUKI,
-        deployData.vCLONEX,
-        deployData.vDOODLE,
     ];
     let priceKeys = [
         'priceBAYC',
-        'priceMAYC',
         'priceCRYPTOPUNKS',
-        'priceMOONBIRD',
         'priceAZUKI',
-        'priceCLONEX',
-        'priceDOODLE'
     ];
 
     let initLiquidities = [
-        parseEther('460.55'),
-        parseEther('510.39'),
-        parseEther('254.84'),
-        parseEther('793.12'),
-        parseEther('522.05'),
-        parseEther('928.31'),
-        parseEther('892.10'),
+        parseEther('0'),
+        parseEther('0'),
+        parseEther('0'),
     ];
 
     for (let i = 0; i < baseTokens.length; i++) {

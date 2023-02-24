@@ -1,0 +1,10 @@
+ARBISCAN_API_KEY=""
+# admin
+ADDRESS=""
+PRIVATE_KEY=""
+# maker
+MAKER_ADMIN=""
+MAKER_ADMIN_KEY=""
+# price
+PRICE_ADMIN=""
+PRICE_ADMIN_KEY=""

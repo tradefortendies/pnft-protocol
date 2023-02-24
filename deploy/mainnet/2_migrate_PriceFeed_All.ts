@@ -5,7 +5,7 @@ import hre from "hardhat";
 import { NftPriceFeed } from "../../typechain";
 import helpers from "../helpers";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -18,12 +18,8 @@ async function deploy() {
     let deployData = (await loadDB(network))
     let nftPriceFeeds = [
         deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
         deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
         deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
     ];
     for (let i = 0; i < nftPriceFeeds.length; i++) {
         var nftPriceFeed = nftPriceFeeds[i]
