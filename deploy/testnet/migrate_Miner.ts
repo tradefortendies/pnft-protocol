@@ -5,7 +5,7 @@ import hre, { ethers } from "hardhat";
 import bn from "bignumber.js"
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, VPool, MarketRegistry, NftPriceFeed, OrderBook, QuoteToken, RewardMiner, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, VPool, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, UniswapV3Pool, Vault } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, formatUnits, parseEther } from "ethers/lib/utils";
@@ -31,12 +31,10 @@ async function deploy() {
     var uniswapV3Factory = await hre.ethers.getContractAt('UniswapV3Factory', deployData.uniswapV3Factory.address);
     var clearingHouseConfig = await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
     var marketRegistry = (await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address)) as MarketRegistry;
-    var orderBook = (await hre.ethers.getContractAt('OrderBook', deployData.orderBook.address)) as OrderBook;
     var accountBalance = (await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.address)) as AccountBalance;
     var vPool = (await hre.ethers.getContractAt('VPool', deployData.vPool.address)) as VPool;
     var insuranceFund = await hre.ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
-    var collateralManager = await hre.ethers.getContractAt('CollateralManager', deployData.collateralManager.address);
     var clearingHouse = await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
     var clearingHouse = await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
 
