@@ -45,6 +45,15 @@ async function deploy() {
         )
         var nftPriceFeedAddress = nftPriceFeeds[i].address
         var initPrice = formatEther(priceData[priceKeys[i]]);
+
+        var priceFeed = (await hre.ethers.getContractAt('NftPriceFeed', nftPriceFeedAddress)) as NftPriceFeed;
+        if ((await priceFeed.priceFeedAdmin()).toLowerCase() != priceAdmin.address.toLowerCase()) {
+            await waitForTx(
+                await priceFeed.setPriceFeedAdmin(priceAdmin.address),
+                'priceFeed.setPriceFeedAdmin(priceAdmin.address)'
+            )
+        }
+
         var priceFeed = (await hre.ethers.getContractAt('NftPriceFeed', nftPriceFeedAddress)) as NftPriceFeed;
         if (!(await priceFeed.getPrice(0)).eq(parseEther(initPrice))) {
             await waitForTx(
