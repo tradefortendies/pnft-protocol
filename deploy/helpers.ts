@@ -70,7 +70,7 @@ const res = {
     },
 
     loadDB: async (network: string) => {
-        let fileName = process.cwd() + '/deploy/testnet/address/deployed_' + network + '.json';
+        let fileName = process.cwd() + '/deploy/mainnet/address/deployed_' + network + '.json';
         let deployData: DeployData;
         if (!(await fs.existsSync(fileName))) {
             throw 'deployed file is not existsed'
@@ -81,7 +81,7 @@ const res = {
     },
 
     saveDB: async (network: string, deployData: DeployData) => {
-        let fileName = process.cwd() + '/deploy/testnet/address/deployed_' + network + '.json';
+        let fileName = process.cwd() + '/deploy/mainnet/address/deployed_' + network + '.json';
         if (!(await fs.existsSync(fileName))) {
             throw 'deployed file is not existsed'
         }
