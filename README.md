@@ -18,14 +18,21 @@ You need Node.js 16+ to build. Use nvm to install it.
 Clone this repository, install Node.js dependencies, and build the source code:
 
 npm i
+
 npm run build
+
 If the installation failed on your machine, please try a vanilla install instead:
 
 npm run clean
+
 rm -rf node_modules/
+
 rm package-lock.json
+
 npm install
+
 npm run build
+
 Run all the test cases:
 
 npm run test
