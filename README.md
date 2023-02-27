@@ -16,31 +16,31 @@ This repository contains the smart contracts for PNFT Protocol.
 You need Node.js 16+ to build. Use nvm to install it.
 
 Clone this repository, install Node.js dependencies, and build the source code:
-
+```
 npm i
-
 npm run build
+```
 
 If the installation failed on your machine, please try a vanilla install instead:
-
+```
 npm run clean
-
 rm -rf node_modules/
-
 rm package-lock.json
-
 npm install
-
 npm run build
+```
 
 Run all the test cases:
-
+```
 npm run test
-
+```
 ### Deployments
 PNFT Protocol are deployed on Arbitrum  (an Ethereum Layer 2 network).
 
 Contract addresses:
+
+https://github.com/pnft-exchange/pnft-protocol/blob/main/deploy/mainnet/address/deployed_arbitrum.json (Arbitrum mainet)
+
 https://github.com/pnft-exchange/pnft-protocol/blob/main/deploy/testnet/address/deployed_arbitrumGoerli.json (Arbitrum Goerli testnet)
 
 ### Documents
