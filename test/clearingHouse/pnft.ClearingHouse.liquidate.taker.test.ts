@@ -1,9 +1,6 @@
 import { MockContract } from "@eth-optimism/smock"
-import { expect } from "chai"
-import { BigNumber } from "ethers"
-import { formatEther, formatUnits, parseEther, parseUnits } from "ethers/lib/utils"
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
-import { format } from "path"
 import {
     AccountBalance,
     BaseToken,
@@ -11,16 +8,12 @@ import {
     MarketRegistry,
     TestClearingHouse,
     TestERC20,
-    Vault,
+    Vault
 } from "../../typechain"
 import {
-    b2qExactInput,
-    findPnlRealizedEvents,
-    findPositionLiquidatedEvents,
-    q2bExactOutput,
+    findPositionLiquidatedEvents
 } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
-import { IGNORABLE_DUST } from "../helper/number"
 import { deposit } from "../helper/token"
 import { encodePriceSqrt } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
@@ -45,7 +38,7 @@ describe("ClearingHouse liquidate trader", () => {
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture(true, 3000))
         clearingHouse = fixture.clearingHouse as TestClearingHouse
-        
+
         accountBalance = fixture.accountBalance
         insuranceFund = fixture.insuranceFund as InsuranceFund
         vault = fixture.vault
