@@ -116,7 +116,7 @@
     },
     "vPool": {
         "address": "0x11810deA012E77521cf994C82B8Cf05Eb786DB1A",
-        "implAddress": "0x49C658ce134e8599f3C2b016a2a21B7f1F93720c"
+        "implAddress": "0x88fcB9ed8787B57181D490535b490862CDF23B52"
     },
     "insuranceFund": {
         "address": "0xFbCdd83BF266a49e35b860d29C9B92Aca155a441",
