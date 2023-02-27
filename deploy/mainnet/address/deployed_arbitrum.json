@@ -138,7 +138,8 @@
         "decimals": 18,
         "coreAddress": "",
         "treasuryAddress": "",
-        "rewardAddress": ""
+        "rewardAddress": "",
+        "communityAddress": ""
     },
     "rewardMiner": {
         "address": "",
