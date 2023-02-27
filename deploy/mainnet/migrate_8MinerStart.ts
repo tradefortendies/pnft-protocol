@@ -23,10 +23,11 @@ async function deploy() {
     // deploy UniV3 factory
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
 
-    // await waitForTx(
-    //     await rewardMiner.startMiner(0),
-    //     'rewardMiner.startMiner()'
-    // )
+    await waitForTx(
+        await rewardMiner.startMiner(1677492000),
+        'rewardMiner.startMiner(1677492000)'
+    )
+
     // await waitForTx(
     //     await rewardMiner.startPnlMiner(1, 666666),
     //     'rewardMiner.startPnlMiner(1, 666666)'

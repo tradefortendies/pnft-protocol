@@ -60,7 +60,7 @@ async function deploy() {
         'priceCRYPTOPUNKS',
         'priceAZUKI',
     ];
-    for (let i = 0; i < 7; i++) {
+    for (let i = 0; i < baseTokens.length; i++) {
         console.log(
             '--------------------------------------',
             priceKeys[i].substring(5),
