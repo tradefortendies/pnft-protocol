@@ -38,9 +38,9 @@ async function deploy() {
     ];
 
     let initLiquidities = [
-        parseEther('0'),
-        parseEther('0'),
-        parseEther('0'),
+        parseEther('700.01'),
+        parseEther('752.16'),
+        parseEther('1572.20'),
     ];
 
     for (let i = 0; i < baseTokens.length; i++) {
