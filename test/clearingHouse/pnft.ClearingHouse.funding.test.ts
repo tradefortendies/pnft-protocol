@@ -1,5 +1,5 @@
 import { MockContract } from "@eth-optimism/smock"
-import { formatEther, parseEther } from "@ethersproject/units"
+import { parseEther } from "@ethersproject/units"
 import { expect } from "chai"
 import { parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
@@ -10,14 +10,12 @@ import {
     TestClearingHouse,
     TestERC20,
     TestVPool,
-    Vault,
+    Vault
 } from "../../typechain"
 import { QuoteToken } from "../../typechain/QuoteToken"
-import { b2qExactInput, findLiquidityChangedEvents, findPositionChangedEvents, q2bExactOutput } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
 import { forwardBothTimestamps, initiateBothTimestamps } from "../shared/time"
-import { getMarketTwap } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse funding", () => {

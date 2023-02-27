@@ -1,7 +1,5 @@
 import { expect } from "chai"
-import { parseEther } from "ethers/lib/utils"
 import { waffle } from "hardhat"
-import { MockPNFTToken } from "../../typechain/MockPNFTToken"
 import { TestPNFTToken } from "../../typechain/TestPNFTToken"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 describe("testPNFTToken test", () => {
