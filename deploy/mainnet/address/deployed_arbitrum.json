@@ -138,7 +138,8 @@
         "decimals": 18,
         "coreAddress": "0x67d1B7362C99D1B63cfC1DAD4A32706c0A2106dA",
         "treasuryAddress": "0x3003279ca444414eD58A2024E32731086EF728a8",
-        "rewardAddress": "0xe7e0FF133C18da65009F17C973d66880684989BC"
+        "rewardAddress": "0xe7e0FF133C18da65009F17C973d66880684989BC",
+        "communityAddress": "0xa3A2A6655A994dA052e31A4b5194CFEd49C2B838"
     },
     "rewardMiner": {
         "address": "",
