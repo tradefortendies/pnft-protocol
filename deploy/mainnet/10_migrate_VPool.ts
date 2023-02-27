@@ -56,7 +56,6 @@ async function deploy() {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.vPool.address, deployData.vPool.implAddress)
     }
     {
-        var genericLogic = await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address);
         await verifyContract(
             deployData,
             network,
