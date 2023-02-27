@@ -87,8 +87,8 @@
         "decimals": 18
     },
     "priceAdminAddress": "0xF01E95FFb768E772f249B60f4A941bE1dac0b161",
-    "platformFundAddress": "",
-    "makerFundAddress": "",
+    "platformFundAddress": "0x52846dCB44a63f476079cbBd9bc4F0F0Cc1341B2",
+    "makerFundAddress": "0x5ad0694982eA3aaCa9b960Cf538Ee9C0d16d48d5",
     "proxyAdminAddress": "",
     "uniswapV3Factory": {
         "address": "0x1F98431c8aD98523631AE4a59f267346ea31F984"
@@ -136,9 +136,9 @@
         "name": "PNFT Token",
         "symbol": "PNFT",
         "decimals": 18,
-        "coreAddress": "",
-        "treasuryAddress": "",
-        "rewardAddress": ""
+        "coreAddress": "0x67d1B7362C99D1B63cfC1DAD4A32706c0A2106dA",
+        "treasuryAddress": "0x3003279ca444414eD58A2024E32731086EF728a8",
+        "rewardAddress": "0xe7e0FF133C18da65009F17C973d66880684989BC"
     },
     "rewardMiner": {
         "address": "",
