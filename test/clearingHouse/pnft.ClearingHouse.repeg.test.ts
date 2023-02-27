@@ -14,6 +14,7 @@ import {
 } from "../../typechain"
 import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
+import { forwardBothTimestamps } from "../shared/time"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse multiplier", () => {
@@ -71,19 +72,28 @@ describe("ClearingHouse multiplier", () => {
     })
 
     it("repeg up", async () => {
+        await forwardBothTimestamps(clearingHouse, 100)
+
         // maker add liquidity
         await clearingHouse.connect(maker).addLiquidity({
             baseToken: baseToken.address,
             liquidity: parseEther('10000'),
             deadline: ethers.constants.MaxUint256,
         })
+
+        mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
+            return parseUnits("120", 18)
+        })
+
+        await forwardBothTimestamps(clearingHouse, 100)
+
         {
             await clearingHouse.connect(trader1).openPosition({
                 baseToken: baseToken.address,
                 isBaseToQuote: true,
                 isExactInput: true,
                 oppositeAmountBound: 0,
-                amount: parseEther("9"),
+                amount: parseEther("10"),
                 sqrtPriceLimitX96: 0,
                 deadline: ethers.constants.MaxUint256,
                 referralCode: ethers.constants.HashZero,
@@ -102,15 +112,31 @@ describe("ClearingHouse multiplier", () => {
             })
         }
 
-        mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
-            return parseUnits("120", 18)
-        })
+        {
+            let unrealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address))[1]
+            let unrealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address))[1]
+            console.log(
+                'before repeg unrealizedPnl',
+                formatEther(unrealizedPnlTrade1),
+                formatEther(unrealizedPnlTrade2),
+            )
+        }
+
+        await forwardBothTimestamps(clearingHouse, 100)
 
         console.log("before repeg");
-        await vPool.connect(maker).isOverPriceSpread(baseToken.address);
         await clearingHouse.connect(maker).repeg(baseToken.address);
         console.log("after repeg");
-        await vPool.connect(maker).isOverPriceSpread(baseToken.address);
+
+        {
+            let unrealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address))[1]
+            let unrealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address))[1]
+            console.log(
+                'after repeg unrealizedPnl',
+                formatEther(unrealizedPnlTrade1),
+                formatEther(unrealizedPnlTrade2),
+            )
+        }
 
         await clearingHouse.connect(trader1).closePosition({
             baseToken: baseToken.address,
@@ -127,18 +153,6 @@ describe("ClearingHouse multiplier", () => {
             deadline: ethers.constants.MaxUint256,
             referralCode: ethers.constants.HashZero,
         })
-        {
-            let size1 = (await accountBalance.getTotalPositionSize(trader1.address, baseToken.address))
-            console.log(
-                'getTotalPositionSize1',
-                formatEther(size1),
-            )
-            let size2 = (await accountBalance.getTotalPositionSize(trader2.address, baseToken.address))
-            console.log(
-                'getTotalPositionSize2',
-                formatEther(size2),
-            )
-        }
 
         let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address))[0]
         let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address))[0]
