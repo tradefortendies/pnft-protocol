@@ -1,33 +1,20 @@
 import { MockContract } from "@eth-optimism/smock"
 import { expect } from "chai"
-import { BigNumber, ContractReceipt } from "ethers"
-import { formatEther, formatUnits, parseEther, parseUnits } from "ethers/lib/utils"
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
-import { format } from "path"
 import {
-    AccountBalance,
     BaseToken,
-    ClearingHouseConfig,
-    VPool,
-    InsuranceFund,
+    ClearingHouseConfig, InsuranceFund,
     MarketRegistry,
     QuoteToken,
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
     UniswapV3Pool,
-    Vault,
+    Vault, VPool
 } from "../../typechain"
-import {
-    b2qExactInput,
-    findLiquidityChangedEvents,
-    findPnlRealizedEvents,
-    q2bExactOutput,
-} from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
-import { IGNORABLE_DUST, priceToTick } from "../helper/number"
 import { deposit } from "../helper/token"
-import { filterLogs } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse multiplier", () => {
