@@ -5,7 +5,7 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault, PNFTToken } from "../../typechain";
 import { getMaxTickRange, priceToTick } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -57,12 +57,47 @@ async function deploy() {
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
-    var pNFTToken = (await hre.ethers.getContractAt('MockPNFTToken', deployData.pNFTToken.address)) as MockPNFTToken;
+    var pNFTToken = (await hre.ethers.getContractAt('PNFTToken', deployData.pNFTToken.address)) as PNFTToken;
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
 
     console.log('START')
 
+
+    // await clearingHouse.connect(trader1).openPosition({
+    //     baseToken: deployData.vDOODLE.address,
+    //     isBaseToQuote: false,
+    //     isExactInput: true,
+    //     oppositeAmountBound: 0,
+    //     amount: parseEther('200'),
+    //     sqrtPriceLimitX96: encodePriceSqrt('4.4', '1'),
+    //     deadline: ethers.constants.MaxUint256,
+    //     referralCode: ethers.constants.HashZero,
+    // }),
+
+    // let openPositionData = clearingHouse.interface.encodeFunctionData(
+    //     'openPosition',
+    //     [
+    //         {
+    //             baseToken: deployData.vBAYC.address,
+    //             isBaseToQuote: true,
+    //             isExactInput: false,
+    //             oppositeAmountBound: 0,
+    //             amount: parseEther('0.1'),
+    //             sqrtPriceLimitX96: 0,
+    //             deadline: ethers.constants.MaxUint256,
+    //             referralCode: ethers.constants.HashZero,
+    //         }
+    //     ],
+    // )
+    // let gasUsed = await ethers.provider.estimateGas({
+    //     from: '0x83D543985cC66bb5b8B2C1B0Db8284456187eA44',
+    //     to: deployData.clearingHouse.address,
+    //     data: openPositionData,
+    //     value: 0
+    // });
+    // let gasPrice = await ethers.provider.getGasPrice()
+    // console.log("Esimated Gas: " + formatEther(gasPrice.mul(gasUsed)));
 
 }
 

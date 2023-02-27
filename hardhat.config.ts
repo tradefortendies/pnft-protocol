@@ -57,6 +57,12 @@ const config: HardhatUserConfig = {
             gas: 8000000,
             accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY],
         },
+        arbitrum: {
+            url: "https://arb1.arbitrum.io/rpc",
+            chainId: 42161,
+            gas: 8000000,
+            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY, PLATFROM_ADMIN_KEY, TRADER1_KEY, TRADER2_KEY, TRADER3_KEY, TRADER4_KEY, MINER_KEY],
+        },
         arbitrumDev: {
             url: "https://goerli-rollup.arbitrum.io/rpc",
             chainId: 421613,
