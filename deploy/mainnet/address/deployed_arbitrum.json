@@ -86,7 +86,7 @@
         "symbol": "vDOODLE",
         "decimals": 18
     },
-    "priceAdminAddress": "",
+    "priceAdminAddress": "0xF01E95FFb768E772f249B60f4A941bE1dac0b161",
     "platformFundAddress": "",
     "makerFundAddress": "",
     "proxyAdminAddress": "",
