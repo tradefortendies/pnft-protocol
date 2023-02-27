@@ -49,8 +49,8 @@ async function deploy() {
         //add treasury schedule
         duration = 2592000;//720 days in seconds (2 years)
         slicePeriodSeconds = 648000;//180days in seconds
-        unvestingAmount = parseEther("4000000");//4M
-        amount = parseEther("16000000");//16M
+        unvestingAmount = parseEther("2000000");//4M
+        amount = parseEther("8000000");//16M
         await waitForTx(
             await pNFTToken.createVestingSchedule(
                 {
@@ -65,6 +65,26 @@ async function deploy() {
                 },
             ),
             'pNFTToken.createVestingSchedule treasury'
+        )
+        //add community schedule
+        duration = 2592000;//720 days in seconds (2 years)
+        slicePeriodSeconds = 648000;//180days in seconds
+        unvestingAmount = parseEther("2000000");//2M
+        amount = parseEther("8000000");//8M
+        await waitForTx(
+            await pNFTToken.createVestingSchedule(
+                {
+                    beneficiary: deployData.pNFTToken.communityAddress,
+                    start: startTime,
+                    cliff: cliff,
+                    duration: duration,
+                    slicePeriodSeconds: slicePeriodSeconds,
+                    revocable: revokable,
+                    unvestingAmount: unvestingAmount,
+                    amount: amount,
+                },
+            ),
+            'pNFTToken.createVestingSchedule community'
         )
         //add reward schedule
         //#1
