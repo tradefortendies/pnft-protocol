@@ -84,6 +84,7 @@ async function deploy() {
                 amount: amount,
             },
             );
+            
             //add treasury schedule
             duration = 2592000;//720 days in seconds (2 years)
             slicePeriodSeconds = 648000;//180days in seconds
