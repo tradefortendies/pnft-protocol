@@ -16,6 +16,7 @@ type TokenData = {
     coreAddress: string,
     treasuryAddress: string,
     rewardAddress: string,
+    communityAddress: string,
 }
 
 type ContractData = {
