@@ -32,16 +32,6 @@ async function deploy() {
                 console.log('nftPriceFeed is deployed', priceFeed.address)
             }
         }
-        {
-            await verifyContract(
-                deployData,
-                network,
-                nftPriceFeed.address,
-                [nftPriceFeed.symbol],
-                {},
-                "contracts/oracle/NftPriceFeed.sol:NftPriceFeed",
-            )
-        }
     }
 }
 

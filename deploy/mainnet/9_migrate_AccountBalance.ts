@@ -49,32 +49,6 @@ async function deploy() {
     {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.accountBalance.address, deployData.accountBalance.implAddress)
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.accountBalance.implAddress,
-            [],
-            {},
-            "contracts/AccountBalance.sol:AccountBalance",
-        )
-    }
-    {
-        var accountBalance = await hre.ethers.getContractAt('AccountBalance', deployData.accountBalance.implAddress);
-        var initializeData = accountBalance.interface.encodeFunctionData('initialize', [deployData.clearingHouseConfig.address]);
-        await verifyContract(
-            deployData,
-            network,
-            deployData.accountBalance.address,
-            [
-                deployData.accountBalance.implAddress,
-                proxyAdmin.address,
-                initializeData,
-            ],
-            {},
-            "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
-        )
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

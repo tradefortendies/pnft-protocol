@@ -53,34 +53,6 @@ async function deploy() {
     {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.marketRegistry.address, deployData.marketRegistry.implAddress)
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.marketRegistry.implAddress,
-            [],
-            {
-                UniswapV3Broker: deployData.uniswapV3Broker.address,
-            },
-            "contracts/MarketRegistry.sol:MarketRegistry",
-        )
-    }
-    {
-        var marketRegistry = await hre.ethers.getContractAt('MarketRegistry', deployData.marketRegistry.implAddress);
-        var initializeData = marketRegistry.interface.encodeFunctionData('initialize', [deployData.uniswapV3Factory.address, deployData.vETH.address]);
-        await verifyContract(
-            deployData,
-            network,
-            deployData.marketRegistry.address,
-            [
-                deployData.marketRegistry.implAddress,
-                proxyAdmin.address,
-                initializeData,
-            ],
-            {},
-            "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
-        )
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

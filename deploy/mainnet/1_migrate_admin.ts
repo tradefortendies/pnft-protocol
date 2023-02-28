@@ -24,16 +24,6 @@ async function deploy() {
         }
         console.log('proxyAdmin is deployed', proxyAdmin.address)
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.proxyAdminAddress,
-            [],
-            {},
-            "@openzeppelin/contracts/proxy/ProxyAdmin.sol:ProxyAdmin",
-        )
-    }
 }
 
 // // We recommend this pattern to be able to use async/await everywhere

@@ -54,41 +54,6 @@ async function deploy() {
             console.log('ClearingHouseLogic is deployed', clearingHouseLogic.address)
         }
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.uniswapV3Broker.address,
-            [],
-            {},
-            "contracts/lib/UniswapV3Broker.sol:UniswapV3Broker",
-        )
-    }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.genericLogic.address,
-            [],
-            {
-                UniswapV3Broker: deployData.uniswapV3Broker.address,
-            },
-            "contracts/lib/GenericLogic.sol:GenericLogic",
-        )
-    }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.clearingHouseLogic.address,
-            [],
-            {
-                UniswapV3Broker: deployData.uniswapV3Broker.address,
-                GenericLogic: deployData.genericLogic.address,
-            },
-            "contracts/lib/ClearingHouseLogic.sol:ClearingHouseLogic",
-        )
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

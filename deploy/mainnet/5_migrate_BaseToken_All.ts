@@ -35,16 +35,6 @@ async function deploy() {
             console.log('baseToken is deployed', baseToken.address)
         }
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.baseToken.implAddress,
-            [],
-            {},
-            "contracts/BaseToken.sol:BaseToken",
-        )
-    }
     var baseToken = await hre.ethers.getContractAt('BaseToken', deployData.baseToken.implAddress);
     let baseTokens = [
         deployData.vBAYC,
@@ -79,41 +69,6 @@ async function deploy() {
         }
         {
             await upgradeContract(proxyAdmin as ProxyAdmin, baseVToken.address, deployData.baseToken.implAddress)
-        }
-        // upgrade NftPriceFeed
-        {
-            {
-                const vBaseToken = (await hre.ethers.getContractAt('BaseToken', baseVToken.address)) as BaseToken;
-                if ((await vBaseToken.getPriceFeed()) != nftPriceFeed.address) {
-                    waitForTx(await vBaseToken.setPriceFeed(nftPriceFeed.address))
-                    console.log('vBaseToken setPriceFeed is deployed', vBaseToken.address)
-                }
-            }
-        }
-        {
-            await verifyContract(
-                deployData,
-                network,
-                deployData.baseToken.implAddress,
-                [],
-                {},
-                "contracts/BaseToken.sol:BaseToken",
-            )
-        }
-        {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol, nftPriceFeed.address]);
-            await verifyContract(
-                deployData,
-                network,
-                baseVToken.address,
-                [
-                    baseToken.address,
-                    proxyAdmin.address,
-                    initializeData,
-                ],
-                {},
-                "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
-            )
         }
     }
 }

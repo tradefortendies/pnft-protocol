@@ -73,47 +73,6 @@ async function deploy() {
     {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.clearingHouse.address, deployData.clearingHouse.implAddress)
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.clearingHouse.implAddress,
-            [],
-            {
-                UniswapV3Broker: deployData.uniswapV3Broker.address,
-                GenericLogic: deployData.genericLogic.address,
-                ClearingHouseLogic: deployData.clearingHouseLogic.address,
-            },
-            "contracts/ClearingHouse.sol:ClearingHouse",
-        )
-    }
-    {
-        var clearingHouse = await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.implAddress);
-        var initializeData = clearingHouse.interface.encodeFunctionData('initialize', [
-            deployData.clearingHouseConfig.address,
-            deployData.vault.address,
-            deployData.vETH.address,
-            deployData.uniswapV3Factory.address,
-            deployData.vPool.address,
-            deployData.accountBalance.address,
-            deployData.marketRegistry.address,
-            deployData.insuranceFund.address,
-            deployData.platformFundAddress,
-            deployData.makerFundAddress,
-        ]);
-        await verifyContract(
-            deployData,
-            network,
-            deployData.clearingHouse.address,
-            [
-                deployData.clearingHouse.implAddress,
-                proxyAdmin.address,
-                initializeData,
-            ],
-            {},
-            "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
-        )
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -52,35 +52,6 @@ async function deploy() {
     {
         await upgradeContract(proxyAdmin as ProxyAdmin, deployData.pNFTToken.address, deployData.pNFTToken.implAddress)
     }
-    {
-        await verifyContract(
-            deployData,
-            network,
-            deployData.pNFTToken.implAddress,
-            [],
-            {},
-            "contracts/test/PNFTToken.sol:PNFTToken",
-        )
-    }
-    {
-        var pNFTToken = await hre.ethers.getContractAt('PNFTToken', deployData.pNFTToken.implAddress);
-        var initializeData = pNFTToken.interface.encodeFunctionData('initialize', [
-            deployData.pNFTToken.name,
-            deployData.pNFTToken.symbol,
-        ]);
-        await verifyContract(
-            deployData,
-            network,
-            deployData.pNFTToken.address,
-            [
-                deployData.pNFTToken.implAddress,
-                proxyAdmin.address,
-                initializeData,
-            ],
-            {},
-            "@openzeppelin/contracts/proxy/TransparentUpgradeableProxy.sol:TransparentUpgradeableProxy",
-        )
-    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere
