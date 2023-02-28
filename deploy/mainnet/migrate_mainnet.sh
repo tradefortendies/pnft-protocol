@@ -12,3 +12,5 @@ npx hardhat run deploy/mainnet/migrate_8MinerStart.ts --network arbitrum --no-co
 npx hardhat run deploy/mainnet/migrate_9PNFTTokenSchedule.ts --network arbitrum --no-compile
 
 npx hardhat run deploy/mainnet/migrate_Console.ts --network arbitrum --no-compile
+
+npx hardhat run deploy/mainnet/migrate_10UpdateRepeg1Hour.ts --network arbitrum --no-compile
