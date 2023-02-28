@@ -60,6 +60,8 @@ type DeployData = {
     vault: ContractData,
     pNFTToken: TokenData,
     rewardMiner: ContractData,
+    referralAdminAddress: string,
+    referralPayment: ContractData,
     testFaucet: ContractData,
     testCheck: {
         addLiquidity: boolean,
