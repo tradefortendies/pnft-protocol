@@ -27,6 +27,7 @@ import migrateVault from "./13_migrate_Vault";
 import migrateClearingHouse from "./15_migrate_ClearingHouse";
 import migratePNFTToken from "./20_migrate_PNFTToken";
 import migrateRewardMiner from "./21_migrate_RewardMiner";
+import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
 import { } from "../../test/helper/clearingHouseHelper";
 import { BigNumber, providers } from "ethers";
 
@@ -155,7 +156,14 @@ async function deploy() {
     //     console.log('migrateRewardMiner -- END --')
     // }
 
-    // return
+    // import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
+    {
+        console.log('migrate_ReferralPayment -- START --')
+        await migrate_ReferralPayment();
+        console.log('migrate_ReferralPayment -- END --')
+    }
+
+    return
 
 
     const network = hre.network.name;
