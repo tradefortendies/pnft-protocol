@@ -145,6 +145,15 @@
         "address": "0xaa684b6b3bC53bC91f2d7283Ce7779E9D7151E17",
         "implAddress": "0xd08Cd1F159Bcd46f488bb991B22B4DBf365fD1B6"
     },
+    "referralAdminAddress": "",
+    "referralPayment": {
+        "address": "",
+        "implAddress": ""
+    },
+    "limitOrderBook": {
+        "address": "",
+        "implAddress": ""
+    },
     "testFaucet": {
         "address": "",
         "implAddress": ""

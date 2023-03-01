@@ -32,7 +32,7 @@ async function deploy() {
             console.log('limitOrderBook is deployed', limitOrderBook.address)
         }
     }
-    let initData = ["pNFTLimitOrderBook", "1.0", deployData.clearingHouse.address, 1, parseEther('0.0003')]
+    let initData = ["pNFT LimitOrderBook", "1.0", deployData.clearingHouse.address, 1, parseEther('0.0003')]
     if (deployData.limitOrderBook.address == undefined || deployData.limitOrderBook.address == '') {
         let limitOrderBook = await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.implAddress);
         var initializeData = limitOrderBook.interface.encodeFunctionData('initialize', initData);

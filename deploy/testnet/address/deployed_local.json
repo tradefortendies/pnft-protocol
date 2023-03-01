@@ -150,6 +150,10 @@
         "address": "",
         "implAddress": ""
     },
+    "limitOrderBook": {
+        "address": "",
+        "implAddress": ""
+    },
     "testFaucet": {
         "address": "",
         "implAddress": ""

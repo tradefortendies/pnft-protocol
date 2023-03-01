@@ -153,6 +153,10 @@
         "address": "0xF6fa38a2256f34139DdfBB16786ee8C290F4B9cF",
         "implAddress": "0x18bD30D40341773cE265D7231964b9C5dA5643f8"
     },
+    "limitOrderBook": {
+        "address": "",
+        "implAddress": ""
+    },
     "testCheck": {
         "addLiquidity": false,
         "deposit": false,
