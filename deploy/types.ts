@@ -62,6 +62,7 @@ type DeployData = {
     rewardMiner: ContractData,
     referralAdminAddress: string,
     referralPayment: ContractData,
+    limitOrderBook: ContractData,
     testFaucet: ContractData,
     testCheck: {
         addLiquidity: boolean,
