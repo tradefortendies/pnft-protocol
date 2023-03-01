@@ -145,6 +145,11 @@
         "address": "0xec98e720fdd35DCCEF0e05cc2AFA29e608143c5D",
         "implAddress": "0x08aA20c99b76E13cb7167EB7E8F357E29C0A1990"
     },
+    "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
+    "referralPayment": {
+        "address": "",
+        "implAddress": ""
+    },
     "testFaucet": {
         "address": "",
         "implAddress": ""
