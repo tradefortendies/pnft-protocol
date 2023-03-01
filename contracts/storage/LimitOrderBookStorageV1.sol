@@ -8,10 +8,10 @@ import { ILimitOrderBook } from "../interface/ILimitOrderBook.sol";
 /// LimitOrderBookStorageVX.
 
 abstract contract LimitOrderBookStorageV1 {
-    address public clearingHouse;
-    address public accountBalance;
-    uint256 public minOrderValue;
-    uint256 public feeOrderValue;
+    address internal _clearingHouse;
+    address internal _accountBalance;
+    uint256 internal _minOrderValue;
+    uint256 internal _feeOrderValue;
     mapping(bytes32 => ILimitOrderBook.OrderStatus) internal _ordersStatus;
     mapping(bytes32 => ILimitOrderBook.LimitOrder) internal _orders;
 }

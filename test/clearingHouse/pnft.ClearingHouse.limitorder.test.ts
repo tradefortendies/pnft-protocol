@@ -83,8 +83,9 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
             deadline: ethers.constants.MaxUint256,
         })
 
+        let multiplier = await accountBalance.getMarketMultiplier(baseToken.address)
         let fillOrderParams = {
-            multiplier: '0',
+            multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
             orderType: '0',
             nonce: '0',
             trader: trader1.address,

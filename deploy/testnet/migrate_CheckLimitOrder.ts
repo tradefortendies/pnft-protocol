@@ -181,7 +181,7 @@ async function deploy() {
     //     console.log('migrate_LimitOrderBook -- END --')
     // }
 
-    return
+    // return
 
 
     const network = hre.network.name;
@@ -207,37 +207,15 @@ async function deploy() {
     var pNFTToken = (await hre.ethers.getContractAt('MockPNFTToken', deployData.pNFTToken.address)) as MockPNFTToken;
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
-    var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
-
-    // await waitForTx(
-    //     await clearingHouse.setDelegateApproval(limitOrderBook.address)
-    // )
-
-    // console.log(
-    //     await clearingHouse.getDelegateApproval()
-    // )
 
     var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
-
-    // console.log(
-    //     (await limitOrderBook.getClearingHouse()),
-    //     (await limitOrderBook.getAccountBalance()),
-    //     formatEther(await limitOrderBook.getMinOrderValue()),
-    //     formatEther(await limitOrderBook.getFeeOrderValue()),
-    // )
-
-    // console.log(
-    //     formatEther(await accountBalance.getReferencePrice(deployData.vBAYC.address))
-    // )
-
-    // return
 
     {
         let multiplier = await accountBalance.getMarketMultiplier(deployData.vBAYC.address)
         let fillOrderParams = {
             multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
             orderType: '0',
-            nonce: '0',
+            nonce: '3452345',
             trader: trader1.address,
             baseToken: deployData.vBAYC.address,
             isBaseToQuote: false,
@@ -296,22 +274,6 @@ async function deploy() {
             data: typedData,
             version: SignTypedDataVersion.V4,
         });
-        console.log("Metamask sig utils generated signature", signature);
-
-        // // const signature = await ethers.provider.send("eth_signTypedData_v4", [
-        // //     trader1.address,
-        // //     JSON.stringify(typedData)
-        // // ]);
-
-        // let orderHash = await limitOrderBook.getOrderHash(fillOrderParams)
-
-        // // eth_sign
-        // const signature = await ethers.provider.send("eth_sign", [
-        //     trader1.address,
-        //     ethers.utils.arrayify(orderHash),
-        // ]);
-
-        // trader1._signTypedData
 
         await waitForTx(
             await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))

@@ -100,7 +100,7 @@
         "address": "0xC96e5462D443122C71299F00D3ed2703AC11096c"
     },
     "clearingHouseLogic": {
-        "address": "0x3de21Df20972110927b114763BA0CD8791A5029F"
+        "address": "0x0EfFb2B6ba249BA0CbbA16a6e998aFEF261F1A0C"
     },
     "clearingHouseConfig": {
         "address": "0x53D711e7695100381306AAFCa4b295A141f8d955",
@@ -112,7 +112,7 @@
     },
     "accountBalance": {
         "address": "0x47C516F9cF7a0141af67F9204643a54dfD022abd",
-        "implAddress": "0x34a0c5C316393547ffB1DC57924A4e1BB3b0d9a0"
+        "implAddress": "0x621d64e3c7475F61ea09576EB6D7ec7eB4F3c974"
     },
     "vPool": {
         "address": "0x79b2B0B20B53a8d269375B9e2C030b7Ca0C22d50",
@@ -128,7 +128,7 @@
     },
     "clearingHouse": {
         "address": "0xf55b291Acbda07E69e49e1Dfa078E6db1Ee70E42",
-        "implAddress": "0x96Aca7581F7A1cB749fF9c387B5e474F447F3694"
+        "implAddress": "0x7AaC03e4D81109fEACb366cc28743a2Db5D932fD"
     },
     "testFaucet": {
         "address": "0xafFABBC0bf710D1D0fdA35FAeEFBe1bB77c70EC2",
@@ -155,7 +155,7 @@
     },
     "limitOrderBook": {
         "address": "0xac2e1b11E68A8d43036690A975944d8F4B826817",
-        "implAddress": "0x5669237065C778eB30e0FEf265D46076D1Ab0bC0"
+        "implAddress": "0x9F8a9E97E24e7B4dEDd2D135890cc6334cd92ee5"
     },
     "testCheck": {
         "addLiquidity": false,
