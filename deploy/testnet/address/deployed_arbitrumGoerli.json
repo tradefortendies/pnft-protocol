@@ -147,7 +147,7 @@
     "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
     "referralPayment": {
         "address": "0xbAdd9EE624dAbB564c2815f47537371141095952",
-        "implAddress": "0x49dB29e6294DE3D2a6e4d6a7573c70722B46497D"
+        "implAddress": "0x893c10DC22CAaD60806184AaeD40e05DE9101EEf"
     },
     "testFaucet": {
         "address": "",

@@ -87,12 +87,16 @@ contract ReferralPayment is IReferralPayment, BlockContext, OwnerPausable, Refer
     ) external override checkDeadline(deadline) {
         _verifySigner(user, totalPNFT, totalETH, deadline, signature);
         // RP_ZA: invaild amount
-        require(totalPNFT > _lastPNFTPayments[user], "RP_IA");
-        require(totalETH > _lastETHPayments[user], "RP_IA");
+        require(totalPNFT >= _lastPNFTPayments[user], "RP_IA");
+        require(totalETH >= _lastETHPayments[user], "RP_IA");
         uint256 amountPNFT = totalPNFT.sub(_lastPNFTPayments[user]);
         uint256 amountETH = totalETH.sub(_lastETHPayments[user]);
-        SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(_pnftToken), user, amountPNFT);
-        TransferHelper.safeTransferETH(user, amountETH);
+        if (amountPNFT > 0) {
+            SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(_pnftToken), user, amountPNFT);
+        }
+        if (amountETH > 0) {
+            TransferHelper.safeTransferETH(user, amountETH);
+        }
         _lastPNFTPayments[user] = totalPNFT;
         _lastETHPayments[user] = totalETH;
         emit Paid(user, amountPNFT, amountETH);
