@@ -67,22 +67,29 @@ describe("Referral claim", () => {
         await referralPayment.initialize(collateral.address, admin.address)
         await collateral.mint(referralPayment.address, parseEther('1000'))
 
+        await admin.sendTransaction({
+            to: referralPayment.address,
+            value: ethers.utils.parseEther("1")
+        })
+
         const deadline = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 300
 
-        let user = admin.address
-        let total = parseEther('100')
+        let user = trader1.address
+        let totalPNFT = parseEther('100')
+        let totalETH = parseEther('1')
 
-        let messageHash = await referralPayment.getMessageHash(user, total, deadline)
+        let messagePack = ethers.utils.defaultAbiCoder.encode(["address", "address", "address", "uint256", "uint256", "uint256"], [referralPayment.address, admin.address, user, totalPNFT, totalETH, deadline])
+
+        let messageHash = ethers.utils.keccak256(ethers.utils.arrayify(messagePack))
 
         let signature = await admin.signMessage(ethers.utils.arrayify(messageHash))
 
-        await referralPayment.claim(user, total, deadline, ethers.utils.arrayify(signature))
-
-        await referralPayment.claim(user, total, deadline, ethers.utils.arrayify(signature))
+        await referralPayment.claim(user, totalPNFT, totalETH, deadline, ethers.utils.arrayify(signature))
 
         console.log(
-            '',
-            formatEther(await collateral.balanceOf(user))
+            'balance',
+            formatEther(await collateral.balanceOf(user)),
+            formatEther(await ethers.provider.getBalance(user)),
         )
 
     })
