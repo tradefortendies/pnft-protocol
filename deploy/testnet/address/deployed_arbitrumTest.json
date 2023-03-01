@@ -150,8 +150,8 @@
     },
     "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
     "referralPayment": {
-        "address": "0xF6fa38a2256f34139DdfBB16786ee8C290F4B9cF",
-        "implAddress": "0x18bD30D40341773cE265D7231964b9C5dA5643f8"
+        "address": "0xBCa53e3ed8B52a3180b951B49C090A51feACcbF3",
+        "implAddress": "0x7fdf5700CcA9e44705Bc9C64c0FBF592B818204E"
     },
     "testCheck": {
         "addLiquidity": false,

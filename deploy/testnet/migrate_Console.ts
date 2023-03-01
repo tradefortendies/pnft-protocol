@@ -5,7 +5,7 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault, ReferralPayment } from "../../typechain";
 import { getMaxTickRange, priceToTick } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -156,14 +156,14 @@ async function deploy() {
     //     console.log('migrateRewardMiner -- END --')
     // }
 
-    // import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
-    {
-        console.log('migrate_ReferralPayment -- START --')
-        await migrate_ReferralPayment();
-        console.log('migrate_ReferralPayment -- END --')
-    }
+    // // import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
+    // {
+    //     console.log('migrate_ReferralPayment -- START --')
+    //     await migrate_ReferralPayment();
+    //     console.log('migrate_ReferralPayment -- END --')
+    // }
 
-    return
+    // return
 
 
     const network = hre.network.name;
@@ -190,13 +190,15 @@ async function deploy() {
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
 
+    var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
+
     // await waitForTx(
     //     await clearingHouse.setRewardMiner(ethers.constants.AddressZero)
     // )
 
-    console.log(
-        await clearingHouse.getRewardMiner()
-    )
+    // await waitForTx(
+    //     await pNFTToken.mint(referralPayment.address, parseEther('10000000'))
+    // )
 
     // console.log(formatSqrtPriceX96ToPrice(BigNumber.from((new bn('8dd3e0fd20a8974258e3cae12', 16)).toString()), 18))
 
