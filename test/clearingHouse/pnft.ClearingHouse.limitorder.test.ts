@@ -73,7 +73,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         await deposit(liquidator, vault, 1000000, collateral)
     })
 
-    it("random check", async () => {
+    it("long", async () => {
         await forwardBothTimestamps(clearingHouse, 86400)
 
         // maker add liquidity
@@ -148,21 +148,230 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
 
         await limitOrderBook.connect(liquidator).closeLimitOrder(fillOrderParams)
 
-        // await limitOrderBook.connect(trader1).cancelLimitOrder({
-        //     multiplier: 0,
-        //     orderType: 0,
-        //     nonce: 0,
-        //     trader: trader1.address,
-        //     baseToken: baseToken.address,
-        //     isBaseToQuote: false,
-        //     isExactInput: true,
-        //     amount: parseEther('10'),
-        //     oppositeAmountBound: 0,
-        //     deadline: ethers.constants.MaxUint256,
-        //     triggerPrice: parseUnits(initPrice, 18),
-        //     takeProfitPrice: parseUnits(initPrice, 18),
-        //     stopLossPrice: parseUnits(initPrice, 18),
-        // })
+    })
+
+    it("short", async () => {
+        await forwardBothTimestamps(clearingHouse, 86400)
+
+        // maker add liquidity
+        await clearingHouse.connect(maker).addLiquidity({
+            baseToken: baseToken.address,
+            liquidity: parseEther('1000'),
+            deadline: ethers.constants.MaxUint256,
+        })
+
+        let multiplier = await accountBalance.getMarketMultiplier(baseToken.address)
+        let fillOrderParams = {
+            multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
+            orderType: '0',
+            nonce: '0',
+            trader: trader1.address,
+            baseToken: baseToken.address,
+            isBaseToQuote: true,
+            isExactInput: true,
+            amount: parseEther('10').toString(),
+            oppositeAmountBound: parseUnits('0', 0).toString(),
+            deadline: ethers.constants.MaxUint256.toString(),
+            triggerPrice: parseUnits(initPrice, 18).toString(),
+            takeProfitPrice: parseUnits("0.99", 18).toString(),
+            stopLossPrice: parseUnits("1.01", 18).toString(),
+        }
+
+        const { chainId } = await ethers.provider.getNetwork()
+
+        const typedData = {
+            types: {
+                EIP712Domain: [
+                    { name: "name", type: "string" },
+                    { name: "version", type: "string" },
+                    { name: "chainId", type: "uint256" },
+                    { name: "verifyingContract", type: "address" },
+                ],
+                LimitOrderParams: [
+                    { name: "multiplier", type: "uint256" },
+                    { name: "orderType", type: "uint8" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "trader", type: "address" },
+                    { name: "baseToken", type: "address" },
+                    { name: "isBaseToQuote", type: "bool" },
+                    { name: "isExactInput", type: "bool" },
+                    { name: "amount", type: "uint256" },
+                    { name: "oppositeAmountBound", type: "uint256" },
+                    { name: "deadline", type: "uint256" },
+                    { name: "triggerPrice", type: "uint256" },
+                    { name: "takeProfitPrice", type: "uint256" },
+                    { name: "stopLossPrice", type: "uint256" },
+                ]
+            },
+            primaryType: "LimitOrderParams",
+            domain: {
+                name: "lo",
+                version: "1.0",
+                chainId: chainId,
+                verifyingContract: limitOrderBook.address,
+            },
+            message: fillOrderParams
+        };
+
+        const signature = await ethers.provider.send("eth_signTypedData_v4", [
+            trader1.address,
+            JSON.stringify(typedData)
+        ]);
+
+
+        await limitOrderBook.connect(liquidator).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+
+        //take profit || stoploss
+
+        await limitOrderBook.connect(liquidator).closeLimitOrder(fillOrderParams)
+
+    })
+
+    it("take profit", async () => {
+        await forwardBothTimestamps(clearingHouse, 86400)
+
+        // maker add liquidity
+        await clearingHouse.connect(maker).addLiquidity({
+            baseToken: baseToken.address,
+            liquidity: parseEther('1000'),
+            deadline: ethers.constants.MaxUint256,
+        })
+
+        let multiplier = await accountBalance.getMarketMultiplier(baseToken.address)
+        let fillOrderParams = {
+            multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
+            orderType: '1',
+            nonce: '0',
+            trader: trader1.address,
+            baseToken: baseToken.address,
+            isBaseToQuote: true,
+            isExactInput: true,
+            amount: parseEther('10').toString(),
+            oppositeAmountBound: parseUnits('0', 0).toString(),
+            deadline: ethers.constants.MaxUint256.toString(),
+            triggerPrice: parseUnits(initPrice, 18).toString(),
+            takeProfitPrice: parseUnits("0.99", 18).toString(),
+            stopLossPrice: parseUnits("1.01", 18).toString(),
+        }
+
+        const { chainId } = await ethers.provider.getNetwork()
+
+        const typedData = {
+            types: {
+                EIP712Domain: [
+                    { name: "name", type: "string" },
+                    { name: "version", type: "string" },
+                    { name: "chainId", type: "uint256" },
+                    { name: "verifyingContract", type: "address" },
+                ],
+                LimitOrderParams: [
+                    { name: "multiplier", type: "uint256" },
+                    { name: "orderType", type: "uint8" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "trader", type: "address" },
+                    { name: "baseToken", type: "address" },
+                    { name: "isBaseToQuote", type: "bool" },
+                    { name: "isExactInput", type: "bool" },
+                    { name: "amount", type: "uint256" },
+                    { name: "oppositeAmountBound", type: "uint256" },
+                    { name: "deadline", type: "uint256" },
+                    { name: "triggerPrice", type: "uint256" },
+                    { name: "takeProfitPrice", type: "uint256" },
+                    { name: "stopLossPrice", type: "uint256" },
+                ]
+            },
+            primaryType: "LimitOrderParams",
+            domain: {
+                name: "lo",
+                version: "1.0",
+                chainId: chainId,
+                verifyingContract: limitOrderBook.address,
+            },
+            message: fillOrderParams
+        };
+
+        const signature = await ethers.provider.send("eth_signTypedData_v4", [
+            trader1.address,
+            JSON.stringify(typedData)
+        ]);
+
+
+        await limitOrderBook.connect(liquidator).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+
+
+    })
+
+    it("stoploss", async () => {
+        await forwardBothTimestamps(clearingHouse, 86400)
+
+        // maker add liquidity
+        await clearingHouse.connect(maker).addLiquidity({
+            baseToken: baseToken.address,
+            liquidity: parseEther('1000'),
+            deadline: ethers.constants.MaxUint256,
+        })
+
+        let multiplier = await accountBalance.getMarketMultiplier(baseToken.address)
+        let fillOrderParams = {
+            multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
+            orderType: '1',
+            nonce: '0',
+            trader: trader1.address,
+            baseToken: baseToken.address,
+            isBaseToQuote: false,
+            isExactInput: true,
+            amount: parseEther('10').toString(),
+            oppositeAmountBound: parseUnits('0', 0).toString(),
+            deadline: ethers.constants.MaxUint256.toString(),
+            triggerPrice: parseUnits(initPrice, 18).toString(),
+            takeProfitPrice: parseUnits("1.01", 18).toString(),
+            stopLossPrice: parseUnits("0.99", 18).toString(),
+        }
+
+        const { chainId } = await ethers.provider.getNetwork()
+
+        const typedData = {
+            types: {
+                EIP712Domain: [
+                    { name: "name", type: "string" },
+                    { name: "version", type: "string" },
+                    { name: "chainId", type: "uint256" },
+                    { name: "verifyingContract", type: "address" },
+                ],
+                LimitOrderParams: [
+                    { name: "multiplier", type: "uint256" },
+                    { name: "orderType", type: "uint8" },
+                    { name: "nonce", type: "uint256" },
+                    { name: "trader", type: "address" },
+                    { name: "baseToken", type: "address" },
+                    { name: "isBaseToQuote", type: "bool" },
+                    { name: "isExactInput", type: "bool" },
+                    { name: "amount", type: "uint256" },
+                    { name: "oppositeAmountBound", type: "uint256" },
+                    { name: "deadline", type: "uint256" },
+                    { name: "triggerPrice", type: "uint256" },
+                    { name: "takeProfitPrice", type: "uint256" },
+                    { name: "stopLossPrice", type: "uint256" },
+                ]
+            },
+            primaryType: "LimitOrderParams",
+            domain: {
+                name: "lo",
+                version: "1.0",
+                chainId: chainId,
+                verifyingContract: limitOrderBook.address,
+            },
+            message: fillOrderParams
+        };
+
+        const signature = await ethers.provider.send("eth_signTypedData_v4", [
+            trader1.address,
+            JSON.stringify(typedData)
+        ]);
+
+
+        await limitOrderBook.connect(liquidator).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+
 
     })
 

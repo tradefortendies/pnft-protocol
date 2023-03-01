@@ -247,10 +247,6 @@ contract LimitOrderBook is
         //
         ILimitOrderBook.LimitOrder memory storedOrder = _orders[orderHash];
         // LOB_WC: wrong condition
-        console.logInt(storedOrder.base);
-        console.log(order.takeProfitPrice);
-        console.log(order.stopLossPrice);
-        console.log(markPrice);
         require(
             (storedOrder.base > 0 &&
                 ((order.takeProfitPrice > 0 && markPrice >= order.takeProfitPrice) ||
