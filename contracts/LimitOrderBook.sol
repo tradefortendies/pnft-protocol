@@ -64,46 +64,58 @@ contract LimitOrderBook is
 
         // LOB_CHINC: ClearingHouse Is Not Contract
         require(clearingHouseArg.isContract(), "LOB_CHINC");
-        clearingHouse = clearingHouseArg;
+        _clearingHouse = clearingHouseArg;
 
         // LOB_ABINC: AccountBalance Is Not Contract
-        address accountBalanceArg = IClearingHouse(clearingHouse).getAccountBalance();
+        address accountBalanceArg = IClearingHouse(_clearingHouse).getAccountBalance();
         require(accountBalanceArg.isContract(), "LOB_ABINC");
-        accountBalance = accountBalanceArg;
+        _accountBalance = accountBalanceArg;
 
         // LOB_MOVMBGT0: MinOrderValue Must Be Greater Than Zero
         require(minOrderValueArg > 0, "LOB_MOVMBGT0");
-        minOrderValue = minOrderValueArg;
+        _minOrderValue = minOrderValueArg;
 
-        feeOrderValue = feeOrderValueArg;
+        _feeOrderValue = feeOrderValueArg;
+    }
+
+    function getClearingHouse() external view returns (address) {
+        return _clearingHouse;
+    }
+
+    function getAccountBalance() external view returns (address) {
+        return _accountBalance;
+    }
+
+    function getMinOrderValue() external view returns (uint256) {
+        return _minOrderValue;
+    }
+
+    function getFeeOrderValue() external view returns (uint256) {
+        return _feeOrderValue;
     }
 
     function setClearingHouse(address clearingHouseArg) external onlyOwner {
         // LOB_CHINC: ClearingHouse Is Not Contract
         require(clearingHouseArg.isContract(), "LOB_CHINC");
-        clearingHouse = clearingHouseArg;
+        _clearingHouse = clearingHouseArg;
 
         // LOB_ABINC: AccountBalance Is Not Contract
-        address accountBalanceArg = IClearingHouse(clearingHouse).getAccountBalance();
+        address accountBalanceArg = IClearingHouse(_clearingHouse).getAccountBalance();
         require(accountBalanceArg.isContract(), "LOB_ABINC");
-        accountBalance = accountBalanceArg;
+        _accountBalance = accountBalanceArg;
 
         emit ClearingHouseChanged(clearingHouseArg);
     }
 
     function setFeeOrderValue(uint256 feeOrderValueArg) external onlyOwner {
-        // LOB_MOVMBGT0: MinOrderValue Must Be Greater Than Zero
-        require(feeOrderValueArg > 0, "LOB_MOVMBGT0");
-
-        feeOrderValue = feeOrderValueArg;
-
+        _feeOrderValue = feeOrderValueArg;
         emit FeeOrderValueChanged(feeOrderValueArg);
     }
 
     function setMinOrderValue(uint256 minOrderValueArg) external onlyOwner {
         // LOB_MOVMBGT0: MinOrderValue Must Be Greater Than Zero
         require(minOrderValueArg > 0, "LOB_MOVMBGT0");
-        minOrderValue = minOrderValueArg;
+        _minOrderValue = minOrderValueArg;
 
         emit MinOrderValueChanged(minOrderValueArg);
     }
@@ -163,7 +175,7 @@ contract LimitOrderBook is
             exchangedPositionSize,
             exchangedPositionNotional,
             fee,
-            feeOrderValue
+            _feeOrderValue
         );
     }
 
@@ -249,9 +261,9 @@ contract LimitOrderBook is
             "LOB_WC"
         );
         bool isBaseToQuote = storedOrder.base > 0 ? true : false;
-        (uint256 base, uint256 quote, uint256 fee) = IClearingHouse(clearingHouse).openPositionFor(
+        (uint256 base, uint256 quote, uint256 fee) = IClearingHouse(_clearingHouse).openPositionFor(
             _msgSender(),
-            feeOrderValue,
+            _feeOrderValue,
             order.trader,
             DataTypes.OpenPositionParams({
                 baseToken: order.baseToken,
@@ -265,7 +277,7 @@ contract LimitOrderBook is
             })
         );
         // LOB_OVTS: Order Value Too Small
-        require(quote >= minOrderValue, "LOB_OVTS");
+        require(quote >= _minOrderValue, "LOB_OVTS");
 
         int256 exchangedPositionSize;
         int256 exchangedPositionNotional;
@@ -286,7 +298,7 @@ contract LimitOrderBook is
             exchangedPositionSize,
             exchangedPositionNotional,
             fee,
-            feeOrderValue
+            _feeOrderValue
         );
     }
 
@@ -312,9 +324,9 @@ contract LimitOrderBook is
     ) internal returns (int256, int256, uint256) {
         _verifyTriggerPrice(order);
 
-        (uint256 base, uint256 quote, uint256 fee) = IClearingHouse(clearingHouse).openPositionFor(
+        (uint256 base, uint256 quote, uint256 fee) = IClearingHouse(_clearingHouse).openPositionFor(
             msgSender,
-            feeOrderValue,
+            _feeOrderValue,
             order.trader,
             DataTypes.OpenPositionParams({
                 baseToken: order.baseToken,
@@ -329,7 +341,7 @@ contract LimitOrderBook is
         );
 
         // LOB_OVTS: Order Value Too Small
-        require(quote >= minOrderValue, "LOB_OVTS");
+        require(quote >= _minOrderValue, "LOB_OVTS");
 
         int256 exchangedPositionSize;
         int256 exchangedPositionNotional;
@@ -426,11 +438,15 @@ contract LimitOrderBook is
     }
 
     function _getPrice(address baseToken) internal view returns (uint256) {
-        return IAccountBalance(accountBalance).getReferencePrice(baseToken);
+        return IAccountBalance(_accountBalance).getReferencePrice(baseToken);
+    }
+
+    function getPrice(address baseToken) internal view returns (uint256) {
+        return _getPrice(baseToken);
     }
 
     function _checkMultiplier(address baseToken, uint256 multiplier) internal view {
-        (uint256 longMultiplier, uint256 shortMultiplier) = IAccountBalance(accountBalance).getMarketMultiplier(
+        (uint256 longMultiplier, uint256 shortMultiplier) = IAccountBalance(_accountBalance).getMarketMultiplier(
             baseToken
         );
         // LOB_NMM: not matched multiplier
