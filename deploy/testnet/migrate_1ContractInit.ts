@@ -16,6 +16,7 @@ import migrateVault from "./13_migrate_Vault";
 import migrateClearingHouse from "./15_migrate_ClearingHouse";
 import migratePNFTToken from "./20_migrate_PNFTToken";
 import migrateRewardMiner from "./21_migrate_RewardMiner";
+import migrate_LimitOrderBook from "./23_migrate_LimitOrderBook";
 
 async function main() {
     await deploy();
@@ -137,6 +138,15 @@ async function deploy() {
         await migrateRewardMiner();
         console.log('migrateRewardMiner -- END --')
     }
+
+    await delay(0)
+    // import migrate_LimitOrderBook from "./23_migrate_LimitOrderBook";
+    {
+        console.log('migrate_LimitOrderBook -- START --')
+        await migrate_LimitOrderBook();
+        console.log('migrate_LimitOrderBook -- END --')
+    }
+    
 }
 
 // We recommend this pattern to be able to use async/await everywhere

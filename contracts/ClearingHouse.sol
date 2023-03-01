@@ -245,6 +245,8 @@ contract ClearingHouse is
 
     /// @inheritdoc IClearingHouse
     function openPositionFor(
+        address executor,
+        uint256 executorFee,
         address trader,
         DataTypes.OpenPositionParams memory params
     )
@@ -256,9 +258,18 @@ contract ClearingHouse is
         returns (uint256 base, uint256 quote, uint256 fee)
     {
         // CH_SHNAOPT: Sender Has No Approval to Open Position for Trader
-        require(IDelegateApproval(_delegateApproval).canOpenPositionFor(trader, _msgSender()), "CH_SHNAOPT");
+        require(
+            _msgSender() == _delegateApproval &&
+                IDelegateApproval(_delegateApproval).canOpenPositionFor(trader, _msgSender()),
+            "CH_SHNAOPT"
+        );
 
-        return _openPositionFor(trader, params);
+        (base, quote, fee) = _openPositionFor(trader, params);
+
+        // transfer fee to keeper
+        ClearingHouseLogic.realizedPnlTransfer(address(this), trader, executor, executorFee);
+
+        return (base, quote, fee);
     }
 
     /// @inheritdoc IClearingHouse
