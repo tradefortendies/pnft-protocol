@@ -13,7 +13,7 @@ import {
     TestClearingHouse,
     TestERC20,
     TestVPool,
-    TestLimitOrderBook,
+    LimitOrderBook,
     TestUniswapV3Broker,
     UniswapV3Factory,
     UniswapV3Pool,
@@ -50,6 +50,7 @@ export interface ClearingHouseFixture {
     pool2: UniswapV3Pool
     rewardMiner: RewardMiner | TestRewardMiner
     testPNFTToken: TestPNFTToken
+    limitOrderBook: LimitOrderBook
 }
 
 export interface ClearingHouseWithDelegateApprovalFixture extends ClearingHouseFixture {
@@ -58,8 +59,6 @@ export interface ClearingHouseWithDelegateApprovalFixture extends ClearingHouseF
     clearingHouseRemoveLiquidityAction: number
     notExistedAction: number
     notExistedAction2: number
-    limitOrderBook: TestLimitOrderBook
-    limitOrderBook2: TestLimitOrderBook
 }
 
 interface UniswapV3BrokerFixture {
@@ -287,6 +286,12 @@ export function createClearingHouseFixture(
         const testPNFTToken = (await TestPNFTToken.deploy()) as TestPNFTToken
         await testPNFTToken.initialize('PNFT', 'PNFT')
 
+        const limitOrderBookFactory = await ethers.getContractFactory("LimitOrderBook")
+        const limitOrderBook = await limitOrderBookFactory.deploy()
+        await limitOrderBook.initialize("lo", "1.0", clearingHouse.address, 1, 0)
+
+        await clearingHouse.setDelegateApproval(limitOrderBook.address)
+
         return {
             clearingHouse,
             accountBalance,
@@ -310,6 +315,7 @@ export function createClearingHouseFixture(
             pool2,
             rewardMiner,
             testPNFTToken,
+            limitOrderBook,
         }
     }
 }
@@ -493,8 +499,6 @@ export function createClearingHouseWithDelegateApprovalFixture(): () => Promise<
             clearingHouseRemoveLiquidityAction: await delegateApproval.getClearingHouseRemoveLiquidityAction(),
             notExistedAction: 64,
             notExistedAction2: 128,
-            limitOrderBook: testLimitOrderBook,
-            limitOrderBook2: testLimitOrderBook2,
         }
     }
 }
