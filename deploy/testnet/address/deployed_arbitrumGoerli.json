@@ -112,7 +112,7 @@
     },
     "accountBalance": {
         "address": "0xB7216EdDC3A6e2a560CA81Cb2f242C424CE3d0B2",
-        "implAddress": "0x4A46774b170aaBa3c1E891baC523842483caa635"
+        "implAddress": ""
     },
     "vPool": {
         "address": "0x11810deA012E77521cf994C82B8Cf05Eb786DB1A",
@@ -128,7 +128,7 @@
     },
     "clearingHouse": {
         "address": "0x98081433437D574C3E399EfBD028fBDF3A174E89",
-        "implAddress": "0x8F34A3f504869B9CFd66D482C2aB3f641Bc9516f"
+        "implAddress": ""
     },
     "pNFTToken": {
         "address": "0x674001749A44B9D6d931D1826233795e7Cf4eb2b",

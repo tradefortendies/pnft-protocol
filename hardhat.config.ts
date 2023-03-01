@@ -17,6 +17,13 @@ const ARBISCAN_API_KEY = process.env.ARBISCAN_API_KEY ?? '';
 const PRIVATE_KEY = process.env.PRIVATE_KEY ?? '';
 const MAKER_ADMIN_KEY = process.env.MAKER_ADMIN_KEY ?? '';
 const PRICE_ADMIN_KEY = process.env.PRICE_ADMIN_KEY ?? '';
+const PLATFROM_ADMIN_KEY = process.env.PLATFROM_ADMIN_KEY ?? '';
+const TRADER1_KEY = process.env.TRADER1_KEY ?? '';
+const TRADER2_KEY = process.env.TRADER2_KEY ?? '';
+const TRADER3_KEY = process.env.TRADER3_KEY ?? '';
+const TRADER4_KEY = process.env.TRADER4_KEY ?? '';
+const MINER_KEY = process.env.MINER_KEY ?? '';
+
 
 const config: HardhatUserConfig = {
     solidity: {
@@ -35,12 +42,14 @@ const config: HardhatUserConfig = {
     etherscan: {
         apiKey: {
             arbitrumGoerli: ARBISCAN_API_KEY,
-            arbitrumOne: ARBISCAN_API_KEY,
         },
     },
     networks: {
         hardhat: {
             allowUnlimitedContractSize: true,
+        },
+        local: {
+            url: "http://127.0.0.1:8545",
         },
         mainnet: {
             url: "https://mainnet.infura.io/v3/" + INFURA_KEY,
@@ -52,7 +61,25 @@ const config: HardhatUserConfig = {
             url: "https://arb1.arbitrum.io/rpc",
             chainId: 42161,
             gas: 8000000,
-            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY],
+            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY, PLATFROM_ADMIN_KEY, TRADER1_KEY, TRADER2_KEY, TRADER3_KEY, TRADER4_KEY, MINER_KEY],
+        },
+        arbitrumDev: {
+            url: "https://goerli-rollup.arbitrum.io/rpc",
+            chainId: 421613,
+            gas: 8000000,
+            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY, PLATFROM_ADMIN_KEY, TRADER1_KEY, TRADER2_KEY, TRADER3_KEY, TRADER4_KEY, MINER_KEY],
+        },
+        arbitrumTest: {
+            url: "https://goerli-rollup.arbitrum.io/rpc",
+            chainId: 421613,
+            gas: 8000000,
+            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY, PLATFROM_ADMIN_KEY, TRADER1_KEY, TRADER2_KEY, TRADER3_KEY, TRADER4_KEY, MINER_KEY],
+        },
+        arbitrumGoerli: {
+            url: "https://goerli-rollup.arbitrum.io/rpc",
+            chainId: 421613,
+            gas: 8000000,
+            accounts: [PRIVATE_KEY, MAKER_ADMIN_KEY, PRICE_ADMIN_KEY, PLATFROM_ADMIN_KEY, TRADER1_KEY, TRADER2_KEY, TRADER3_KEY, TRADER4_KEY, MINER_KEY],
         },
     },
     dependencyCompiler: {

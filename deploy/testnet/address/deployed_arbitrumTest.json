@@ -112,7 +112,7 @@
     },
     "accountBalance": {
         "address": "0x47C516F9cF7a0141af67F9204643a54dfD022abd",
-        "implAddress": "0x45a6A9a6aFa06acb24779da975b6d643DaA2E54D"
+        "implAddress": "0x34a0c5C316393547ffB1DC57924A4e1BB3b0d9a0"
     },
     "vPool": {
         "address": "0x79b2B0B20B53a8d269375B9e2C030b7Ca0C22d50",
@@ -128,7 +128,7 @@
     },
     "clearingHouse": {
         "address": "0xf55b291Acbda07E69e49e1Dfa078E6db1Ee70E42",
-        "implAddress": "0xB704002C6ea5B96ad90b5b54a77c2e934630324c"
+        "implAddress": "0x96Aca7581F7A1cB749fF9c387B5e474F447F3694"
     },
     "testFaucet": {
         "address": "0xafFABBC0bf710D1D0fdA35FAeEFBe1bB77c70EC2",
@@ -154,8 +154,8 @@
         "implAddress": "0x7fdf5700CcA9e44705Bc9C64c0FBF592B818204E"
     },
     "limitOrderBook": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xac2e1b11E68A8d43036690A975944d8F4B826817",
+        "implAddress": "0x5669237065C778eB30e0FEf265D46076D1Ab0bC0"
     },
     "testCheck": {
         "addLiquidity": false,
