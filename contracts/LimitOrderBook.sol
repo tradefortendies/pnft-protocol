@@ -121,9 +121,8 @@ contract LimitOrderBook is
         require(!sender.isContract(), "LOB_SMBE");
 
         // check multiplier
-        // _checkMultiplier(order.baseToken, order.multiplier);
+        _checkMultiplier(order.baseToken, order.multiplier);
 
-        // bytes32 orderHash = getOrderHash(order);
         (, bytes32 orderHash) = _verifySigner(order, signature);
 
         // LOB_OMBU: Order Must Be Unfilled
