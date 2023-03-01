@@ -9,7 +9,8 @@ abstract contract ReferralPaymentStorage {
 
     address internal _pnftToken;
     address internal _admin;
-    mapping(address => uint256) public _lastUserPayments;
+    mapping(address => uint256) public _lastPNFTPayments;
+    mapping(address => uint256) public _lastETHPayments;
 
     address[10] private __gap1;
     uint256[10] private __gap2;
