@@ -34,6 +34,8 @@ library ClearingHouseLogic {
 
     uint256 internal constant _BAD_AMOUNT = 1e10; // 15 sec
 
+    event RealizedPnlTransfer(address indexed from, address indexed to, uint256 amount);
+
     //internal struct
     /// @param sqrtPriceLimitX96 tx will fill until it reaches this price but WON'T REVERT
     struct InternalOpenPositionParams {
@@ -649,5 +651,13 @@ library ClearingHouseLogic {
                 shouldUpdateState: false
             })
         );
+    }
+
+    function realizedPnlTransfer(address chAddress, address from, address to, uint256 amount) external {
+        if (from != address(0) && to != address(0) && amount > 0) {
+            _modifyOwedRealizedPnl(chAddress, from, amount.toInt256().neg256());
+            _modifyOwedRealizedPnl(chAddress, to, amount.toInt256());
+            emit RealizedPnlTransfer(from, to, amount);
+        }
     }
 }

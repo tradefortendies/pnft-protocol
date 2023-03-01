@@ -170,6 +170,8 @@ interface IClearingHouse {
 
     event Repeg(address indexed baseToken, uint256 oldMarkPrice, uint256 newMarkPrice);
 
+    event RealizedPnlTransfer(address indexed from, address indexed to, uint256 amount);
+
     /// @notice Maker can call `addLiquidity` to provide liquidity on Uniswap V3 pool
     /// @dev Tx will fail if adding `base == 0 && quote == 0` / `liquidity == 0`
     /// @dev - `AddLiquidityParams.useTakerBalance` is only accept `false` now
@@ -218,6 +220,8 @@ interface IClearingHouse {
     /// @return quote The amount of quoteToken the taker got or spent
     /// @return fee The trading fee
     function openPositionFor(
+        address keeper,
+        uint256 keeperFee,
         address trader,
         DataTypes.OpenPositionParams memory params
     ) external returns (uint256 base, uint256 quote, uint256 fee);

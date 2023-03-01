@@ -637,6 +637,10 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
                 .formatX96ToX10_18();
     }
 
+    function getReferencePrice(address baseToken) external view override returns (uint256) {
+        return _getReferencePrice(baseToken);
+    }
+
     /// @return netQuoteBalance = quote.balance + totalQuoteInPools
     function _getNetQuoteBalanceAndPendingFee(
         address trader
