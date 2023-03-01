@@ -375,9 +375,9 @@ contract LimitOrderBook is
     }
 
     function _verifyTriggerPrice(LimitOrderParams memory order) internal view {
-        if (order.orderType == ILimitOrderBook.OrderType.LimitOrder) {
-            return;
-        }
+        // if (order.orderType == ILimitOrderBook.OrderType.LimitOrder) {
+        //     return;
+        // }
 
         // LOB_ITP: Invalid Trigger Price
         require(order.triggerPrice > 0, "LOB_ITP");
