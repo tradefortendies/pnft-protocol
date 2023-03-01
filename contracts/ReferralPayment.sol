@@ -17,7 +17,7 @@ contract ReferralPayment is IReferralPayment, BlockContext, OwnerPausable, Refer
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint256;
 
-    event Paid(address indexed user, uint256 amount, uint256 total);
+    event Paid(address indexed user, uint256 amountPNFT, uint256 amountETH);
 
     receive() external payable {}
 
