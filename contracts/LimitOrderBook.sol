@@ -145,7 +145,7 @@ contract LimitOrderBook is
             order
         );
 
-        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Filled;
+        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
 
         //
         if (
@@ -164,6 +164,7 @@ contract LimitOrderBook is
                 stopLossPrice: order.stopLossPrice
             });
             _orders[orderHash] = storedOrder;
+            _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Filled;
         }
 
         emit LimitOrderFilled(
