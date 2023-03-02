@@ -226,9 +226,9 @@ async function deploy() {
             isExactInput: true,
             amount: parseEther('0.15').toString(),
             oppositeAmountBound: parseUnits('0', 0).toString(),
-            deadline: 1898649507,
+            deadline: 2000000000,
             triggerPrice: parseUnits('70', 18).toString(),
-            takeProfitPrice: parseUnits("0", 18).toString(),
+            takeProfitPrice: parseUnits("70.1", 18).toString(),
             stopLossPrice: parseUnits("0", 18).toString(),
         }
 
@@ -279,9 +279,6 @@ async function deploy() {
             version: SignTypedDataVersion.V4,
         });
 
-        // await waitForTx(
-        //     await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
-        // )
         console.log(
             JSON.stringify({
                 pair_id: 1,
