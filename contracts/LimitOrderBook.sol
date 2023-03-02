@@ -145,7 +145,7 @@ contract LimitOrderBook is
             order
         );
 
-        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Filled;
+        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
 
         //
         if (
@@ -164,6 +164,7 @@ contract LimitOrderBook is
                 stopLossPrice: order.stopLossPrice
             });
             _orders[orderHash] = storedOrder;
+            _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Filled;
         }
 
         emit LimitOrderFilled(
@@ -247,10 +248,6 @@ contract LimitOrderBook is
         //
         ILimitOrderBook.LimitOrder memory storedOrder = _orders[orderHash];
         // LOB_WC: wrong condition
-        console.logInt(storedOrder.base);
-        console.log(order.takeProfitPrice);
-        console.log(order.stopLossPrice);
-        console.log(markPrice);
         require(
             (storedOrder.base > 0 &&
                 ((order.takeProfitPrice > 0 && markPrice >= order.takeProfitPrice) ||
