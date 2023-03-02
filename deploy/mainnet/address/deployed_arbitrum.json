@@ -145,7 +145,7 @@
         "address": "0xaa684b6b3bC53bC91f2d7283Ce7779E9D7151E17",
         "implAddress": "0xd08Cd1F159Bcd46f488bb991B22B4DBf365fD1B6"
     },
-    "referralAdminAddress": "",
+    "referralAdminAddress": "0x9d627aE1D76318137977E923D80f2CDba4c89861",
     "referralPayment": {
         "address": "",
         "implAddress": ""

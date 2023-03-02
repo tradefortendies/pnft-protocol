@@ -151,7 +151,7 @@
     "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
     "referralPayment": {
         "address": "0xBCa53e3ed8B52a3180b951B49C090A51feACcbF3",
-        "implAddress": "0x7fdf5700CcA9e44705Bc9C64c0FBF592B818204E"
+        "implAddress": "0xC7725Bb9F87d56C3610F080E51b2B5480410559A"
     },
     "limitOrderBook": {
         "address": "0xac2e1b11E68A8d43036690A975944d8F4B826817",
