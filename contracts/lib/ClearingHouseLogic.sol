@@ -655,6 +655,8 @@ library ClearingHouseLogic {
 
     function realizedPnlTransfer(address chAddress, address from, address to, uint256 amount) external {
         if (from != address(0) && to != address(0) && amount > 0) {
+            // CHL_NEFCFT: not enough free collateral for transfer
+            require(IVault(IClearingHouse(chAddress).getVault()).getFreeCollateral(from) >= amount, "CHL_NEFCFT");
             _modifyOwedRealizedPnl(chAddress, from, amount.toInt256().neg256());
             _modifyOwedRealizedPnl(chAddress, to, amount.toInt256());
             emit RealizedPnlTransfer(from, to, amount);

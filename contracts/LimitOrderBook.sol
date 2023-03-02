@@ -20,7 +20,6 @@ import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IVPool } from "./interface/IVPool.sol";
 import { IBaseToken } from "./interface/IBaseToken.sol";
 import { DataTypes } from "./types/DataTypes.sol";
-import "hardhat/console.sol";
 
 contract LimitOrderBook is
     ILimitOrderBook,
@@ -145,15 +144,11 @@ contract LimitOrderBook is
             order
         );
 
-        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
-
-        //
         if (
             (order.orderType == ILimitOrderBook.OrderType.LimitOrder ||
                 order.orderType == ILimitOrderBook.OrderType.StopLimitOrder) &&
             (order.takeProfitPrice > 0 || order.stopLossPrice > 0)
         ) {
-            //
             ILimitOrderBook.LimitOrder memory storedOrder = ILimitOrderBook.LimitOrder({
                 multiplier: order.multiplier,
                 orderType: order.orderType,
@@ -165,6 +160,8 @@ contract LimitOrderBook is
             });
             _orders[orderHash] = storedOrder;
             _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Filled;
+        } else {
+            _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
         }
 
         emit LimitOrderFilled(
@@ -189,8 +186,12 @@ contract LimitOrderBook is
         // so trader can actually cancel an order that is not existed
         bytes32 orderHash = getOrderHash(order);
 
-        // LOB_OMBU: Order Must Be Unfilled
-        require(_ordersStatus[orderHash] == ILimitOrderBook.OrderStatus.Unfilled, "LOB_OMBU");
+        // LOB_OMBU: Order Must Be Unfilled or Filled
+        require(
+            _ordersStatus[orderHash] == ILimitOrderBook.OrderStatus.Unfilled ||
+                _ordersStatus[orderHash] == ILimitOrderBook.OrderStatus.Filled,
+            "LOB_OMBUOF"
+        );
 
         _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Cancelled;
 
@@ -233,7 +234,7 @@ contract LimitOrderBook is
         require(!sender.isContract(), "LOB_SMBE");
 
         // check multiplier
-        // _checkMultiplier(order.baseToken, order.multiplier);
+        _checkMultiplier(order.baseToken, order.multiplier);
 
         // we didn't require `signature` as input like fillLimitOrder(),
         // so trader can actually cancel an order that is not existed
@@ -242,12 +243,10 @@ contract LimitOrderBook is
         // LOB_OMBU: Order Must Be Filled
         require(_ordersStatus[orderHash] == ILimitOrderBook.OrderStatus.Filled, "LOB_OMBF");
 
-        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
-
         uint256 markPrice = _getPrice(order.baseToken);
         //
         ILimitOrderBook.LimitOrder memory storedOrder = _orders[orderHash];
-        // LOB_WC: wrong condition
+        // LOB_ITSP: invalid take profilt or stop loss price
         require(
             (storedOrder.base > 0 &&
                 ((order.takeProfitPrice > 0 && markPrice >= order.takeProfitPrice) ||
@@ -255,7 +254,7 @@ contract LimitOrderBook is
                 (storedOrder.base < 0 &&
                     ((order.takeProfitPrice > 0 && markPrice <= order.takeProfitPrice) ||
                         (order.stopLossPrice > 0 && markPrice >= order.stopLossPrice))),
-            "LOB_WC"
+            "LOB_ITSP"
         );
         bool isBaseToQuote = storedOrder.base > 0 ? true : false;
         (uint256 base, uint256 quote, uint256 fee) = IClearingHouse(_clearingHouse).openPositionFor(
@@ -285,6 +284,8 @@ contract LimitOrderBook is
             exchangedPositionSize = base.toInt256();
             exchangedPositionNotional = quote.neg256();
         }
+
+        _ordersStatus[orderHash] = ILimitOrderBook.OrderStatus.Closed;
 
         emit LimitOrderClosed(
             order.trader,
@@ -362,7 +363,6 @@ contract LimitOrderBook is
         bytes memory signature
     ) internal view returns (address, bytes32) {
         bytes32 orderHash = getOrderHash(order);
-        // console.logBytes(abi.encode(orderHash));
         address signer = ECDSAUpgradeable.recover(orderHash, signature);
 
         // LOB_SINT: Signer Is Not Trader
@@ -372,13 +372,6 @@ contract LimitOrderBook is
     }
 
     function _verifyTriggerPrice(LimitOrderParams memory order) internal view {
-        // if (order.orderType == ILimitOrderBook.OrderType.LimitOrder) {
-        //     return;
-        // }
-
-        // LOB_ITP: Invalid Trigger Price
-        require(order.triggerPrice > 0, "LOB_ITP");
-
         uint256 triggeredPrice = _getPrice(order.baseToken);
 
         // we need to make sure the price has reached trigger price.
@@ -386,6 +379,9 @@ contract LimitOrderBook is
         // we didn't know whether market price has reached trigger price
 
         if (order.orderType == ILimitOrderBook.OrderType.LimitOrder) {
+            // LOB_ITP: Invalid Trigger Price
+            require(order.triggerPrice > 0, "LOB_ITP");
+
             if (order.isBaseToQuote) {
                 //short: triggeredPrice >=  order.triggerPrice
                 // LOB_SLOTPNM: Sell Limit Order Trigger Price Not Matched
@@ -396,6 +392,9 @@ contract LimitOrderBook is
                 require(triggeredPrice <= order.triggerPrice, "LOB_BLOTPNM");
             }
         } else if (order.orderType == ILimitOrderBook.OrderType.TPSLOrder) {
+            // LOB_ITP: Invalid Trigger Price
+            require(order.takeProfitPrice > 0 || order.stopLossPrice > 0, "LOB_TSP");
+
             if (order.isBaseToQuote) {
                 // old long
                 // stoploss        long        takeprofit
@@ -422,6 +421,9 @@ contract LimitOrderBook is
                 }
             }
         } else if (order.orderType == ILimitOrderBook.OrderType.StopLimitOrder) {
+            // LOB_ITP: Invalid Trigger Price
+            require(order.triggerPrice > 0, "LOB_ITP");
+
             if (order.isBaseToQuote) {
                 //short : triggeredPrice <= order.triggerPrice
                 // LOB_SSLIOTPNM: Sell Stop limit Order Trigger Price Not Matched
