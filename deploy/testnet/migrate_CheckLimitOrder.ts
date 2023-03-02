@@ -215,14 +215,14 @@ async function deploy() {
         let fillOrderParams = {
             multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
             orderType: '0',
-            nonce: '3452345',
+            nonce: ethers.BigNumber.from(ethers.utils.randomBytes(32)).toString(),
             trader: trader1.address,
             baseToken: deployData.vBAYC.address,
             isBaseToQuote: false,
-            isExactInput: false,
-            amount: parseEther('0.1').toString(),
+            isExactInput: true,
+            amount: parseEther('0.15').toString(),
             oppositeAmountBound: parseUnits('0', 0).toString(),
-            deadline: ethers.constants.MaxUint256.toString(),
+            deadline: 1898649507,
             triggerPrice: parseUnits('70', 18).toString(),
             takeProfitPrice: parseUnits("0", 18).toString(),
             stopLossPrice: parseUnits("0", 18).toString(),
@@ -275,8 +275,28 @@ async function deploy() {
             version: SignTypedDataVersion.V4,
         });
 
-        await waitForTx(
-            await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+        // await waitForTx(
+        //     await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+        // )
+        console.log(
+            JSON.stringify({
+                pair_id: 1,
+                order_type: 'limit_order',
+                multiplier: formatEther(fillOrderParams.multiplier),
+                nonce: fillOrderParams.nonce,
+                is_base_to_quote: fillOrderParams.isBaseToQuote,
+                is_exact_input: fillOrderParams.isExactInput,
+                amount: formatEther(fillOrderParams.amount),
+                opposite_amount_bound: formatEther(fillOrderParams.oppositeAmountBound),
+                deadline: fillOrderParams.deadline,
+                trigger_price: formatEther(fillOrderParams.triggerPrice),
+                take_profit_price: formatEther(fillOrderParams.takeProfitPrice),
+                stop_loss_price: formatEther(fillOrderParams.stopLossPrice),
+                signature_hex: signature,
+            },
+                null,
+                4,
+            )
         )
     }
 
