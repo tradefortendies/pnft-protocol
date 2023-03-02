@@ -148,6 +148,11 @@
         "address": "0x4C4DaE0793a5259f44612ef27158A6E2E5E53679",
         "implAddress": "0xe11B950Ea9852ef3Fb3f4F35f627088f6e07b1a6"
     },
+    "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
+    "referralPayment": {
+        "address": "0xBCa53e3ed8B52a3180b951B49C090A51feACcbF3",
+        "implAddress": "0xC7725Bb9F87d56C3610F080E51b2B5480410559A"
+    },
     "testCheck": {
         "addLiquidity": false,
         "deposit": false,

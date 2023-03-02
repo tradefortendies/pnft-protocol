@@ -31,6 +31,12 @@ import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
 import { } from "../../test/helper/clearingHouseHelper";
 import { BigNumber, providers } from "ethers";
 
+import {
+    personalSign
+} from "@metamask/eth-sig-util";
+
+const REFERRAL_ADMIN_KEY = process.env.REFERRAL_ADMIN_KEY ?? '';
+
 
 async function main() {
     await deploy();
@@ -174,7 +180,7 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
 
-    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, hieuq] = await ethers.getSigners()
+    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, hieuq, referralAdmin] = await ethers.getSigners()
 
     // deploy UniV3 factory
     var genericLogic = (await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address)) as GenericLogic;
@@ -191,6 +197,63 @@ async function deploy() {
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
 
     var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
+
+    {
+        const deadline = '1677666618'
+        let user = '0x7c34f2ff7a33d94727d4b55e2ef6932ac3f2e08f'
+        let totalPNFT = '751514244548944589042'
+        let totalETH = '0'
+
+        let messagePack = ethers.utils.defaultAbiCoder.encode(["address", "address", "address", "uint256", "uint256", "uint256"], [referralPayment.address, referralAdmin.address, user, totalPNFT, totalETH, deadline])
+
+        let messageHash = ethers.utils.keccak256(ethers.utils.arrayify(messagePack))
+
+        const privateKey = Buffer.from(
+            REFERRAL_ADMIN_KEY.substring(2),
+            "hex"
+        );
+
+        let signature = await personalSign({
+            privateKey,
+            data: ethers.utils.arrayify(messageHash)
+        })
+
+        console.log(
+            messagePack,
+            messageHash,
+            signature,
+        )
+    }
+
+    // {
+    //     const deadline = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp + 300
+
+    //     let user = '0x7c34f2ff7a33d94727d4b55e2ef6932ac3f2e08f'
+    //     let totalPNFT = parseEther('1')
+    //     let totalETH = parseEther('0.00001')
+
+    //     let messagePack = ethers.utils.defaultAbiCoder.encode(["address", "address", "address", "uint256", "uint256", "uint256"], [referralPayment.address, referralAdmin.address, user, totalPNFT, totalETH, deadline])
+
+    //     let messageHash = ethers.utils.keccak256(ethers.utils.arrayify(messagePack))
+
+    //     const privateKey = Buffer.from(
+    //         REFERRAL_ADMIN_KEY.substring(2),
+    //         "hex"
+    //     );
+
+    //     let signature = await personalSign({
+    //         privateKey,
+    //         data: ethers.utils.arrayify(messageHash)
+    //     })
+
+    //     console.log(
+    //         messageHash,
+    //         signature,
+    //     )
+    //     await waitForTx(
+    //         await referralPayment.claim(user, totalPNFT, totalETH, deadline, ethers.utils.arrayify(signature))
+    //     )
+    // }
 
     // await waitForTx(
     //     await clearingHouse.setRewardMiner(ethers.constants.AddressZero)
