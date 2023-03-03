@@ -155,7 +155,7 @@
     },
     "limitOrderBook": {
         "address": "0xac2e1b11E68A8d43036690A975944d8F4B826817",
-        "implAddress": "0xf243E760B6cc0C831F223F5238386e5d09A6D6E1"
+        "implAddress": "0xbcAB8cC871F2bF5d9E6F3AB104729DB605B0F8b4"
     },
     "testCheck": {
         "addLiquidity": false,
