@@ -181,4 +181,8 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     function hasPool(address baseToken) external view override returns (bool) {
         return _poolMap[baseToken] != address(0);
     }
+
+    function setNftContract(address baseToken, address nftContractArg) external checkPool(baseToken) {
+        _nftContracts[baseToken] = nftContractArg;
+    }
 }

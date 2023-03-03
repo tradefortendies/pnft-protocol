@@ -11,7 +11,8 @@ abstract contract VPoolStorageV1 {
     address internal _accountBalance;
     address internal _clearingHouseConfig;
 
-    address[10] private __gap1;
+    address internal _nftOracle;
+    address[9] private __gap1;
     uint256[10] private __gap2;
 
     mapping(address => int24) internal _lastUpdatedTickMap;

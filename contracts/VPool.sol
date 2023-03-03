@@ -111,6 +111,11 @@ contract VPool is
         emit AccountBalanceChanged(accountBalanceArg);
     }
 
+    function setNftOracle(address nftOracleArg) external onlyOwner {
+        require(nftOracleArg != address(0), "E_NO0");
+        _nftOracle = nftOracleArg;
+    }
+
     /// @dev Restrict the price impact by setting the ticks can be crossed within a block when
     /// trader reducing liquidity. It is used to prevent the malicious behavior of the malicious traders.
     /// The restriction is applied in _isOverPriceLimitWithTick()
