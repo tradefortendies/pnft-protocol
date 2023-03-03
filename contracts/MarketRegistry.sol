@@ -3,12 +3,17 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 
 import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import { ClonesUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
+import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 import { ClearingHouseCallee } from "./base/ClearingHouseCallee.sol";
 import { UniswapV3Broker } from "./lib/UniswapV3Broker.sol";
 import { IVirtualToken } from "./interface/IVirtualToken.sol";
 import { MarketRegistryStorageV1 } from "./storage/MarketRegistryStorage.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
+import { IClearingHouse } from "./interface/IClearingHouse.sol";
+import { IVPool } from "./interface/IVPool.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryStorageV1 {
@@ -50,6 +55,50 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     /// @inheritdoc IMarketRegistry
     function addPool(address baseToken, uint24 feeRatio) external override onlyOwner returns (address) {
+        return _addPool(baseToken, baseToken, feeRatio, _msgSender(), _msgSender());
+    }
+
+    function createPool(
+        address nftContractArg,
+        string memory nameArg,
+        string memory symbolArg,
+        uint160 sqrtPriceX96
+    ) external returns (address) {
+        uint24 uniFeeTier = 3000;
+        // create baseToken
+        bytes memory _initializationCalldata = abi.encodeWithSignature(
+            "__VirtualToken_initialize(string,string)",
+            nameArg,
+            symbolArg
+        );
+        address baseToken = ClonesUpgradeable.clone(_vBaseToken);
+        AddressUpgradeable.functionCall(baseToken, _initializationCalldata);
+        //
+        IVirtualToken(baseToken).addWhitelist(_clearingHouse);
+        IVirtualToken(baseToken).mintMaximumTo(_clearingHouse);
+        // add pool
+        IUniswapV3Factory(_uniswapV3Factory).createPool(baseToken, _quoteToken, uniFeeTier);
+        address poolAddr = IUniswapV3Factory(_uniswapV3Factory).getPool(baseToken, _quoteToken, uniFeeTier);
+        // whitelist
+        IVirtualToken(baseToken).addWhitelist(poolAddr);
+        IVirtualToken(_quoteToken).marketRegistryAddWhitelist(poolAddr);
+        // init price
+        IUniswapV3Pool(poolAddr).initialize(sqrtPriceX96);
+        // add pool
+        address pool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender());
+        //
+        IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
+        //
+        return pool;
+    }
+
+    function _addPool(
+        address baseToken,
+        address nftContractArg,
+        uint24 feeRatio,
+        address creatorArg,
+        address feeReceiverArg
+    ) internal returns (address) {
         // existent pool
         require(_poolMap[baseToken] == address(0), "MR_EP");
         // baseToken decimals is not 18
@@ -89,8 +138,14 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _optimalDeltaTwapRatioMap[baseToken] = 30000; // 3%
         _unhealthyDeltaTwapRatioMap[baseToken] = 50000; // 5%
         _optimalFundingRatioMap[baseToken] = 250000; // 25%
+        // for open protocol
+        _nftContractMap[baseToken] = nftContractArg;
+        _feeReceiverMap[baseToken] = feeReceiverArg;
+        _creatorMap[baseToken] = creatorArg;
+        _isolatedMap[baseToken] = false;
 
         emit PoolAdded(baseToken, feeRatio, pool);
+
         return pool;
     }
 
@@ -123,6 +178,14 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         uint24 optimalDeltaTwapRatio
     ) external checkPool(baseToken) onlyOwner {
         _optimalDeltaTwapRatioMap[baseToken] = optimalDeltaTwapRatio;
+    }
+
+    function setNftContract(address baseToken, address nftContractArg) external checkPool(baseToken) onlyOwner {
+        _nftContractMap[baseToken] = nftContractArg;
+    }
+
+    function setVBaseToken(address vBaseTokenArg) external {
+        _vBaseToken = vBaseTokenArg;
     }
 
     //
@@ -166,6 +229,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return _optimalFundingRatioMap[baseToken];
     }
 
+    function getNftContract(address baseToken) external view override checkPool(baseToken) returns (address) {
+        return _nftContractMap[baseToken] == address(0) ? baseToken : _nftContractMap[baseToken];
+    }
+
     /// @inheritdoc IMarketRegistry
     function getMarketInfo(address baseToken) external view override checkPool(baseToken) returns (MarketInfo memory) {
         return
@@ -183,9 +250,5 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     /// @inheritdoc IMarketRegistry
     function hasPool(address baseToken) external view override returns (bool) {
         return _poolMap[baseToken] != address(0);
-    }
-
-    function setNftContract(address baseToken, address nftContractArg) external checkPool(baseToken) {
-        _nftContracts[baseToken] = nftContractArg;
     }
 }

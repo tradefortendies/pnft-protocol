@@ -107,10 +107,10 @@ interface IAccountBalance {
     /// @return openNotional Taker's open notional
     /// @return realizedPnl Settled realized pnl
     /// @return closedPrice The closed price of the closed market
-    function settlePositionInClosedMarket(
-        address trader,
-        address baseToken
-    ) external returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice);
+    // function settlePositionInClosedMarket(
+    //     address trader,
+    //     address baseToken
+    // ) external returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice);
 
     /// @notice Get `ClearingHouseConfig` address
     /// @return clearingHouseConfig The address of ClearingHouseConfig

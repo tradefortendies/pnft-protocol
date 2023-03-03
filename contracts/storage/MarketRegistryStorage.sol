@@ -10,7 +10,9 @@ abstract contract MarketRegistryStorageV1 {
 
     uint8 internal _maxOrdersPerMarket;
 
-    address[10] private __gap1;
+    address internal _vBaseToken;
+
+    address[9] private __gap1;
     uint256[10] private __gap2;
 
     // key: baseToken, value: pool
@@ -31,5 +33,11 @@ abstract contract MarketRegistryStorageV1 {
 
     mapping(address => uint24) internal _unhealthyDeltaTwapRatioMap;
 
-    mapping(address => address) internal _nftContracts;
+    mapping(address => address) internal _nftContractMap;
+
+    mapping(address => bool) internal _isolatedMap;
+
+    mapping(address => address) internal _creatorMap;
+
+    mapping(address => address) internal _feeReceiverMap;
 }

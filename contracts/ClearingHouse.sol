@@ -14,12 +14,9 @@ import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IVault } from "./interface/IVault.sol";
 import { IVPool } from "./interface/IVPool.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IDelegateApproval } from "./interface/IDelegateApproval.sol";
 import { BaseRelayRecipient } from "./gsn/BaseRelayRecipient.sol";
 import { ClearingHouseStorage } from "./storage/ClearingHouseStorage.sol";
@@ -517,9 +514,7 @@ contract ClearingHouse is
             IMarketRegistry(_marketRegistry).getPool(baseToken)
         );
         repegParams.oldMarkPrice = repegParams.oldSqrtMarkPrice.formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        repegParams.spotPrice = IIndexPrice(baseToken).getIndexPrice(
-            IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()
-        );
+        repegParams.spotPrice = IVPool(_vPool).getIndexPrice(baseToken);
         repegParams.sqrtSpotPrice = repegParams.spotPrice.formatPriceX10_18ToSqrtPriceX96();
 
         if (repegParams.spotPrice != repegParams.oldMarkPrice) {

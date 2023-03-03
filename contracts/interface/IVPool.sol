@@ -146,4 +146,10 @@ interface IVPool {
     ) external view returns (UniswapV3Broker.ReplaySwapResponse memory response);
 
     function internalSwap(SwapParams memory params) external returns (SwapResponse memory);
+
+    function getIndexPrice(address baseToken) external view returns (uint256);
+
+    function getMarkPrice(address baseToken) external view returns (uint256);
+
+    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external;
 }

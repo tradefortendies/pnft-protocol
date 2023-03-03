@@ -11,8 +11,6 @@ import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { IVault } from "./interface/IVault.sol";
 import { IVPool } from "./interface/IVPool.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { AccountBalanceStorageV1 } from "./storage/AccountBalanceStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
@@ -165,28 +163,28 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     /// @inheritdoc IAccountBalance
     /// @dev we don't do swap to get position notional here.
     ///      we define the position notional in a closed market is `closed price * position size`
-    function settlePositionInClosedMarket(
-        address trader,
-        address baseToken
-    )
-        external
-        override
-        returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice)
-    {
-        _requireOnlyClearingHouse();
+    // function settlePositionInClosedMarket(
+    //     address trader,
+    //     address baseToken
+    // )
+    //     external
+    //     override
+    //     returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice)
+    // {
+    //     _requireOnlyClearingHouse();
 
-        int256 positionSize = getTakerPositionSize(trader, baseToken);
+    //     int256 positionSize = getTakerPositionSize(trader, baseToken);
 
-        closedPrice = IBaseToken(baseToken).getClosedPrice();
-        positionNotional = positionSize.mulDiv(closedPrice.toInt256(), 1e18);
-        openNotional = _accountMarketMap[trader][baseToken].takerOpenNotional;
-        realizedPnl = positionNotional.add(openNotional);
+    //     closedPrice = IBaseToken(baseToken).getClosedPrice();
+    //     positionNotional = positionSize.mulDiv(closedPrice.toInt256(), 1e18);
+    //     openNotional = _accountMarketMap[trader][baseToken].takerOpenNotional;
+    //     realizedPnl = positionNotional.add(openNotional);
 
-        _deleteBaseToken(trader, baseToken);
-        _modifyOwedRealizedPnl(trader, realizedPnl);
+    //     _deleteBaseToken(trader, baseToken);
+    //     _modifyOwedRealizedPnl(trader, realizedPnl);
 
-        return (positionNotional, openNotional, realizedPnl, closedPrice);
-    }
+    //     return (positionNotional, openNotional, realizedPnl, closedPrice);
+    // }
 
     //
     // EXTERNAL VIEW

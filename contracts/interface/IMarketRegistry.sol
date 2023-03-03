@@ -102,4 +102,6 @@ interface IMarketRegistry {
     /// @notice Check if a pool exist by given base token address
     /// @return hasPool True if the pool exist, false otherwise
     function hasPool(address baseToken) external view returns (bool hasPool);
+
+    function getNftContract(address baseToken) external view returns (address);
 }

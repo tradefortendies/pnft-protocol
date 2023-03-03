@@ -2,8 +2,6 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 import { IAccountBalance } from "../interface/IAccountBalance.sol";
-import { IBaseToken } from "../interface/IBaseToken.sol";
-import { IIndexPrice } from "../interface/IIndexPrice.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
 import { IVPool } from "../interface/IVPool.sol";
@@ -119,9 +117,9 @@ library GenericLogic {
             IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getMarginRequirementForLiquidation(trader);
     }
 
-    function checkMarketOpen(address baseToken) public view {
+    function checkMarketOpen(address clearingHouse, address baseToken) public view {
         // CH_MNO: Market not opened
-        require(IBaseToken(baseToken).isOpen(), "CH_MNO");
+        require(IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(baseToken) > 0, "CH_MNO");
     }
 
     function registerBaseToken(address chAddress, address trader, address baseToken) public {
@@ -273,11 +271,8 @@ library GenericLogic {
         return IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getLiquidationPenaltyRatio();
     }
 
-    function getIndexPrice(address chAddress, address baseToken) internal view returns (uint256) {
-        return
-            IIndexPrice(baseToken).getIndexPrice(
-                IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getTwapInterval()
-            );
+    function getIndexPrice(address clearingHouse, address baseToken) internal view returns (uint256) {
+        return IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(baseToken);
     }
 
     function getInsuranceFundFeeRatio(
@@ -583,7 +578,7 @@ library GenericLogic {
         //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
         //   minBase, minQuote & deadline: here
 
-        checkMarketOpen(params.baseToken);
+        checkMarketOpen(chAddress, params.baseToken);
 
         // This condition is to prevent the intentional bad debt attack through price manipulation.
         // CH_OMPS: Over the maximum price spread
@@ -640,9 +635,6 @@ library GenericLogic {
         //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
         //   liquidity: in LiquidityMath.addDelta()
         //   minBase, minQuote & deadline: here
-
-        // CH_MP: Market paused
-        require(!IBaseToken(params.baseToken).isPaused(), "CH_MP");
 
         settleFundingGlobal(chAddress, params.baseToken);
 

@@ -12,9 +12,12 @@ import {
     UniswapV3Pool,
     Vault, VirtualToken, VPool
 } from "../../typechain"
+import { findPoolAddedEvents } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
+import { getMaxTickRange } from "../helper/number"
 import { deposit } from "../helper/token"
 import { forwardBothTimestamps } from "../shared/time"
+import { encodePriceSqrt } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse random trade liquidity repeg close", () => {
@@ -38,6 +41,9 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
     let rewardMiner: TestRewardMiner
     const initPrice = "1"
 
+    let nftAddress: string;
+
+
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture())
         clearingHouse = fixture.clearingHouse as TestClearingHouse
@@ -49,15 +55,16 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         marketRegistry = fixture.marketRegistry
         pool = fixture.pool as UniswapV3Pool
         collateral = fixture.WETH
-        baseToken = fixture.baseToken
+        // baseToken = fixture.baseToken
         quoteToken = fixture.quoteToken
         nftOracle = fixture.nftOracle
         collateralDecimals = await collateral.decimals()
         rewardMiner = fixture.rewardMiner as TestRewardMiner
 
-        await initMarket(fixture, initPrice, undefined, 0)
+        nftAddress = ethers.Wallet.createRandom().address
+        console.log('nftAddress', nftAddress)
 
-        await nftOracle.setNftPrice(baseToken.address, parseUnits(initPrice, 18))
+        await initMarket(fixture, initPrice, undefined, 0)
 
         // prepare collateral for trader
         await collateral.mint(trader1.address, parseUnits("1000000", collateralDecimals))
@@ -68,6 +75,22 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
 
         await collateral.mint(liquidator.address, parseUnits("1000000", collateralDecimals))
         await deposit(liquidator, vault, 1000000, collateral)
+
+        let r = await (
+            await marketRegistry.createPool(nftAddress, 'vTEST', 'vTEST', encodePriceSqrt(initPrice, "1"))
+        ).wait()
+
+        let log = await findPoolAddedEvents(marketRegistry, r)[0]
+        console.log(
+            'baseToken',
+            (log.args.baseToken),
+        )
+
+        baseToken = (await ethers.getContractAt('VirtualToken', log.args.baseToken)) as VirtualToken;
+
+        await vPool.setMaxTickCrossedWithinBlock(baseToken.address, getMaxTickRange())
+
+        await nftOracle.setNftPrice(nftAddress, parseUnits(initPrice, 18))
     })
 
     it("random check", async () => {
@@ -145,7 +168,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
                     liquidity: parseEther(rndInt.toString()),
                     deadline: ethers.constants.MaxUint256,
                 })
-                await nftOracle.setNftPrice(baseToken.address, parseUnits("1.25", 18))
+                await nftOracle.setNftPrice(nftAddress, parseUnits("1.25", 18))
             } else {
                 rndInt = (Math.floor(Math.random() * 1000000) % 20) + 1;
                 await clearingHouse.connect(maker).removeLiquidity({
@@ -153,7 +176,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
                     liquidity: parseEther(rndInt.toString()),
                     deadline: ethers.constants.MaxUint256,
                 })
-                await nftOracle.setNftPrice(baseToken.address, parseUnits("0.8", 18))
+                await nftOracle.setNftPrice(nftAddress, parseUnits("0.8", 18))
             }
 
             let minerInfo = await rewardMiner.getCurrentPeriodInfo()

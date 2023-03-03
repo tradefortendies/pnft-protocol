@@ -18,7 +18,6 @@ import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IVPool } from "./interface/IVPool.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 
 contract LimitOrderBook is

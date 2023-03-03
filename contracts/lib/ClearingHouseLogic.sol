@@ -3,14 +3,12 @@ pragma solidity 0.7.6;
 pragma abicoder v2;
 import { IAccountBalance } from "../interface/IAccountBalance.sol";
 import { IInsuranceFund } from "../interface/IInsuranceFund.sol";
-import { IBaseToken } from "../interface/IBaseToken.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
 import { IVPool } from "../interface/IVPool.sol";
 import { IVault } from "../interface/IVault.sol";
 import { IMarketRegistry } from "../interface/IMarketRegistry.sol";
 import { IRewardMiner } from "../interface/IRewardMiner.sol";
-import { IIndexPrice } from "../interface/IIndexPrice.sol";
 import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import { PerpSafeCast } from "./PerpSafeCast.sol";
 import { PerpMath } from "./PerpMath.sol";
@@ -204,7 +202,7 @@ library ClearingHouseLogic {
         //   sqrtPriceLimitX96: X (this is not for slippage protection)
         //   referralCode: X
 
-        GenericLogic.checkMarketOpen(params.baseToken);
+        GenericLogic.checkMarketOpen(chAddress, params.baseToken);
 
         GenericLogic.requireNotMaker(chAddress, trader);
 
@@ -257,7 +255,7 @@ library ClearingHouseLogic {
         //   deadline: here
         //   referralCode: X
 
-        GenericLogic.checkMarketOpen(params.baseToken);
+        GenericLogic.checkMarketOpen(chAddress, params.baseToken);
 
         GenericLogic.requireNotMaker(chAddress, trader);
 
@@ -388,7 +386,7 @@ library ClearingHouseLogic {
     ) public returns (uint256 base, uint256 quote, uint256 fee) {
         InternalLiquidateVars memory vars;
 
-        GenericLogic.checkMarketOpen(params.baseToken);
+        GenericLogic.checkMarketOpen(params.chAddress, params.baseToken);
 
         GenericLogic.requireNotMaker(params.chAddress, params.trader);
 

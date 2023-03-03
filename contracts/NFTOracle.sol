@@ -24,6 +24,8 @@ contract NFTOracle is INFTOracle, BlockContext, OwnerPausable, NFTOracleStorage 
     // solhint-disable-next-line func-order
     function initialize() public initializer {
         __OwnerPausable_init();
+        //
+        _priceFeedAdmin = _msgSender();
     }
 
     function setPriceAdmin(address priceAdminArg) external {

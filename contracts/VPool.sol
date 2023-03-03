@@ -18,13 +18,12 @@ import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
 import { VPoolStorageV2 } from "./storage/VPoolStorage.sol";
 import { IVPool } from "./interface/IVPool.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { ClearingHouseLogic } from "./lib/ClearingHouseLogic.sol";
+import { INFTOracle } from "./interface/INFTOracle.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract VPool is
@@ -121,7 +120,10 @@ contract VPool is
     /// The restriction is applied in _isOverPriceLimitWithTick()
     /// @param baseToken The base token address
     /// @param maxTickCrossedWithinBlock The maximum ticks can be crossed within a block
-    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external onlyOwner {
+    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external override {
+        // EX_NOM: not owner marketRegistry
+        require(_msgSender() == owner() || _msgSender() == _marketRegistry, "EX_NOM");
+
         // EX_BNC: baseToken is not contract
         require(baseToken.isContract(), "EX_BNC");
         // EX_BTNE: base token does not exists
@@ -288,19 +290,15 @@ contract VPool is
         // EX_BTNE: base token does not exists
         require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
-        // if updating TWAP fails, this call will be reverted and thus using try-catch
-        try IBaseToken(baseToken).cacheTwap(IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()) {} catch {}
         uint256 markTwap;
         uint256 indexTwap;
         (fundingGrowthGlobal, markTwap, indexTwap) = _getFundingGrowthGlobalAndTwaps(baseToken);
 
         // funding will be stopped once the market is being paused
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
 
         // update states before further actions in this block; once per block
-        if (timestamp != _lastSettledTimestampMap[baseToken]) {
+        if (_blockTimestamp() != _lastSettledTimestampMap[baseToken]) {
             // update fundingGrowthGlobal and _lastSettledTimestamp
             DataTypes.Growth storage lastFundingGrowthGlobal = _globalFundingGrowthX96Map[baseToken];
             (
@@ -360,7 +358,6 @@ contract VPool is
         require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
         // if updating TWAP fails, this call will be reverted and thus using try-catch
-        try IBaseToken(baseToken).cacheTwap(IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()) {} catch {}
         uint256 markTwap;
         uint256 indexTwap;
         (fundingGrowthGlobal, markTwap, indexTwap) = _getFundingGrowthGlobalAndTwaps(baseToken);
@@ -373,9 +370,7 @@ contract VPool is
         );
 
         // funding will be stopped once the market is being paused
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
 
         // update states before further actions in this block; once per block
         if (timestamp != _lastSettledTimestampMap[baseToken]) {
@@ -456,16 +451,30 @@ contract VPool is
         return pendingFundingPayment;
     }
 
+    function getIndexPrice(address baseToken) external view override returns (uint256) {
+        return _getIndexPrice(baseToken);
+    }
+
+    function getMarkPrice(address baseToken) external view override returns (uint256) {
+        return _getMarkPrice(baseToken);
+    }
+
+    function _getIndexPrice(address baseToken) internal view returns (uint256) {
+        return INFTOracle(_nftOracle).getNftPrice(IMarketRegistry(_marketRegistry).getNftContract(baseToken));
+    }
+
+    function _getMarkPrice(address baseToken) internal view returns (uint256) {
+        return getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
+    }
+
     /// @inheritdoc IVPool
     function isOverPriceSpread(address baseToken) external view override returns (bool) {
         return _isOverPriceSpread(baseToken);
     }
 
     function _isOverPriceSpread(address baseToken) internal view returns (bool) {
-        uint256 markPrice = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        uint256 indexTwap = IIndexPrice(baseToken).getIndexPrice(
-            IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()
-        );
+        uint256 markPrice = _getMarkPrice(baseToken);
+        uint256 indexTwap = _getIndexPrice(baseToken);
         uint256 spread = markPrice > indexTwap ? markPrice.sub(indexTwap) : indexTwap.sub(markPrice);
         // get market info
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(_marketRegistry).getMarketInfo(baseToken);
@@ -587,13 +596,10 @@ contract VPool is
     function _getFundingGrowthGlobalAndTwaps(
         address baseToken
     ) internal view returns (DataTypes.Growth memory fundingGrowthGlobal, uint256 markTwap, uint256 indexTwap) {
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
         return
             _getFundingGrowthGlobalAndTwaps(
                 baseToken,
-                _firstTradedTimestampMap[baseToken],
                 _lastSettledTimestampMap[baseToken],
                 timestamp,
                 _globalFundingGrowthX96Map[baseToken]
@@ -602,42 +608,16 @@ contract VPool is
 
     function _getFundingGrowthGlobalAndTwaps(
         address baseToken,
-        uint256 firstTrade,
         uint256 lastSettled,
         uint256 timestamp,
         DataTypes.Growth memory lastFundingGrowthGlobal
     ) internal view returns (DataTypes.Growth memory fundingGrowthGlobal, uint256 markTwap, uint256 indexTwap) {
         // shorten twapInterval if prior observations are not enough
-        uint32 twapInterval;
-        if (firstTrade != 0) {
-            twapInterval = IClearingHouseConfig(_clearingHouseConfig).getTwapInterval();
-            // overflow inspection:
-            // 2 ^ 32 = 4,294,967,296 > 100 years = 60 * 60 * 24 * 365 * 100 = 3,153,600,000
-            uint32 deltaTimestamp = timestamp.sub(firstTrade).toUint32();
-            twapInterval = twapInterval > deltaTimestamp ? deltaTimestamp : twapInterval;
-        }
-        // uint256 markTwapX96;
-        // if (marketOpen) {
-        //     markTwapX96 = getSqrtMarkTwapX96(baseToken, twapInterval).formatSqrtPriceX96ToPriceX96();
-        //     indexTwap = IIndexPrice(baseToken).getIndexPrice(twapInterval);
-        // } else {
-        //     // if a market is paused/closed, we use the last known index price which is getPausedIndexPrice
-        //     //
-        //     // -----+--- twap interval ---+--- secondsAgo ---+
-        //     //                        pausedTime            now
 
-        //     // timestamp is pausedTime when the market is not open
-        //     uint32 secondsAgo = _blockTimestamp().sub(timestamp).toUint32();
-        //     markTwapX96 = UniswapV3Broker
-        //         .getSqrtMarkTwapX96From(IMarketRegistry(_marketRegistry).getPool(baseToken), secondsAgo, twapInterval)
-        //         .formatSqrtPriceX96ToPriceX96();
-        //     indexTwap = IBaseToken(baseToken).getPausedIndexPrice();
-        // }
-
-        uint256 markTwapX96 = getSqrtMarkTwapX96(baseToken, twapInterval).formatSqrtPriceX96ToPriceX96();
+        uint256 markTwapX96 = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96();
 
         markTwap = markTwapX96.formatX96ToX10_18();
-        indexTwap = IIndexPrice(baseToken).getIndexPrice(twapInterval);
+        indexTwap = _getIndexPrice(baseToken);
 
         if (timestamp == lastSettled || lastSettled == 0) {
             // if this is the latest updated timestamp, values in _globalFundingGrowthX96Map are up-to-date already
@@ -870,10 +850,8 @@ contract VPool is
     function getOverPriceSpreadInfo(
         address baseToken
     ) external view returns (uint256 spreadRatio, uint256 lastOverPriceSpreadTimestamp, uint256 repegTimestamp) {
-        uint256 markPrice = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        uint256 indexTwap = IIndexPrice(baseToken).getIndexPrice(
-            IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()
-        );
+        uint256 markPrice = _getMarkPrice(baseToken);
+        uint256 indexTwap = _getIndexPrice(baseToken);
         spreadRatio = (markPrice > indexTwap ? markPrice.sub(indexTwap) : indexTwap.sub(markPrice)).mul(1e6).div(
             indexTwap
         );

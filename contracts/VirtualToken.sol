@@ -9,21 +9,37 @@ contract VirtualToken is IVirtualToken, SafeOwnable, ERC20Upgradeable {
     mapping(address => bool) internal _whitelistMap;
 
     // __gap is reserved storage
-    uint256[50] private __gap;
+    address internal _marketRegistry;
+    uint256[49] private __gap;
 
     event WhitelistAdded(address account);
     event WhitelistRemoved(address account);
+
+    function __VirtualToken_initialize(string memory nameArg, string memory symbolArg) external initializer {
+        __SafeOwnable_init();
+        __ERC20_init(nameArg, symbolArg);
+    }
 
     function __VirtualToken_init(string memory nameArg, string memory symbolArg) internal initializer {
         __SafeOwnable_init();
         __ERC20_init(nameArg, symbolArg);
     }
 
-    function mintMaximumTo(address recipient) external onlyOwner {
+    function setMarketRegistry(address marketRegistryArg) external onlyOwner {
+        _marketRegistry = marketRegistryArg;
+    }
+
+    function mintMaximumTo(address recipient) external override onlyOwner {
         _mint(recipient, type(uint256).max);
     }
 
-    function addWhitelist(address account) external onlyOwner {
+    function addWhitelist(address account) external override onlyOwner {
+        _whitelistMap[account] = true;
+        emit WhitelistAdded(account);
+    }
+
+    function marketRegistryAddWhitelist(address account) external override {
+        require(_marketRegistry == _msgSender(), "VT_NM");
         _whitelistMap[account] = true;
         emit WhitelistAdded(account);
     }
@@ -41,11 +57,7 @@ contract VirtualToken is IVirtualToken, SafeOwnable, ERC20Upgradeable {
     }
 
     /// @inheritdoc ERC20Upgradeable
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal virtual override {
+    function _beforeTokenTransfer(address from, address to, uint256 amount) internal virtual override {
         super._beforeTokenTransfer(from, to, amount);
 
         // `from` == address(0) when mint()
