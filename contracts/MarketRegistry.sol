@@ -118,6 +118,13 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         emit MaxOrdersPerMarketChanged(maxOrdersPerMarketArg);
     }
 
+    function setOptimalDeltaTwapRatio(
+        address baseToken,
+        uint24 optimalDeltaTwapRatio
+    ) external checkPool(baseToken) onlyOwner {
+        _optimalDeltaTwapRatioMap[baseToken] = optimalDeltaTwapRatio;
+    }
+
     //
     // EXTERNAL VIEW
     //
@@ -157,10 +164,6 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function getOptimalFundingRatio(address baseToken) external view override checkPool(baseToken) returns (uint24) {
         return _optimalFundingRatioMap[baseToken];
-    }
-
-    function setOptimalDeltaTwapRatio(address baseToken, uint24 optimalDeltaTwapRatio) external checkPool(baseToken) {
-        _optimalDeltaTwapRatioMap[baseToken] = optimalDeltaTwapRatio;
     }
 
     /// @inheritdoc IMarketRegistry
