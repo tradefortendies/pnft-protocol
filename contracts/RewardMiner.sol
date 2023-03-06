@@ -78,7 +78,7 @@ contract RewardMiner is IRewardMiner, BlockContext, OwnerPausable, RewardMinerSt
         require(contractArg.isContract(), errorMsg);
     }
 
-    function setClearingHouse(address clearingHouseArg) external {
+    function setClearingHouse(address clearingHouseArg) external onlyOwner {
         _isContract(clearingHouseArg, "RM_CHNC");
         _clearingHouse = clearingHouseArg;
     }
@@ -88,7 +88,7 @@ contract RewardMiner is IRewardMiner, BlockContext, OwnerPausable, RewardMinerSt
     //     _pnftToken = pnftTokenArg;
     // }
 
-    function setLimitClaimPeriod(uint256 limitClaimPeriodArg) external {
+    function setLimitClaimPeriod(uint256 limitClaimPeriodArg) external onlyOwner {
         _limitClaimPeriod = limitClaimPeriodArg;
     }
 

@@ -48,7 +48,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         emit VaultChanged(vaultArg);
     }
 
-    function setClearingHouse(address clearingHouseArg) external {
+    function setClearingHouse(address clearingHouseArg) external onlyOwner {
         _clearingHouse = clearingHouseArg;
         emit ClearingHouseChanged(clearingHouseArg);
     }

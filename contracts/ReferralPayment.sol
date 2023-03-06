@@ -42,7 +42,7 @@ contract ReferralPayment is IReferralPayment, BlockContext, OwnerPausable, Refer
         require(contractArg.isContract(), errorMsg);
     }
 
-    function setAdmin(address adminArg) external {
+    function setAdmin(address adminArg) external onlyOwner {
         _admin = adminArg;
     }
 
