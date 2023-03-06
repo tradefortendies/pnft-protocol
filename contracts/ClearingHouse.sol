@@ -322,7 +322,10 @@ contract ClearingHouse is
         checkDeadline(params.deadline)
         returns (uint256 base, uint256 quote, uint256 fee)
     {
-        return ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
+        (base, quote, fee) = ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
+        if (_isIsolated(params.baseToken)) {
+            IVault(_vault).requestWithdrawAllFor(_msgSender(), IVault(_vault).getSettlementToken(), params.baseToken);
+        }
     }
 
     function closePositionAndWithdrawAllEther(

@@ -19,6 +19,9 @@ async function deploy() {
     const network = hre.network.name;
     let deployData = (await loadDB(network))
     // 
+    var proxyAdmin = await hre.ethers.getContractAt('ProxyAdmin', deployData.proxyAdminAddress);
+    // 
+    const TransparentUpgradeableProxy = await hre.ethers.getContractFactory('TransparentUpgradeableProxy');
     const VirtualToken = await hre.ethers.getContractFactory("VirtualToken");
     // 
     // 

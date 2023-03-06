@@ -9,16 +9,19 @@ import {
     BaseToken,
     InsuranceFund,
     MarketRegistry,
+    NFTOracle,
     NftPriceFeed,
     TestClearingHouse,
     TestWETH9,
     UniswapV3Pool,
     Vault,
+    VirtualToken,
 } from "../../typechain"
 import {
     b2qExactInput,
     findLiquidityChangedEvents,
     findPnlRealizedEvents,
+    findPoolAddedEvents,
     q2bExactOutput,
 } from "../../test/helper/clearingHouseHelper"
 import { initMarket } from "../../test/helper/marketHelper"
@@ -32,7 +35,7 @@ import helpers from "../helpers";
 const { waitForDeploy, waitForTx, verifyContract } = helpers;
 
 describe("Deployment check", () => {
-    const [admin, priceAdmin, platformFund, maker, trader1, trader2, liquidator] = waffle.provider.getWallets()
+    const [admin, priceAdmin, platformFund, maker, trader1, trader2, creator] = waffle.provider.getWallets()
     beforeEach(async () => {
     })
 
@@ -59,10 +62,12 @@ describe("Deployment check", () => {
         deployData.vBAYC = {
             symbol: "vBAYC",
             name: "vBAYC",
+            nftContract: ethers.Wallet.createRandom().address,
         } as TokenData
         deployData.vMAYC = {
             symbol: "vMAYC",
             name: "vMAYC",
+            nftContract: ethers.Wallet.createRandom().address,
         } as TokenData
         deployData.uniswapV3Factory = {} as ContractData
         deployData.clearingHouseConfig = {} as ContractData
@@ -75,6 +80,8 @@ describe("Deployment check", () => {
         deployData.genericLogic = {} as ContractData
         deployData.clearingHouseLogic = {} as ContractData
         deployData.clearingHouse = {} as ContractData
+        deployData.nftOracle = {} as ContractData
+        deployData.vBaseToken = {} as ContractData
 
         let ProxyAdmin = await ethers.getContractFactory('ProxyAdmin');
         const TransparentUpgradeableProxy = await ethers.getContractFactory('TransparentUpgradeableProxy');
@@ -96,17 +103,7 @@ describe("Deployment check", () => {
             const TestWETH9 = await ethers.getContractFactory("TestWETH9")
             const wETH = (await waitForDeploy(await TestWETH9.deploy())) as TestWETH9
             {
-                deployData.wETH.implAddress = wETH.address;
-            }
-            var transparentUpgradeableProxy = await waitForDeploy(
-                await TransparentUpgradeableProxy.deploy(
-                    deployData.wETH.implAddress,
-                    proxyAdmin.address,
-                    [],
-                )
-            );
-            {
-                deployData.wETH.address = transparentUpgradeableProxy.address;
+                deployData.wETH.address = wETH.address;
             }
         }
         let QuoteToken = await ethers.getContractFactory("QuoteToken");
@@ -119,7 +116,7 @@ describe("Deployment check", () => {
         {
             var quoteToken = await ethers.getContractAt('QuoteToken', deployData.vETH.implAddress);
             var initializeData = quoteToken.interface.encodeFunctionData('initialize', [deployData.vETH.name, deployData.vETH.symbol]);
-            for (let i = 0; i < 32; i++) {
+            while (true) {
                 var transparentUpgradeableProxy = await waitForDeploy(
                     await TransparentUpgradeableProxy.deploy(
                         quoteToken.address,
@@ -397,6 +394,39 @@ describe("Deployment check", () => {
             }
         }
         {
+            const TransparentUpgradeableProxy = await ethers.getContractFactory('TransparentUpgradeableProxy');
+            const NFTOracle = await ethers.getContractFactory("NFTOracle");
+            if (deployData.nftOracle.implAddress == undefined || deployData.nftOracle.implAddress == '') {
+                const nftOracle = await waitForDeploy(await NFTOracle.deploy())
+                {
+                    deployData.nftOracle.implAddress = nftOracle.address;
+                }
+            }
+            if (deployData.nftOracle.address == undefined || deployData.nftOracle.address == '') {
+                let nftOracle = await ethers.getContractAt('NFTOracle', deployData.nftOracle.implAddress);
+                var initializeData = nftOracle.interface.encodeFunctionData('initialize', []);
+                var transparentUpgradeableProxy = await waitForDeploy(
+                    await TransparentUpgradeableProxy.deploy(
+                        deployData.nftOracle.implAddress,
+                        proxyAdmin.address,
+                        initializeData,
+                    )
+                );
+                {
+                    deployData.nftOracle.address = transparentUpgradeableProxy.address;
+                }
+            }
+        }
+        {
+            const VirtualToken = await ethers.getContractFactory("VirtualToken");
+            if (deployData.vBaseToken.address == undefined || deployData.vBaseToken.address == '') {
+                const vBaseToken = await waitForDeploy(await VirtualToken.deploy())
+                {
+                    deployData.vBaseToken.address = vBaseToken.address;
+                }
+            }
+        }
+        {
             var uniswapV3Factory = await ethers.getContractAt('UniswapV3Factory', deployData.uniswapV3Factory.address);
             var clearingHouseConfig = await ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
             var marketRegistry = (await ethers.getContractAt('MarketRegistry', deployData.marketRegistry.address));
@@ -405,6 +435,7 @@ describe("Deployment check", () => {
             var insuranceFund = await ethers.getContractAt('InsuranceFund', deployData.insuranceFund.address);
             var vault = await ethers.getContractAt('Vault', deployData.vault.address);
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
+            var nftOracle = (await ethers.getContractAt('NFTOracle', deployData.nftOracle.address)) as NFTOracle;
 
             await waitForTx(await vault.setWETH9(deployData.wETH.address), 'vault.setWETH9(deployData.wETH.address)')
 
@@ -419,6 +450,25 @@ describe("Deployment check", () => {
             await accountBalance.setClearingHouse(clearingHouse.address)
             await vault.setClearingHouse(clearingHouse.address)
             await insuranceFund.setClearingHouse(clearingHouse.address)
+
+            {
+                // new update for open protocol
+                await nftOracle.setPriceAdmin(priceAdmin.address)
+                await marketRegistry.setInsuranceFundFeeRatioGlobal(500)
+                await marketRegistry.setPlatformFundFeeRatioGlobal(2000)
+                await marketRegistry.setOptimalDeltaTwapRatioGlobal(30000)
+                await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)
+                await marketRegistry.setOptimalFundingRatioGlobal(250000)
+                await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
+                await marketRegistry.setMinPoolLiquidityGlobal(parseEther('10'))
+                await marketRegistry.setMaxPoolLiquidityGlobal(parseEther('1000000'))
+                await vPool.setNftOracle(nftOracle.address)
+                await marketRegistry.setVBaseToken(deployData.vBaseToken.address)
+                await vETH.setMarketRegistry(marketRegistry.address)
+                await vault.setMarketRegistry(marketRegistry.address)
+                await accountBalance.setMarketRegistry(marketRegistry.address)
+                await insuranceFund.setMarketRegistry(marketRegistry.address)
+            }
 
             const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);
             {
@@ -447,8 +497,6 @@ describe("Deployment check", () => {
             await vBAYC.mintMaximumTo(clearingHouse.address)
             await vMAYC.mintMaximumTo(clearingHouse.address)
 
-            let cardinalityNext = 500
-
             // initMarket
             var maxTickCrossedWithinBlock: number = getMaxTickRange()
             // vBAYC
@@ -457,10 +505,6 @@ describe("Deployment check", () => {
                 const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
-                // await waitForTx(
-                //     await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                //     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
-                // )
                 await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
                 await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
             }
@@ -470,13 +514,23 @@ describe("Deployment check", () => {
                 const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
                 await uniPool.initialize(encodePriceSqrt('1', "1"))
                 const uniFeeRatio = await uniPool.fee()
-                // await waitForTx(
-                //     await uniPool.increaseObservationCardinalityNext(cardinalityNext),
-                //     'uniPool.increaseObservationCardinalityNext(' + cardinalityNext + ''
-                // )
                 await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
                 await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
+
             }
+        }
+        {
+            await marketRegistry.setNftContract(deployData.vBAYC.address, deployData.vMAYC.nftContract)
+            await marketRegistry.setNftContract(deployData.vMAYC.address, deployData.vMAYC.nftContract)
+        }
+        var vIsolatedToken: VirtualToken
+        var vNftAddress = ethers.Wallet.createRandom().address
+        {
+            let r = await (
+                await marketRegistry.connect(maker).createIsolatedPool(vNftAddress, 'TEST', 'TEST', encodePriceSqrt('1', "1"))
+            ).wait()
+            let log = await findPoolAddedEvents(marketRegistry as MarketRegistry, r)[0]
+            vIsolatedToken = (await ethers.getContractAt('VirtualToken', log.args.baseToken)) as VirtualToken;
         }
         {
             // deploy UniV3 factory
@@ -490,50 +544,121 @@ describe("Deployment check", () => {
             var clearingHouse = await ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address);
 
             var wETH = (await ethers.getContractAt('TestWETH9', deployData.wETH.address)) as TestWETH9;
-            const vBAYC = (await ethers.getContractAt('BaseToken', deployData.vBAYC.address)) as BaseToken;
-            const vMAYC = (await ethers.getContractAt('BaseToken', deployData.vMAYC.address)) as BaseToken;
+            const vBAYC = (await ethers.getContractAt('VirtualToken', deployData.vBAYC.address)) as VirtualToken;
+            const vMAYC = (await ethers.getContractAt('VirtualToken', deployData.vMAYC.address)) as VirtualToken;
+            const vBTkn = (await ethers.getContractAt('VirtualToken', vIsolatedToken.address)) as VirtualToken;
 
             {
-                var priceFeed = await ethers.getContractAt('NftPriceFeed', deployData.nftPriceFeedBAYC.address);
                 await waitForTx(
-                    await priceFeed.setPrice(parseEther('1'))
+                    await nftOracle.connect(priceAdmin).setNftPrice(deployData.vBAYC.nftContract, parseEther('1'))
+                )
+                await waitForTx(
+                    await nftOracle.connect(priceAdmin).setNftPrice(deployData.vMAYC.nftContract, parseEther('1'))
+                )
+                await waitForTx(
+                    await nftOracle.connect(priceAdmin).setNftPrice(vNftAddress, parseEther('1'))
                 )
             }
-            {
-                var priceFeed = await ethers.getContractAt('NftPriceFeed', deployData.nftPriceFeedMAYC.address);
-                await waitForTx(
-                    await priceFeed.setPrice(parseEther('1'))
-                )
-            }
-            for (var token of [vBAYC, vMAYC]) {
-                {
-                    // await waitForTx(
-                    //     await wETH.mint(trader1.address, parseEther('1000'))
-                    // )
-                    // await waitForTx(
-                    //     await wETH.connect(trader1).approve(vault.address, ethers.constants.MaxUint256)
-                    // )
-                    // await waitForTx(
-                    //     await vault.connect(trader1).deposit(wETH.address, parseEther('1000'))
-                    // )
-                    await waitForTx(
-                        await vault.connect(trader1).depositEther({ value: parseEther('10') })
-                    )
-                }
-                {
-                    // await waitForTx(
-                    //     await wETH.mint(trader2.address, parseEther('1000'))
-                    // )
-                    // await waitForTx(
-                    //     await wETH.connect(trader2).approve(vault.address, ethers.constants.MaxUint256)
-                    // )
-                    // await waitForTx(
-                    //     await vault.connect(trader2).deposit(wETH.address, parseEther('1000'))
-                    // )
-                    await waitForTx(
-                        await vault.connect(trader2).depositEther({ value: parseEther('10') })
-                    )
-                }
+
+            // for (var token of [vBAYC, vMAYC]) {
+            //     {
+            //         await waitForTx(
+            //             await vault.connect(trader1).depositEther(token.address, { value: parseEther('10') })
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await vault.connect(trader2).depositEther(token.address, { value: parseEther('10') })
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(maker).addLiquidity({
+            //                 baseToken: token.address,
+            //                 liquidity: parseEther('10000'),
+            //                 deadline: ethers.constants.MaxUint256,
+            //             }),
+            //             'clearingHouse.connect(maker).addLiquidity'
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(trader1).openPosition({
+            //                 baseToken: token.address,
+            //                 isBaseToQuote: true,
+            //                 isExactInput: false,
+            //                 oppositeAmountBound: 0,
+            //                 amount: parseEther("1"),
+            //                 sqrtPriceLimitX96: 0,
+            //                 deadline: ethers.constants.MaxUint256,
+            //                 referralCode: ethers.constants.HashZero,
+            //             }),
+            //             'clearingHouse.connect(trader1).openPosition'
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(trader2).openPosition({
+            //                 baseToken: token.address,
+            //                 isBaseToQuote: false,
+            //                 isExactInput: false,
+            //                 oppositeAmountBound: ethers.constants.MaxUint256,
+            //                 amount: parseEther("0.5"),
+            //                 sqrtPriceLimitX96: 0,
+            //                 deadline: ethers.constants.MaxUint256,
+            //                 referralCode: ethers.constants.HashZero,
+            //             }),
+            //             'clearingHouse.connect(trader2).openPosition'
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(maker).removeLiquidity({
+            //                 baseToken: token.address,
+            //                 liquidity: parseEther("5000"),
+            //                 deadline: ethers.constants.MaxUint256,
+            //             }),
+            //             'clearingHouse.connect(maker).removeLiquidity'
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(trader1).closePosition({
+            //                 baseToken: token.address,
+            //                 sqrtPriceLimitX96: parseEther("0"),
+            //                 oppositeAmountBound: parseEther("0"),
+            //                 deadline: ethers.constants.MaxUint256,
+            //                 referralCode: ethers.constants.HashZero,
+            //             }),
+            //             'clearingHouse.connect(trader1).closePosition'
+            //         )
+            //     }
+            //     {
+            //         await waitForTx(
+            //             await clearingHouse.connect(trader2).closePosition({
+            //                 baseToken: token.address,
+            //                 sqrtPriceLimitX96: parseEther("0"),
+            //                 oppositeAmountBound: parseEther("0"),
+            //                 deadline: ethers.constants.MaxUint256,
+            //                 referralCode: ethers.constants.HashZero,
+            //             }),
+            //             'clearingHouse.connect(trader2).closePosition'
+            //         )
+            //     }
+            //     // {
+            //     //     await waitForTx(
+            //     //         await clearingHouse.connect(maker).removeLiquidity({
+            //     //             baseToken: token.address,
+            //     //             liquidity: parseEther("5000"),
+            //     //             deadline: ethers.constants.MaxUint256,
+            //     //         }),
+            //     //         'clearingHouse.connect(maker).removeLiquidity'
+            //     //     )
+            //     // }
+            // }
+
+            // 
+            for (var token of [vBTkn]) {
                 {
                     await waitForTx(
                         await clearingHouse.connect(maker).addLiquidity({
@@ -544,24 +669,27 @@ describe("Deployment check", () => {
                         'clearingHouse.connect(maker).addLiquidity'
                     )
                 }
+
                 {
                     await waitForTx(
-                        await clearingHouse.connect(trader1).openPosition({
+                        await clearingHouse.connect(trader1).depositEtherAndOpenPosition({
                             baseToken: token.address,
                             isBaseToQuote: true,
-                            isExactInput: false,
+                            isExactInput: true,
                             oppositeAmountBound: 0,
                             amount: parseEther("1"),
                             sqrtPriceLimitX96: 0,
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
-                        }),
+                        },
+                            { value: parseEther('0.2025') }
+                        ),
                         'clearingHouse.connect(trader1).openPosition'
                     )
                 }
                 {
                     await waitForTx(
-                        await clearingHouse.connect(trader2).openPosition({
+                        await clearingHouse.connect(trader2).depositEtherAndOpenPosition({
                             baseToken: token.address,
                             isBaseToQuote: false,
                             isExactInput: false,
@@ -570,7 +698,9 @@ describe("Deployment check", () => {
                             sqrtPriceLimitX96: 0,
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
-                        }),
+                        },
+                            { value: parseEther('0.2025') }
+                        ),
                         'clearingHouse.connect(trader2).openPosition'
                     )
                 }
@@ -608,16 +738,16 @@ describe("Deployment check", () => {
                         'clearingHouse.connect(trader2).closePosition'
                     )
                 }
-                {
-                    await waitForTx(
-                        await clearingHouse.connect(maker).removeLiquidity({
-                            baseToken: token.address,
-                            liquidity: parseEther("5000"),
-                            deadline: ethers.constants.MaxUint256,
-                        }),
-                        'clearingHouse.connect(maker).removeLiquidity'
-                    )
-                }
+                // {
+                //     await waitForTx(
+                //         await clearingHouse.connect(maker).removeLiquidity({
+                //             baseToken: token.address,
+                //             liquidity: parseEther("5000"),
+                //             deadline: ethers.constants.MaxUint256,
+                //         }),
+                //         'clearingHouse.connect(maker).removeLiquidity'
+                //     )
+                // }
             }
         }
     })
