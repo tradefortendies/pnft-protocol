@@ -95,7 +95,7 @@ describe("ClearingHouse openProtocol", () => {
 
         await collateral.mint(trader1.address, parseUnits("1000000", collateralDecimals))
 
-        await collateral.connect(trader1).approve(clearingHouse.address, parseUnits("1000000", collateralDecimals))
+        await collateral.connect(trader1).approve(vault.address, parseUnits("1000000", collateralDecimals))
 
         await vPool.setMaxTickCrossedWithinBlock(baseToken.address, getMaxTickRange())
 
@@ -108,7 +108,7 @@ describe("ClearingHouse openProtocol", () => {
         await clearingHouseConfig.setDurationRepegOverPriceSpread(0)
 
         // maker add liquidity
-        await clearingHouse.connect(maker).addLiquidity({
+        await clearingHouse.connect(creator).addLiquidity({
             baseToken: baseToken.address,
             liquidity: parseEther('1000'),
             deadline: ethers.constants.MaxUint256,
@@ -138,8 +138,7 @@ describe("ClearingHouse openProtocol", () => {
                 oppositeAmountBound: parseEther("0"),
                 deadline: ethers.constants.MaxUint256,
                 referralCode: ethers.constants.HashZero,
-            },
-            collateral.address
+            }
         )
 
         let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]

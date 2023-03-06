@@ -176,6 +176,24 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     }
 
     /// @inheritdoc IVault
+    function requestDepositFor(
+        address trader,
+        address token,
+        uint256 amount,
+        address baseToken
+    ) external override whenNotPaused nonReentrant onlySettlementOrCollateralToken(token) {
+        // input requirement checks:
+        //   token: here
+        //   amount: _deposit
+        _requireOnlyClearingHouse();
+
+        // V_DFZA: Deposit for zero address
+        require(trader != address(0), "V_DFZA");
+
+        _deposit(trader, trader, token, amount, baseToken);
+    }
+
+    /// @inheritdoc IVault
     function depositEther(address baseToken) external payable override whenNotPaused nonReentrant {
         address to = _msgSender();
         _depositEther(to, baseToken);
@@ -238,7 +256,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         return amount;
     }
 
-    function withdrawAllFor(
+    function requestWithdrawAllFor(
         address trader,
         address token,
         address baseToken
@@ -250,7 +268,11 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         address to = trader;
         amount = getFreeCollateralByToken(to, token, baseToken);
 
-        _withdraw(to, token, amount, baseToken);
+        if (token == _WETH9) {
+            _withdrawEther(to, amount, baseToken);
+        } else {
+            _withdraw(to, token, amount, baseToken);
+        }
         return amount;
     }
 
@@ -265,7 +287,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         return amount;
     }
 
-    function withdrawAllEtherFor(
+    function requestWithdrawAllEtherFor(
         address trader,
         address baseToken
     ) external override whenNotPaused nonReentrant returns (uint256 amount) {

@@ -249,8 +249,7 @@ interface IClearingHouse {
     ) external returns (uint256 base, uint256 quote, uint256 fee);
 
     function closePositionAndWithdrawAll(
-        DataTypes.ClosePositionParams memory params,
-        address token
+        DataTypes.ClosePositionParams memory params
     ) external returns (uint256 base, uint256 quote, uint256 fee);
 
     /// @notice liquidate trader's position and will liquidate the max possible position size
