@@ -325,7 +325,8 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     /// @inheritdoc IVault
     function getBalance(address trader, address baseToken) public view override returns (int256) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            return _isolatedBalance[baseToken][trader][_settlementToken];
+            // revert("TODO");
         } else {
             return _crossBalance[trader][_settlementToken];
         }
@@ -334,7 +335,8 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     /// @inheritdoc IVault
     function getBalanceByToken(address trader, address token, address baseToken) public view override returns (int256) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            return _isolatedBalance[baseToken][trader][token];
+            // revert("TODO");
         } else {
             return _crossBalance[trader][token];
         }
@@ -511,7 +513,10 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         }
 
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            int256 oldBalance = _isolatedBalance[baseToken][trader][token];
+            int256 newBalance = oldBalance.add(amount);
+            _isolatedBalance[baseToken][trader][token] = newBalance;
+            // revert("TODO");
         } else {
             int256 oldBalance = _crossBalance[trader][token];
             int256 newBalance = oldBalance.add(amount);

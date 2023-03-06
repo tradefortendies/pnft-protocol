@@ -153,7 +153,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     function registerBaseToken(address trader, address baseToken) external override {
         _requireOnlyClearingHouse();
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            // revert("TODO");
         } else {
             address[] storage tokensStorage = _baseTokensMap[trader];
             if (_hasBaseToken(tokensStorage, baseToken)) {
@@ -254,7 +254,11 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         address baseToken
     ) external view override returns (int256 _owedRealizedPnl, int256 unrealizedPnl) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            int256 totalPositionValue = getTotalPositionValue(trader, baseToken);
+            int256 netQuoteBalance = _getNetQuoteBalanceAndPendingFee(trader, baseToken);
+            unrealizedPnl = totalPositionValue.add(netQuoteBalance);
+            _owedRealizedPnl = _isolatedOwedRealizedPnlMap[baseToken][trader];
+            // revert("TODO");
         } else {
             int256 totalPositionValue;
             uint256 tokenLen = _baseTokensMap[trader].length;
@@ -375,7 +379,9 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     function getTotalAbsPositionValue(address trader, address baseToken) public view override returns (uint256) {
         uint256 totalPositionValue;
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            uint256 positionValue = getTotalPositionValue(trader, baseToken).abs();
+            totalPositionValue = totalPositionValue.add(positionValue);
+            // revert("TODO");
         } else {
             address[] memory tokens = _baseTokensMap[trader];
             uint256 tokenLen = tokens.length;
@@ -386,7 +392,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
                 totalPositionValue = totalPositionValue.add(positionValue);
             }
         }
-
         return totalPositionValue;
     }
 
@@ -551,17 +556,27 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     function _modifyOwedRealizedPnl(address trader, int256 amount, address baseToken) internal {
         if (amount != 0) {
             if (_isIsolated(baseToken)) {
-                revert("TODO");
+                _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
+                    amount
+                );
+                // revert("TODO");
             } else {
                 _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
-                emit PnlRealized(trader, baseToken, amount);
             }
+            emit PnlRealized(trader, baseToken, amount);
         }
     }
 
     function _modifyOwedRealizedPnlPlatformFee(address trader, int256 amount, address baseToken) internal {
         if (amount != 0) {
-            _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
+            if (_isIsolated(baseToken)) {
+                _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
+                    amount
+                );
+                // revert("TODO");
+            } else {
+                _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
+            }
             emit PnlRealizedForPlatformFee(trader, baseToken, amount);
         }
     }
@@ -604,7 +619,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         delete _accountMarketMap[trader][baseToken];
 
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            // revert("TODO");
         } else {
             address[] storage tokensStorage = _baseTokensMap[trader];
             uint256 tokenLen = tokensStorage.length;
@@ -651,7 +666,9 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         address baseToken
     ) internal view returns (int256 netQuoteBalance) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            int256 totalTakerQuoteBalance = _accountMarketMap[trader][baseToken].takerOpenNotional;
+            netQuoteBalance = totalTakerQuoteBalance;
+            // revert("TODO");
         } else {
             int256 totalTakerQuoteBalance;
             uint256 tokenLen = _baseTokensMap[trader].length;
@@ -661,9 +678,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
                     _accountMarketMap[trader][baseToken].takerOpenNotional
                 );
             }
-            // pendingFee is included
-            int256 totalMakerQuoteBalance;
-            netQuoteBalance = totalTakerQuoteBalance.add(totalMakerQuoteBalance);
+            netQuoteBalance = totalTakerQuoteBalance;
         }
         return netQuoteBalance;
     }

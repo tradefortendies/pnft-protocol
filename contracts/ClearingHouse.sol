@@ -215,7 +215,9 @@ contract ClearingHouse is
 
         int256 fundingPaymentTotal;
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            (, int256 fundingPayment) = GenericLogic.settleFunding(address(this), trader, baseToken);
+            fundingPaymentTotal = fundingPaymentTotal.add(fundingPayment);
+            // revert("TODO");
         } else {
             address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
             uint256 baseTokenLength = baseTokens.length;

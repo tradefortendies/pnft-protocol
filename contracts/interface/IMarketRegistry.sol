@@ -85,6 +85,8 @@ interface IMarketRegistry {
 
     function getNftContract(address baseToken) external view returns (address);
 
+    function getCreator(address baseToken) external view returns (address);
+
     function isIsolated(address baseToken) external view returns (bool);
 
     function getInsuranceFundFeeRatioGlobal() external view returns (uint24);

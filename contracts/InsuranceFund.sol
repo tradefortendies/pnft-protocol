@@ -99,7 +99,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     //
     function getRepegAccumulatedFund(address baseToken) external view override returns (int256) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            return _accumulatedRepegFundMap[baseToken];
+            // revert("TODO");
         } else {
             return _accumulatedRepegFund;
         }
@@ -107,7 +108,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
 
     function getRepegDistributedFund(address baseToken) external view override returns (int256) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            return _distributedRepegFundMap[baseToken];
+            // revert("TODO");
         } else {
             return _distributedRepegFund;
         }
@@ -117,7 +119,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
 
     function _addRepegFund(uint256 fund, address baseToken) internal {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            _accumulatedRepegFundMap[baseToken] = _accumulatedRepegFundMap[baseToken].add(fund.toInt256());
+            // revert("TODO");
         } else {
             _accumulatedRepegFund = _accumulatedRepegFund.add(fund.toInt256());
         }
@@ -125,7 +128,10 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
 
     function _distributeRepegFund(int256 fund, address baseToken) internal {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            _distributedRepegFundMap[baseToken] = _distributedRepegFundMap[baseToken].add(fund);
+            // RF_LF: limit fund
+            require(_distributedRepegFundMap[baseToken] <= _accumulatedRepegFundMap[baseToken], "RF_LF");
+            // revert("TODO");
         } else {
             _distributedRepegFund = _distributedRepegFund.add(fund);
             // RF_LF: limit fund

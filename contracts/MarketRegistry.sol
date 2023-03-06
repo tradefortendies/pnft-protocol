@@ -296,6 +296,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return _nftContractMap[baseToken] == address(0) ? baseToken : _nftContractMap[baseToken];
     }
 
+    function getCreator(address baseToken) external view override checkPool(baseToken) returns (address) {
+        return _creatorMap[baseToken];
+    }
+
     /// @inheritdoc IMarketRegistry
     function getMarketInfo(address baseToken) external view override checkPool(baseToken) returns (MarketInfo memory) {
         return

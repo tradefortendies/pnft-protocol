@@ -446,7 +446,8 @@ contract VPool is
         address baseToken
     ) external view override returns (int256 pendingFundingPayment) {
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseToken));
+            // revert("TODO");
         } else {
             address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
             uint256 baseTokenLength = baseTokens.length;

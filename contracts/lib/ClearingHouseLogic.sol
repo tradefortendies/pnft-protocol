@@ -353,6 +353,12 @@ library ClearingHouseLogic {
                 .getSharePlatformFeeRatioGlobal();
             // for creator
             int256 creatorFee = amount.mulRatio(shareFeeRatio);
+            address creator = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getCreator(baseToken);
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
+                creator,
+                baseToken,
+                creatorFee
+            );
             // for platform
             int256 platformFundFee = amount.sub(creatorFee);
             IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
@@ -360,7 +366,7 @@ library ClearingHouseLogic {
                 baseToken,
                 platformFundFee
             );
-            revert("TODO");
+            // revert("TODO");
         } else {
             IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
                 platformFund,
