@@ -48,43 +48,50 @@
         "address": "0xC5aA0A7a8a43AEe563C3a3B86A6FD0AD56f04353",
         "name": "vBAYC",
         "symbol": "vBAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
     },
     "vMAYC": {
         "address": "0x3210d8d5FA3a5211799f553dEfe1dCc3DED780ec",
         "name": "vMAYC",
         "symbol": "vMAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6"
     },
     "vCRYPTOPUNKS": {
         "address": "0x2634c45EC9B830AaD1202Ae9bc8174b7ee4a62a4",
         "name": "vCRYPTOPUNKS",
         "symbol": "vCRYPTOPUNKS",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6"
     },
     "vMOONBIRD": {
         "address": "0x65DfCF84E7F31F71cFDFa065A88485910AfBea57",
         "name": "vMOONBIRD",
         "symbol": "vMOONBIRD",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x23581767a106ae21c074b2276D25e5C3e136a68b"
     },
     "vAZUKI": {
         "address": "0xbA8BDb0Ecdd63Ad4a822C56aA81749d5Db113499",
         "name": "vAZUKI",
         "symbol": "vAZUKI",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xED5AF388653567Af2F388E6224dC7C4b3241C544"
     },
     "vCLONEX": {
         "address": "0x3847206974383D9Bb35eAd6037d2e7317e11AcE8",
         "name": "vCLONEX",
         "symbol": "vCLONEX",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B"
     },
     "vDOODLE": {
         "address": "0xC0133Be9b68B02C8c85CC621D61307C9BF0428F0",
         "name": "vDOODLE",
         "symbol": "vDOODLE",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e"
     },
     "priceAdminAddress": "0x9686203be0cae320bb4Dee971BB8a530A15EF489",
     "platformFundAddress": "0x618B9BD8C290D55af7fBD5185b178071Fec8DF36",
@@ -156,6 +163,14 @@
     "limitOrderBook": {
         "address": "0xac2e1b11E68A8d43036690A975944d8F4B826817",
         "implAddress": "0xbcAB8cC871F2bF5d9E6F3AB104729DB605B0F8b4"
+    },
+    "nftOracle": {
+        "address": "",
+        "implAddress": ""
+    },
+    "vBaseToken": {
+        "address": "",
+        "implAddress": ""
     },
     "testCheck": {
         "addLiquidity": false,

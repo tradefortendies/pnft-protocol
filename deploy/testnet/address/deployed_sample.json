@@ -48,43 +48,50 @@
         "address": "",
         "name": "vBAYC",
         "symbol": "vBAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
     },
     "vMAYC": {
         "address": "",
         "name": "vMAYC",
         "symbol": "vMAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6"
     },
     "vCRYPTOPUNKS": {
         "address": "",
         "name": "vCRYPTOPUNKS",
         "symbol": "vCRYPTOPUNKS",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6"
     },
     "vMOONBIRD": {
         "address": "",
         "name": "vMOONBIRD",
         "symbol": "vMOONBIRD",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x23581767a106ae21c074b2276D25e5C3e136a68b"
     },
     "vAZUKI": {
         "address": "",
         "name": "vAZUKI",
         "symbol": "vAZUKI",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xED5AF388653567Af2F388E6224dC7C4b3241C544"
     },
     "vCLONEX": {
         "address": "",
         "name": "vCLONEX",
         "symbol": "vCLONEX",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B"
     },
     "vDOODLE": {
         "address": "",
         "name": "vDOODLE",
         "symbol": "vDOODLE",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e"
     },
     "priceAdminAddress": "0x9686203be0cae320bb4Dee971BB8a530A15EF489",
     "platformFundAddress": "0x618B9BD8C290D55af7fBD5185b178071Fec8DF36",
@@ -150,6 +157,14 @@
         "implAddress": ""
     },
     "limitOrderBook": {
+        "address": "",
+        "implAddress": ""
+    },
+    "nftOracle": {
+        "address": "",
+        "implAddress": ""
+    },
+    "vBaseToken": {
         "address": "",
         "implAddress": ""
     },

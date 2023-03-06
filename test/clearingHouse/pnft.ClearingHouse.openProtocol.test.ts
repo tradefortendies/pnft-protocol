@@ -20,7 +20,7 @@ import { forwardBothTimestamps } from "../shared/time"
 import { encodePriceSqrt } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
-describe("ClearingHouse openProtocol random trade liquidity repeg close", () => {
+describe("ClearingHouse openProtocol", () => {
 
     const [admin, maker, trader1, trader2, liquidator, priceAdmin, creator, fundingFund, platformFund] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
@@ -102,7 +102,7 @@ describe("ClearingHouse openProtocol random trade liquidity repeg close", () => 
         await nftOracle.setNftPrice(nftAddress, parseUnits(initPrice, 18))
     })
 
-    it("random check", async () => {
+    it("isolated check", async () => {
         await forwardBothTimestamps(clearingHouse, 86400)
 
         await clearingHouseConfig.setDurationRepegOverPriceSpread(0)

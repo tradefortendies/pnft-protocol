@@ -17,6 +17,7 @@ type TokenData = {
     treasuryAddress: string,
     rewardAddress: string,
     communityAddress: string,
+    nftContract: string,
 }
 
 type ContractData = {
@@ -63,6 +64,8 @@ type DeployData = {
     referralAdminAddress: string,
     referralPayment: ContractData,
     limitOrderBook: ContractData,
+    nftOracle: ContractData,
+    vBaseToken: ContractData,
     testFaucet: ContractData,
     testCheck: {
         addLiquidity: boolean,

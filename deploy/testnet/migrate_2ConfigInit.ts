@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault, LimitOrderBook } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault, LimitOrderBook, NFTOracle } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
@@ -34,6 +34,7 @@ async function deploy() {
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
     var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+    var nftOracle = (await hre.ethers.getContractAt('NFTOracle', deployData.nftOracle.address)) as NFTOracle;
 
     var uniFeeTier = '3000' // 0.3%
 
@@ -122,6 +123,76 @@ async function deploy() {
             await clearingHouse.setDelegateApproval(limitOrderBook.address), 'await clearingHouse.setDelegateApproval(limitOrderBook.address)'
         )
     }
+
+    // new update for open protocol
+
+    if ((await nftOracle.getPriceAdmin()).toLowerCase() != priceAdmin.address.toLowerCase()) {
+        await waitForTx(
+            await nftOracle.setPriceAdmin(priceAdmin.address),
+            'nftOracle.setPriceAdmin(' + priceAdmin.address + ')'
+        )
+    }
+
+    await waitForTx(
+        await marketRegistry.setInsuranceFundFeeRatioGlobal(500),
+        'marketRegistry.setInsuranceFundFeeRatioGlobal(500)'
+    )
+    await waitForTx(
+        await marketRegistry.setPlatformFundFeeRatioGlobal(2000),
+        'marketRegistry.setPlatformFundFeeRatioGlobal(2000)'
+    )
+    await waitForTx(
+        await marketRegistry.setOptimalDeltaTwapRatioGlobal(30000),
+        'marketRegistry.setOptimalDeltaTwapRatioGlobal(30000)'
+    )
+    await waitForTx(
+        await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000),
+        'marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)'
+    )
+    await waitForTx(
+        await marketRegistry.setOptimalFundingRatioGlobal(250000),
+        'marketRegistry.setOptimalFundingRatioGlobal(250000)'
+    )
+    await waitForTx(
+        await marketRegistry.setSharePlatformFeeRatioGlobal(500000),
+        'marketRegistry.setSharePlatformFeeRatioGlobal(500000)'
+    )
+    await waitForTx(
+        await marketRegistry.setMinPoolLiquidityGlobal(parseEther('10')),
+        'marketRegistry.setMinPoolLiquidityGlobal(parseEther(10))'
+    )
+    await waitForTx(
+        await marketRegistry.setMaxPoolLiquidityGlobal(parseEther('1000000')),
+        'marketRegistry.setMaxPoolLiquidityGlobal(parseEther(1000000))'
+    )
+
+    await waitForTx(
+        await vPool.setNftOracle(nftOracle.address),
+        'vPool.setNftOracle(nftOracle.address)'
+    )
+
+    await waitForTx(
+        await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
+        'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
+    )
+
+    await waitForTx(
+        await vETH.setMarketRegistry(marketRegistry.address),
+        'vETH.setMarketRegistry(marketRegistry.address)'
+    )
+
+    await waitForTx(
+        await vault.setMarketRegistry(marketRegistry.address),
+        'vault.setMarketRegistry(marketRegistry.address)'
+    )
+    await waitForTx(
+        await accountBalance.setMarketRegistry(marketRegistry.address),
+        'accountBalance.setMarketRegistry(marketRegistry.address)'
+    )
+    await waitForTx(
+        await insuranceFund.setMarketRegistry(marketRegistry.address),
+        'insuranceFund.setMarketRegistry(marketRegistry.address)'
+    )
 }
 
 // We recommend this pattern to be able to use async/await everywhere

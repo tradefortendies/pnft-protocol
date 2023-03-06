@@ -203,7 +203,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _nftContractMap[baseToken] = nftContractArg;
     }
 
-    function setVBaseToken(address vBaseTokenArg) external {
+    function setVBaseToken(address vBaseTokenArg) external onlyOwner {
         _vBaseToken = vBaseTokenArg;
     }
 

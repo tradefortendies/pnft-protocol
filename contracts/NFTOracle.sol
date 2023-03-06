@@ -28,7 +28,7 @@ contract NFTOracle is INFTOracle, BlockContext, OwnerPausable, NFTOracleStorage 
         _priceFeedAdmin = _msgSender();
     }
 
-    function setPriceAdmin(address priceAdminArg) external {
+    function setPriceAdmin(address priceAdminArg) external onlyOwner {
         _priceFeedAdmin = priceAdminArg;
     }
 

@@ -39,52 +39,59 @@
         "symbol": "vETH",
         "decimals": 18,
         "address": "0xf2A15eF3F5E00F8B47cdc9f86C46e69166Ad78Ae",
-        "implAddress": "0xC77A11a096334bF5b346E922abC66732C9b7c3C6"
+        "implAddress": ""
     },
     "baseToken": {
-        "implAddress": "0x7138d2e889520edE028Ea9133242301099c14EC4"
+        "implAddress": ""
     },
     "vBAYC": {
         "address": "0x7Af8864718ab2391C1E03668D44AF2E9dBEb1a61",
         "name": "vBAYC",
         "symbol": "vBAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
     },
     "vMAYC": {
         "address": "0x18f941471c298f19349d1Cfe7910cD73021C1FEb",
         "name": "vMAYC",
         "symbol": "vMAYC",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6"
     },
     "vCRYPTOPUNKS": {
         "address": "0x841b156a6b5997A3c86D6eab0d430A27756De7D7",
         "name": "vCRYPTOPUNKS",
         "symbol": "vCRYPTOPUNKS",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6"
     },
     "vMOONBIRD": {
         "address": "0xc81589f5F98b39276FAcb1B76626A104CD82693c",
         "name": "vMOONBIRD",
         "symbol": "vMOONBIRD",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x23581767a106ae21c074b2276D25e5C3e136a68b"
     },
     "vAZUKI": {
         "address": "0x061DDf8e0704398EB92b8103Dc2df945ad45FD48",
         "name": "vAZUKI",
         "symbol": "vAZUKI",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0xED5AF388653567Af2F388E6224dC7C4b3241C544"
     },
     "vCLONEX": {
         "address": "0x1BbBe185E4DEeE1da03fd7282439323D884552d9",
         "name": "vCLONEX",
         "symbol": "vCLONEX",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B"
     },
     "vDOODLE": {
         "address": "0xcfda1C6A4dCB4B487a20e3E00c98cA9Ca7494DeE",
         "name": "vDOODLE",
         "symbol": "vDOODLE",
-        "decimals": 18
+        "decimals": 18,
+        "nftContract": "0x8a90CAb2b38dba80c64b7734e58Ee1dB38B8992e"
     },
     "priceAdminAddress": "0x9686203be0cae320bb4Dee971BB8a530A15EF489",
     "platformFundAddress": "0x618B9BD8C290D55af7fBD5185b178071Fec8DF36",
@@ -94,21 +101,21 @@
         "address": "0x4893376342d5D7b3e31d4184c08b265e5aB2A3f6"
     },
     "uniswapV3Broker": {
-        "address": "0x57535d978306C5E239C081947cDD6498C3195649"
+        "address": ""
     },
     "genericLogic": {
-        "address": "0xe518719D4Dc5b6069306b1bb9c33f805aF92b691"
+        "address": ""
     },
     "clearingHouseLogic": {
-        "address": "0x4c2B788DcA9850687dABe46843a25AD78f39d39A"
+        "address": ""
     },
     "clearingHouseConfig": {
         "address": "0xf09dA90C5BE6Aa124C8AC54444CbFb2E36f6d162",
-        "implAddress": "0xc649c95eF5d9352ac4B5a41d3B71243177331E17"
+        "implAddress": ""
     },
     "marketRegistry": {
         "address": "0x524Fc468F6432aa216Fc9f9009826ca19a32Cf75",
-        "implAddress": "0xae44F9ae1302Ed38bFDC50AF955A72151dE8122c"
+        "implAddress": ""
     },
     "accountBalance": {
         "address": "0xB7216EdDC3A6e2a560CA81Cb2f242C424CE3d0B2",
@@ -116,15 +123,15 @@
     },
     "vPool": {
         "address": "0x11810deA012E77521cf994C82B8Cf05Eb786DB1A",
-        "implAddress": "0xcc515d8b264a023Eecf15A595707D71775Aca11D"
+        "implAddress": ""
     },
     "insuranceFund": {
         "address": "0xFbCdd83BF266a49e35b860d29C9B92Aca155a441",
-        "implAddress": "0x6F4f251c59e2D47DebaaCAb4fa44f103Cd35EF4c"
+        "implAddress": ""
     },
     "vault": {
         "address": "0xEb4a7EcA1EDBc0910ad524d71c5505Bd213871A9",
-        "implAddress": "0xfAd011efEf0719104B04d04fdCc965e66B66CD53"
+        "implAddress": ""
     },
     "clearingHouse": {
         "address": "0x98081433437D574C3E399EfBD028fBDF3A174E89",
@@ -154,6 +161,14 @@
         "implAddress": ""
     },
     "testFaucet": {
+        "address": "",
+        "implAddress": ""
+    },
+    "nftOracle": {
+        "address": "",
+        "implAddress": ""
+    },
+    "vBaseToken": {
         "address": "",
         "implAddress": ""
     },
