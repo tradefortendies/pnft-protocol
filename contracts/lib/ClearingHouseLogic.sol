@@ -14,6 +14,7 @@ import { PerpSafeCast } from "./PerpSafeCast.sol";
 import { PerpMath } from "./PerpMath.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
+import { SafeERC20Upgradeable, IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 import { DataTypes } from "../types/DataTypes.sol";
 import { GenericLogic } from "../lib/GenericLogic.sol";
 import { UniswapV3Broker } from "../lib/UniswapV3Broker.sol";
@@ -354,7 +355,7 @@ library ClearingHouseLogic {
             // for creator
             int256 creatorFee = amount.mulRatio(shareFeeRatio);
             address creator = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getCreator(baseToken);
-            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForCreatorFee(
                 creator,
                 baseToken,
                 creatorFee

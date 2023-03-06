@@ -107,6 +107,12 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     }
 
     /// @inheritdoc IAccountBalance
+    function modifyOwedRealizedPnlForCreatorFee(address trader, address baseToken, int256 amount) external override {
+        _requireOnlyClearingHouse();
+        _modifyOwedRealizedPnlCreatorFee(trader, amount, baseToken);
+    }
+
+    /// @inheritdoc IAccountBalance
     function settleQuoteToOwedRealizedPnl(address trader, address baseToken, int256 amount) external override {
         _requireOnlyClearingHouse();
         _settleQuoteToOwedRealizedPnl(trader, baseToken, amount);
@@ -569,6 +575,13 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
 
     function _modifyOwedRealizedPnlPlatformFee(address trader, int256 amount, address baseToken) internal {
         if (amount != 0) {
+            _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
+            emit PnlRealizedForPlatformFee(trader, baseToken, amount);
+        }
+    }
+
+    function _modifyOwedRealizedPnlCreatorFee(address trader, int256 amount, address baseToken) internal {
+        if (amount != 0) {
             if (_isIsolated(baseToken)) {
                 _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
                     amount
@@ -577,7 +590,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
             } else {
                 _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
             }
-            emit PnlRealizedForPlatformFee(trader, baseToken, amount);
+            emit PnlRealizedForCreatorFee(trader, baseToken, amount);
         }
     }
 
@@ -619,6 +632,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         delete _accountMarketMap[trader][baseToken];
 
         if (_isIsolated(baseToken)) {
+            // update isolated balance -> cross balance
             // revert("TODO");
         } else {
             address[] storage tokensStorage = _baseTokensMap[trader];

@@ -59,6 +59,11 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         require(maker == _maker, "V_OM");
     }
 
+    function _requireOnlyClearingHouse() internal view {
+        // only AccountBalance
+        require(_msgSender() == _clearingHouse, "RF_OCH");
+    }
+
     //
     // EXTERNAL NON-VIEW
     //
@@ -233,11 +238,44 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         return amount;
     }
 
+    function withdrawAllFor(
+        address trader,
+        address token,
+        address baseToken
+    ) external override whenNotPaused nonReentrant onlySettlementOrCollateralToken(token) returns (uint256 amount) {
+        // input requirement checks:
+        //   token: here
+        _requireOnlyClearingHouse();
+
+        address to = trader;
+        amount = getFreeCollateralByToken(to, token, baseToken);
+
+        _withdraw(to, token, amount, baseToken);
+        return amount;
+    }
+
     /// @inheritdoc IVault
     function withdrawAllEther(address baseToken) external override whenNotPaused nonReentrant returns (uint256 amount) {
         _requireWETH9IsCollateral();
 
         address to = _msgSender();
+        amount = getFreeCollateralByToken(to, _WETH9, baseToken);
+
+        _withdrawEther(to, amount, baseToken);
+        return amount;
+    }
+
+    function withdrawAllEtherFor(
+        address trader,
+        address baseToken
+    ) external override whenNotPaused nonReentrant returns (uint256 amount) {
+        // input requirement checks:
+        //   amount: in _settleAndDecreaseBalance()
+        _requireOnlyClearingHouse();
+
+        _requireWETH9IsCollateral();
+
+        address to = trader;
         amount = getFreeCollateralByToken(to, _WETH9, baseToken);
 
         _withdrawEther(to, amount, baseToken);

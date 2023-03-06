@@ -67,9 +67,13 @@ interface IVault {
     /// @return amount The amount of the token withdrawn
     function withdrawAll(address token, address baseToken) external returns (uint256 amount);
 
+    function withdrawAllFor(address trader, address token, address baseToken) external returns (uint256 amount);
+
     /// @notice Withdraw all free collateral of ETH from vault
     /// @return amount The amount of ETH withdrawn
     function withdrawAllEther(address baseToken) external returns (uint256 amount);
+
+    function withdrawAllEtherFor(address trader, address baseToken) external returns (uint256 amount);
 
     /// @notice Settle trader's bad debt
     /// @param trader The address of trader that will be settled
