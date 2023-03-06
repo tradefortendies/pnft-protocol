@@ -120,7 +120,9 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         // only vault
         require(_msgSender() == _vault, "AB_OV");
         if (_isIsolated(baseToken)) {
-            revert("TODO");
+            owedRealizedPnl = _isolatedOwedRealizedPnlMap[baseToken][trader];
+            _isolatedOwedRealizedPnlMap[baseToken][trader] = 0;
+            // revert("TODO");
         } else {
             owedRealizedPnl = _owedRealizedPnlMap[trader];
             _owedRealizedPnlMap[trader] = 0;
