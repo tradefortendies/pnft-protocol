@@ -108,7 +108,7 @@
     },
     "marketRegistry": {
         "address": "0x3BD6d15c820a1bff279E8753452C3291fC312e73",
-        "implAddress": ""
+        "implAddress": "0xBBDEd7C9a89e439b29A4B725Ad489969Bf11AF09"
     },
     "accountBalance": {
         "address": "0x5c5013d440F10BFDe25d6a1f4e8C99b14171e064",
@@ -120,7 +120,7 @@
     },
     "insuranceFund": {
         "address": "0x940183a411B6C5F399B8cFa441a1cB47E176F589",
-        "implAddress": "0x7569Ff76fd66b98c5a75340059fdeeed984efFf7"
+        "implAddress": "0x66E905A24fe9b97887Aea3f96744605de0E7321d"
     },
     "vault": {
         "address": "0xBb7aBf614B09409187BB79bCA3c14Bb0014b5534",
@@ -143,12 +143,12 @@
     },
     "rewardMiner": {
         "address": "0xaa684b6b3bC53bC91f2d7283Ce7779E9D7151E17",
-        "implAddress": "0xd08Cd1F159Bcd46f488bb991B22B4DBf365fD1B6"
+        "implAddress": "0x4dd20a8f3Edf4c97F07DCBa4ecA1648385717EeA"
     },
     "referralAdminAddress": "0x9d627aE1D76318137977E923D80f2CDba4c89861",
     "referralPayment": {
         "address": "0x6E4F8902128bbc8f8f37f8259C83Cb90d2CedF48",
-        "implAddress": "0xDd61d1377bE33A2C61B009b23811D1073c33b068"
+        "implAddress": "0xd9CEB5D03666504d10aFEaF8d6CAAEF46E729E77"
     },
     "limitOrderBook": {
         "address": "",

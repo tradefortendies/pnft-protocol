@@ -83,7 +83,7 @@ contract RewardMiner is IRewardMiner, BlockContext, OwnerPausable, RewardMinerSt
         _clearingHouse = clearingHouseArg;
     }
 
-    // function setPnftToken(address pnftTokenArg) external {
+    // function setPnftToken(address pnftTokenArg) external onlyOwner {
     //     _isContract(pnftTokenArg, "RM_PTNC");
     //     _pnftToken = pnftTokenArg;
     // }
