@@ -17,15 +17,15 @@ interface IInsuranceFund {
 
         /// @notice Get `InsuranceFund` capacity
     /// @return capacityX10_S The capacity value (settlementTokenValue + walletBalance) in settlement token's decimals
-    function getInsuranceFundCapacity() external view returns (int256 capacityX10_S);
+    function getInsuranceFundCapacity(address baseToken) external view returns (int256 capacityX10_S);
 
     function getClearingHouse() external view returns (address);
 
-    function getRepegAccumulatedFund() external view returns (int256);
+    function getRepegAccumulatedFund(address baseToken) external view returns (int256);
 
-    function getRepegDistributedFund() external view returns (int256);
+    function getRepegDistributedFund(address baseToken) external view returns (int256);
 
-    function addRepegFund(uint256 fund) external;
+    function addRepegFund(uint256 fund, address baseToken) external;
 
-    function repegFund(int256 fund) external;
+    function repegFund(int256 fund, address baseToken) external;
 }

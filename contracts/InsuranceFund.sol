@@ -9,13 +9,14 @@ import { PerpMath } from "./lib/PerpMath.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { InsuranceFundStorageV1 } from "./storage/InsuranceFundStorage.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
-import { InsuranceFundStorageV2 } from "./storage/InsuranceFundStorage.sol";
+import { InsuranceFundStorageV3 } from "./storage/InsuranceFundStorage.sol";
 import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
+import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IVault } from "./interface/IVault.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
-contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausable, InsuranceFundStorageV2 {
+contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausable, InsuranceFundStorageV3 {
     using AddressUpgradeable for address;
     using SignedSafeMathUpgradeable for int256;
     using PerpMath for int256;
@@ -71,50 +72,80 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return _clearingHouse;
     }
 
+    function setMarketRegistry(address marketRegistryArg) external onlyOwner {
+        require(marketRegistryArg.isContract(), "IF_MRNC");
+        _marketRegistry = marketRegistryArg;
+    }
+
     //
     // PUBLIC VIEW
     //
 
     /// @inheritdoc IInsuranceFund
-    function getInsuranceFundCapacity() public view override returns (int256) {
+    function getInsuranceFundCapacity(address baseToken) public view override returns (int256) {
         address vault = _vault;
-        address token = _token;
+        int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this), baseToken);
+        return insuranceFundSettlementTokenValueX10_S;
 
-        int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this));
-        int256 insuranceFundWalletBalanceX10_S = IERC20Upgradeable(token).balanceOf(address(this)).toInt256();
-        return insuranceFundSettlementTokenValueX10_S.add(insuranceFundWalletBalanceX10_S);
+        // address vault = _vault;
+        // address token = _token;
+
+        // int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this), baseToken);
+        // int256 insuranceFundWalletBalanceX10_S = IERC20Upgradeable(token).balanceOf(address(this)).toInt256();
+
+        // return insuranceFundSettlementTokenValueX10_S.add(insuranceFundWalletBalanceX10_S);
     }
 
     //
-    function getRepegAccumulatedFund() external view override returns (int256) {
-        return _accumulatedRepegFund;
+    function getRepegAccumulatedFund(address baseToken) external view override returns (int256) {
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            return _accumulatedRepegFund;
+        }
     }
 
-    function getRepegDistributedFund() external view override returns (int256) {
-        return _distributedRepegFund;
+    function getRepegDistributedFund(address baseToken) external view override returns (int256) {
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            return _distributedRepegFund;
+        }
     }
 
     // internal function
 
-    function _addRepegFund(uint256 fund) internal {
-        _accumulatedRepegFund = _accumulatedRepegFund.add(fund.toInt256());
+    function _addRepegFund(uint256 fund, address baseToken) internal {
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            _accumulatedRepegFund = _accumulatedRepegFund.add(fund.toInt256());
+        }
     }
 
-    function _distributeRepegFund(int256 fund) internal {
-        _distributedRepegFund = _distributedRepegFund.add(fund);
-        // RF_LF: limit fund
-        require(_distributedRepegFund <= _accumulatedRepegFund, "RF_LF");
+    function _distributeRepegFund(int256 fund, address baseToken) internal {
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            _distributedRepegFund = _distributedRepegFund.add(fund);
+            // RF_LF: limit fund
+            require(_distributedRepegFund <= _accumulatedRepegFund, "RF_LF");
+        }
     }
 
     // external function
 
-    function addRepegFund(uint256 fund) external override {
+    function addRepegFund(uint256 fund, address baseToken) external override {
         _requireOnlyClearingHouse();
-        _addRepegFund(fund);
+        _addRepegFund(fund, baseToken);
     }
 
-    function repegFund(int256 fund) external override {
+    function repegFund(int256 fund, address baseToken) external override {
         _requireOnlyClearingHouse();
-        _distributeRepegFund(fund);
+        _distributeRepegFund(fund, baseToken);
+    }
+
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
     }
 }

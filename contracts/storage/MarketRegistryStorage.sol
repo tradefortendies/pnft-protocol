@@ -10,9 +10,7 @@ abstract contract MarketRegistryStorageV1 {
 
     uint8 internal _maxOrdersPerMarket;
 
-    address internal _vBaseToken;
-
-    address[9] private __gap1;
+    address[10] private __gap1;
     uint256[10] private __gap2;
 
     // key: baseToken, value: pool
@@ -32,12 +30,29 @@ abstract contract MarketRegistryStorageV1 {
     mapping(address => uint24) internal _optimalFundingRatioMap;
 
     mapping(address => uint24) internal _unhealthyDeltaTwapRatioMap;
+}
 
+abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
+    //
+    address internal _vBaseToken;
+    //
+    uint24 internal _insuranceFundFeeRatioGlobal; //[baseToken] = 500; // 0.05%
+    uint24 internal _platformFundFeeRatioGlobal; //[baseToken] = 2000; // 0.2%
+    uint24 internal _optimalDeltaTwapRatioGlobal; //[baseToken] = 30000; // 3%
+    uint24 internal _unhealthyDeltaTwapRatioGlobal; //[baseToken] = 50000; // 5%
+    uint24 internal _optimalFundingRatioGlobal; //[baseToken] = 250000; // 25%
+    uint128 internal _minPoolLiquidityGlobal;
+    uint128 internal _maxPoolLiquidityGlobal;
+    // percent share platform fee
+    uint24 internal _sharePlatformFeeRatioGlobal; //[baseToken] = 500000; // 50%
+    //
     mapping(address => address) internal _nftContractMap;
-
+    // baseToken
     mapping(address => bool) internal _isolatedMap;
-
+    // baseToken
     mapping(address => address) internal _creatorMap;
-
+    //
     mapping(address => address) internal _feeReceiverMap;
+    //
+    mapping(address => uint24) internal _sharePlatformFeeRatioMap;
 }

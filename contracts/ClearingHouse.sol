@@ -208,17 +208,21 @@ contract ClearingHouse is
     }
 
     /// @inheritdoc IClearingHouse
-    function settleAllFunding(address trader) external override {
+    function settleAllFunding(address trader, address baseToken) external override {
         // only vault or trader
         // vault must check msg.sender == trader when calling settleAllFunding
         require(_msgSender() == _vault || _msgSender() == trader, "CH_OVOT");
 
-        address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
-        uint256 baseTokenLength = baseTokens.length;
         int256 fundingPaymentTotal;
-        for (uint256 i = 0; i < baseTokenLength; i++) {
-            (, int256 fundingPayment) = GenericLogic.settleFunding(address(this), trader, baseTokens[i]);
-            fundingPaymentTotal = fundingPaymentTotal.add(fundingPayment);
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
+            uint256 baseTokenLength = baseTokens.length;
+            for (uint256 i = 0; i < baseTokenLength; i++) {
+                (, int256 fundingPayment) = GenericLogic.settleFunding(address(this), trader, baseTokens[i]);
+                fundingPaymentTotal = fundingPaymentTotal.add(fundingPayment);
+            }
         }
         // reward miner
         ClearingHouseLogic.rewardMinerMint(address(this), trader, 0, fundingPaymentTotal.neg256());
@@ -264,7 +268,7 @@ contract ClearingHouse is
         (base, quote, fee) = _openPositionFor(trader, params);
 
         // transfer fee to keeper
-        ClearingHouseLogic.realizedPnlTransfer(address(this), trader, executor, executorFee);
+        ClearingHouseLogic.realizedPnlTransfer(address(this), trader, executor, params.baseToken, executorFee);
 
         return (base, quote, fee);
     }
@@ -420,7 +424,7 @@ contract ClearingHouse is
     //     return IVault(_vault).getAccountValue(trader).parseSettlementToken(_settlementTokenDecimals);
     // }
 
-    function getLiquidity(address baseToken) external view returns (uint128) {
+    function getLiquidity(address baseToken) external view override returns (uint128) {
         address pool = IMarketRegistry(_marketRegistry).getPool(baseToken);
         return UniswapV3Broker.getLiquidity(pool);
     }
@@ -477,15 +481,15 @@ contract ClearingHouse is
 
     /// @dev liquidation condition:
     ///      accountValue < sum(abs(positionValue_by_market)) * mmRatio = totalMinimumMarginRequirement
-    function isLiquidatable(address trader) external view returns (bool) {
-        return GenericLogic.isLiquidatable(address(this), trader);
+    function isLiquidatable(address trader, address baseToken) external view returns (bool) {
+        return GenericLogic.isLiquidatable(address(this), trader, baseToken);
     }
 
     function _isContract(address contractArg, string memory errorMsg) internal view {
         require(contractArg.isContract(), errorMsg);
     }
 
-    function isAbleRepeg(address baseToken) public view returns (bool) {
+    function isAbleRepeg(address baseToken) external view override returns (bool) {
         (uint256 longPositionSize, uint256 shortPositionSize) = IAccountBalance(_accountBalance).getMarketPositionSize(
             baseToken
         );
@@ -503,75 +507,10 @@ contract ClearingHouse is
 
     ///REPEG
     function repeg(address baseToken) external {
-        // check isAbleRepeg
-        // CH_NRP: not repeg
-        require(isAbleRepeg(baseToken), "CH_NRP");
-        //settleFundingGlobal
-        GenericLogic.settleFundingGlobal(address(this), baseToken);
-        //variable
-        InternalRepegParams memory repegParams;
-        (repegParams.oldSqrtMarkPrice, , , , , , ) = UniswapV3Broker.getSlot0(
-            IMarketRegistry(_marketRegistry).getPool(baseToken)
-        );
-        repegParams.oldMarkPrice = repegParams.oldSqrtMarkPrice.formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        repegParams.spotPrice = IVPool(_vPool).getIndexPrice(baseToken);
-        repegParams.sqrtSpotPrice = repegParams.spotPrice.formatPriceX10_18ToSqrtPriceX96();
+        ClearingHouseLogic.repeg(address(this), baseToken);
+    }
 
-        if (repegParams.spotPrice != repegParams.oldMarkPrice) {
-            // check mark price != index price over 10% and over 1 hour
-            // calculate delta base (11) of long short -> delta quote (1)
-            // for multiplier
-            (
-                repegParams.oldLongPositionSize,
-                repegParams.oldShortPositionSize,
-                repegParams.oldDeltaQuote
-            ) = GenericLogic.getInfoMultiplier(address(this), baseToken);
-            // for multiplier
-
-            // calculate base amount for openPosition -> spot price
-            // maker openPosition -> spot price
-            bool isRepegUp = repegParams.spotPrice > repegParams.oldMarkPrice;
-            //internal swap
-            IVPool(_vPool).internalSwap(
-                IVPool.SwapParams({
-                    trader: msg.sender,
-                    baseToken: baseToken,
-                    isBaseToQuote: !isRepegUp,
-                    isExactInput: true,
-                    isClose: false,
-                    amount: type(uint256).max.div(1e10),
-                    sqrtPriceLimitX96: repegParams.sqrtSpotPrice
-                })
-            );
-            // calculate delta quote (1) -> new delta base (22)
-            // calculate scale -> new mark price => rate = (% delta price)
-            // calculate scale for long short = (diff delta base on (11 - 22)) / (total_long + total_short)
-            // if delta base < 0 -> decrase delta long short
-            // -> if long > short -> decrease long and increase short
-            // -> if long < short -> increase long and decrease short
-            // if delta base > 0 -> increase delta long short
-            // -> if long > short -> increase long and decrease short
-            // -> if long < short -> decrease long and increase short
-            // update scale for position size for long short
-            (repegParams.newSqrtMarkPrice, , , , , , ) = UniswapV3Broker.getSlot0(
-                IMarketRegistry(_marketRegistry).getPool(baseToken)
-            );
-            repegParams.newMarkPrice = repegParams.newSqrtMarkPrice.formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-            // for multiplier
-            GenericLogic.updateInfoMultiplier(
-                address(this),
-                baseToken,
-                repegParams.oldLongPositionSize,
-                repegParams.oldShortPositionSize,
-                repegParams.oldDeltaQuote,
-                repegParams.oldMarkPrice,
-                repegParams.newMarkPrice,
-                false
-            );
-            // for multiplier
-            IVPool(_vPool).updateOverPriceSpreadTimestamp(baseToken);
-            // emit event
-            emit Repeg(baseToken, repegParams.oldMarkPrice, repegParams.newMarkPrice);
-        }
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
     }
 }

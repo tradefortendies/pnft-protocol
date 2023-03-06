@@ -7,32 +7,13 @@ interface IVault {
     /// @param collateralToken The address of token deposited
     /// @param trader The address of trader
     /// @param amount The amount of token deposited
-    event Deposited(address indexed collateralToken, address indexed trader, uint256 amount);
+    event Deposited(address indexed collateralToken, address indexed trader, uint256 amount, address baseToken);
 
     /// @notice Emitted when trader withdraw collateral from vault
     /// @param collateralToken The address of token withdrawn
     /// @param trader The address of trader
     /// @param amount The amount of token withdrawn
-    event Withdrawn(address indexed collateralToken, address indexed trader, uint256 amount);
-
-    /// @notice Emitted when a trader's collateral is liquidated
-    /// @param trader The address of trader
-    /// @param collateralToken The address of the token that is liquidated
-    /// @param liquidator The address of liquidator
-    /// @param collateral The amount of collateral token liquidated
-    /// @param repaidSettlementWithoutInsuranceFundFeeX10_S The amount of settlement token repaid
-    ///        for trader (in settlement token's decimals)
-    /// @param insuranceFundFeeX10_S The amount of insurance fund fee paid(in settlement token's decimals)
-    /// @param discountRatio The discount ratio of liquidation price
-    event CollateralLiquidated(
-        address indexed trader,
-        address indexed collateralToken,
-        address indexed liquidator,
-        uint256 collateral,
-        uint256 repaidSettlementWithoutInsuranceFundFeeX10_S,
-        uint256 insuranceFundFeeX10_S,
-        uint24 discountRatio
-    );
+    event Withdrawn(address indexed collateralToken, address indexed trader, uint256 amount, address baseToken);
 
     /// @notice Emitted when trustedForwarder is changed
     /// @dev trustedForwarder is only used for metaTx
@@ -43,10 +24,6 @@ interface IVault {
     /// @param clearingHouse The address of clearingHouse
     event ClearingHouseChanged(address indexed clearingHouse);
 
-    /// @notice Emitted when collateralManager is changed
-    /// @param collateralManager The address of collateralManager
-    event CollateralManagerChanged(address indexed collateralManager);
-
     event MakerChanged(address indexed maker);
 
     /// @notice Emitted when WETH9 is changed
@@ -56,51 +33,47 @@ interface IVault {
     /// @notice Emitted when bad debt realized and settled
     /// @param trader Address of the trader
     /// @param amount Absolute amount of bad debt
-    event BadDebtSettled(address indexed trader, uint256 amount);
+    event BadDebtSettled(address indexed trader, uint256 amount, address baseToken);
 
     /// @notice Deposit collateral into vault
     /// @param token The address of the token to deposit
     /// @param amount The amount of the token to deposit
-    function deposit(address token, uint256 amount) external;
+    function deposit(address token, uint256 amount, address baseToken) external;
 
     /// @notice Deposit the collateral token for other account
     /// @param to The address of the account to deposit to
     /// @param token The address of collateral token
     /// @param amount The amount of the token to deposit
-    function depositFor(
-        address to,
-        address token,
-        uint256 amount
-    ) external;
+    function depositFor(address to, address token, uint256 amount, address baseToken) external;
 
     /// @notice Deposit ETH as collateral into vault
-    function depositEther() external payable;
+    function depositEther(address baseToken) external payable;
 
     /// @notice Deposit ETH as collateral for specified account
     /// @param to The address of the account to deposit to
-    function depositEtherFor(address to) external payable;
+    function depositEtherFor(address to, address baseToken) external payable;
 
     /// @notice Withdraw collateral from vault
     /// @param token The address of the token to withdraw
     /// @param amount The amount of the token to withdraw
-    function withdraw(address token, uint256 amount) external;
+    function withdraw(address token, uint256 amount, address baseToken) external;
 
     /// @notice Withdraw ETH from vault
     /// @param amount The amount of the ETH to withdraw
-    function withdrawEther(uint256 amount) external;
+    function withdrawEther(uint256 amount, address baseToken) external;
 
     /// @notice Withdraw all free collateral from vault
     /// @param token The address of the token to withdraw
     /// @return amount The amount of the token withdrawn
-    function withdrawAll(address token) external returns (uint256 amount);
+    function withdrawAll(address token, address baseToken) external returns (uint256 amount);
 
     /// @notice Withdraw all free collateral of ETH from vault
     /// @return amount The amount of ETH withdrawn
-    function withdrawAllEther() external returns (uint256 amount);
+    function withdrawAllEther(address baseToken) external returns (uint256 amount);
 
     /// @notice Settle trader's bad debt
     /// @param trader The address of trader that will be settled
-    function settleBadDebt(address trader) external;
+    function settleBadDebt(address trader, address baseToken) external;
 
     /// @notice Get the specified trader's settlement token balance, without pending fee, funding payment
     ///         and owed realized PnL
@@ -110,28 +83,24 @@ interface IVault {
     ///      because the latter includes pending fee, funding payment etc.
     ///      and therefore more accurately reflects a trader's settlement (ex. USDC) balance
     /// @return balance The balance amount (in settlement token's decimals)
-    function getBalance(address trader) external view returns (int256 balance);
+    function getBalance(address trader, address baseToken) external view returns (int256 balance);
 
     /// @notice Get the balance of Vault of the specified collateral token and trader
     /// @param trader The address of the trader
     /// @param token The address of the collateral token
     /// @return balance The balance amount (in its native decimals)
-    function getBalanceByToken(address trader, address token) external view returns (int256 balance);
-
-    /// @notice Get they array of collateral token addresses that a trader has
-    /// @return collateralTokens array of collateral token addresses
-    function getCollateralTokens(address trader) external view returns (address[] memory collateralTokens);
+    function getBalanceByToken(address trader, address token, address baseToken) external view returns (int256 balance);
 
     /// @notice Get account value of the specified trader
     /// @param trader The address of the trader
     /// @return accountValueX10_S account value (in settlement token's decimals)
-    function getAccountValue(address trader) external view returns (int256 accountValueX10_S);
+    function getAccountValue(address trader, address baseToken) external view returns (int256 accountValueX10_S);
 
     /// @notice Get the free collateral value denominated in the settlement token of the specified trader
     /// @param trader The address of the trader
     /// @return freeCollateral the value (in settlement token's decimals) of free collateral available
     ///         for withdraw or opening new positions or orders)
-    function getFreeCollateral(address trader) external view returns (uint256 freeCollateral);
+    function getFreeCollateral(address trader, address baseToken) external view returns (uint256 freeCollateral);
 
     /// @notice Get the free collateral amount of the specified trader and collateral ratio
     /// @dev There are three configurations for different insolvency risk tolerances:
@@ -141,16 +110,21 @@ interface IVault {
     /// @param ratio The margin requirement ratio, imRatio or mmRatio
     /// @return freeCollateralByRatio freeCollateral (in settlement token's decimals), by using the
     ///         input margin requirement ratio; can be negative
-    function getFreeCollateralByRatio(address trader, uint24 ratio)
-        external
-        view
-        returns (int256 freeCollateralByRatio);
+    function getFreeCollateralByRatio(
+        address trader,
+        uint24 ratio,
+        address baseToken
+    ) external view returns (int256 freeCollateralByRatio);
 
     /// @notice Get the free collateral amount of the specified collateral token of specified trader
     /// @param trader The address of the trader
     /// @param token The address of the collateral token
     /// @return freeCollateral amount of that token (in the token's native decimals)
-    function getFreeCollateralByToken(address trader, address token) external view returns (uint256 freeCollateral);
+    function getFreeCollateralByToken(
+        address trader,
+        address token,
+        address baseToken
+    ) external view returns (uint256 freeCollateral);
 
     /// @notice Get the specified trader's settlement value, including pending fee, funding payment,
     ///         owed realized PnL and unrealized PnL
@@ -160,7 +134,7 @@ interface IVault {
     ///      In practical applications, we use `getSettlementTokenValue()` to get the trader's debt (if < 0)
     /// @param trader The address of the trader
     /// @return balance The balance amount (in settlement token's decimals)
-    function getSettlementTokenValue(address trader) external view returns (int256 balance);
+    function getSettlementTokenValue(address trader, address baseToken) external view returns (int256 balance);
 
     /// @notice Get the settlement token address
     /// @dev We assume the settlement token should match the denominator of the price oracle.

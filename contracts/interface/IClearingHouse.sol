@@ -193,7 +193,7 @@ interface IClearingHouse {
 
     /// @notice Settle all markets fundingPayment to owedRealized Pnl
     /// @param trader The address of trader
-    function settleAllFunding(address trader) external;
+    function settleAllFunding(address trader, address baseToken) external;
 
     /// @notice Trader can call `openPosition` to long/short on baseToken market
     /// @dev - `OpenPositionParams.oppositeAmountBound`
@@ -309,4 +309,8 @@ interface IClearingHouse {
     function getPlatformFund() external view returns (address platformFund);
 
     function getMarketRegistry() external view returns (address marketRegistry);
+
+    function isAbleRepeg(address baseToken) external view returns (bool);
+
+    function getLiquidity(address baseToken) external view returns (uint128);
 }

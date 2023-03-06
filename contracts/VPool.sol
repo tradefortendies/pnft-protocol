@@ -441,12 +441,18 @@ contract VPool is
     }
 
     /// @inheritdoc IVPool
-    function getAllPendingFundingPayment(address trader) external view override returns (int256 pendingFundingPayment) {
-        address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
-        uint256 baseTokenLength = baseTokens.length;
-
-        for (uint256 i = 0; i < baseTokenLength; i++) {
-            pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseTokens[i]));
+    function getAllPendingFundingPayment(
+        address trader,
+        address baseToken
+    ) external view override returns (int256 pendingFundingPayment) {
+        if (_isIsolated(baseToken)) {
+            revert("TODO");
+        } else {
+            address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
+            uint256 baseTokenLength = baseTokens.length;
+            for (uint256 i = 0; i < baseTokenLength; i++) {
+                pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseTokens[i]));
+            }
         }
         return pendingFundingPayment;
     }
@@ -865,5 +871,9 @@ contract VPool is
         DataTypes.OpenPositionParams memory params
     ) external view override returns (UniswapV3Broker.ReplaySwapResponse memory) {
         return ClearingHouseLogic.estimateSwap(_clearingHouse, params);
+    }
+
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
     }
 }

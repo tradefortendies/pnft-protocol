@@ -95,7 +95,7 @@ interface IVPool {
     /// @notice Get all the pending funding payment for a trader
     /// @return pendingFundingPayment The pending funding payment of the trader.
     /// Positive value means the trader pays funding, negative value means the trader receives funding.
-    function getAllPendingFundingPayment(address trader) external view returns (int256 pendingFundingPayment);
+    function getAllPendingFundingPayment(address trader, address baseToken) external view returns (int256 pendingFundingPayment);
 
     /// @notice Check if current price spread between market price and index twap is over maximum price spread.
     /// @param baseToken Address of the base token

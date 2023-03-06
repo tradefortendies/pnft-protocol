@@ -12,6 +12,7 @@ abstract contract VPoolStorageV1 {
     address internal _clearingHouseConfig;
 
     address internal _nftOracle;
+
     address[9] private __gap1;
     uint256[10] private __gap2;
 

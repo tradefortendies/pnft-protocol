@@ -30,4 +30,5 @@ interface IClearingHouseConfig {
 
     /// @return isBackstopLiquidityProvider is backstop liquidity provider
     function isBackstopLiquidityProvider(address account) external view returns (bool isBackstopLiquidityProvider);
+
 }

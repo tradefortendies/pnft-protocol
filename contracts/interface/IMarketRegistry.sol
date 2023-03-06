@@ -15,9 +15,9 @@ interface IMarketRegistry {
 
     /// @notice Emitted when a new market is created.
     /// @param baseToken The address of the base token
-    /// @param feeRatio Fee ratio of the market
+    /// @param nftContract Fee ratio of the market
     /// @param pool The address of the pool
-    event PoolAdded(address indexed baseToken, uint24 indexed feeRatio, address indexed pool);
+    event PoolAdded(address indexed baseToken, address nftContract, address creator, address indexed pool);
 
     /// @notice Emitted when the fee ratio of a market is updated.
     /// @param baseToken The address of the base token
@@ -32,26 +32,6 @@ interface IMarketRegistry {
     /// @notice Emitted when the max orders per market is updated.
     /// @param maxOrdersPerMarket Max orders per market
     event MaxOrdersPerMarketChanged(uint8 maxOrdersPerMarket);
-
-    /// @dev Add a new pool to the registry.
-    /// @param baseToken The token that the pool is for.
-    /// @param feeRatio The fee ratio for the pool.
-    /// @return pool The address of the pool.
-    function addPool(address baseToken, uint24 feeRatio) external returns (address pool);
-
-    /// @dev Set the fee ratio for a pool
-    /// @param baseToken The token address of the pool.
-    /// @param feeRatio The fee ratio for the pool.
-    function setPlatformFundFeeRatio(address baseToken, uint24 feeRatio) external;
-
-    /// @dev Set insurance fund fee ratio for a pool
-    /// @param baseToken The token address of the pool.
-    /// @param insuranceFundFeeRatioArg The fee ratio for the pool.
-    function setInsuranceFundFeeRatio(address baseToken, uint24 insuranceFundFeeRatioArg) external;
-
-    /// @dev Set max allowed orders per market
-    /// @param maxOrdersPerMarketArg The max allowed orders per market
-    function setMaxOrdersPerMarket(uint8 maxOrdersPerMarketArg) external;
 
     /// @notice Get the pool address (UNIv3 pool) by given base token address
     /// @param baseToken The address of the base token
@@ -101,7 +81,25 @@ interface IMarketRegistry {
 
     /// @notice Check if a pool exist by given base token address
     /// @return hasPool True if the pool exist, false otherwise
-    function hasPool(address baseToken) external view returns (bool hasPool);
+    function hasPool(address baseToken) external view returns (bool);
 
     function getNftContract(address baseToken) external view returns (address);
+
+    function isIsolated(address baseToken) external view returns (bool);
+
+    function getInsuranceFundFeeRatioGlobal() external view returns (uint24);
+
+    function getPlatformFundFeeRatioGlobal() external view returns (uint24);
+
+    function getOptimalDeltaTwapRatioGlobal() external view returns (uint24);
+
+    function getUnhealthyDeltaTwapRatioGlobal() external view returns (uint24);
+
+    function getOptimalFundingRatioGlobal() external view returns (uint24);
+
+    function getSharePlatformFeeRatioGlobal() external view returns (uint24);
+
+    function getMinPoolLiquidityGlobal() external view returns (uint128);
+
+    function getMaxPoolLiquidityGlobal() external view returns (uint128);
 }

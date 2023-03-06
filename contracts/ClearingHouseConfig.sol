@@ -47,6 +47,7 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
         _twapInterval = 0;
         _settlementTokenBalanceCap = type(uint256).max;
         _durationRepegOverPriceSpread = 8 hours;
+        //
     }
 
     function setImRatio(uint24 imRatioArg) external checkRatio(imRatioArg) onlyOwner {
@@ -154,4 +155,5 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
     function getDurationRepegOverPriceSpread() external view override returns (uint256 duration) {
         return _durationRepegOverPriceSpread;
     }
+
 }

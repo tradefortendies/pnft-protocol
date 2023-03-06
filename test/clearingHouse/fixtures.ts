@@ -1,5 +1,5 @@
 import { MockContract, smockit } from "@eth-optimism/smock"
-import { parseEther, parseUnits } from "ethers/lib/utils"
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
     AccountBalance,
@@ -289,11 +289,24 @@ export function createClearingHouseFixture(
 
         await clearingHouse.setDelegateApproval(limitOrderBook.address)
 
+        // new update for open protocol
+        await marketRegistry.setInsuranceFundFeeRatioGlobal(500);
+        await marketRegistry.setPlatformFundFeeRatioGlobal(2000)
+        await marketRegistry.setOptimalDeltaTwapRatioGlobal(30000)
+        await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)
+        await marketRegistry.setOptimalFundingRatioGlobal(250000)
+        await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
+        await marketRegistry.setMinPoolLiquidityGlobal(parseEther('10'))
+        await marketRegistry.setMaxPoolLiquidityGlobal(parseEther('1000000'))
+        // max liquidity TODO
+
         const NFTOracle = await ethers.getContractFactory("NFTOracle")
         const nftOracle = (await NFTOracle.deploy()) as NFTOracle
         await nftOracle.initialize()
-
         await vPool.setNftOracle(nftOracle.address)
+
+        // update nft address old baseToken
+        // 
 
         await quoteToken.setMarketRegistry(marketRegistry.address)
 
@@ -301,6 +314,10 @@ export function createClearingHouseFixture(
         const vBaseToken = (await VirtualToken.deploy()) as VirtualToken
 
         await marketRegistry.setVBaseToken(vBaseToken.address)
+
+        await vault.setMarketRegistry(marketRegistry.address)
+        await accountBalance.setMarketRegistry(marketRegistry.address)
+        await insuranceFund.setMarketRegistry(marketRegistry.address)
 
         return {
             clearingHouse,

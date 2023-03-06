@@ -11,7 +11,9 @@ abstract contract AccountBalanceStorageV1 {
     address internal __orderBook;
     address internal _vault;
 
-    address[10] private __gap1;
+    address internal _marketRegistry;
+
+    address[9] private __gap1;
     uint256[10] private __gap2;
 
     // trader => owedRealizedPnl
@@ -25,4 +27,9 @@ abstract contract AccountBalanceStorageV1 {
 
     // first key: trader, second key: baseToken
     mapping(address => mapping(address => DataTypes.AccountMarketInfo)) internal _accountMarketMap;
+}
+
+abstract contract AccountBalanceStorageV2 is AccountBalanceStorageV1 {
+    // baseToken -> user -> isolated relaized pnl
+    mapping(address => mapping(address => int256)) internal _isolatedOwedRealizedPnlMap;
 }
