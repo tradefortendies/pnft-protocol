@@ -470,64 +470,65 @@ describe("Deployment check", () => {
                 await insuranceFund.setMarketRegistry(marketRegistry.address)
             }
 
-            const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);
-            {
-                await uniswapV3Factory.createPool(deployData.vBAYC.address, deployData.vETH.address, uniFeeTier)
-                const poolBAYCAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
-                const poolBAYC = await ethers.getContractAt('UniswapV3Pool', poolBAYCAddr);
-                await vBAYC.addWhitelist(poolBAYC.address)
-                await vETH.addWhitelist(poolBAYC.address)
-            }
+        //     const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);
+        //     {
+        //         await uniswapV3Factory.createPool(deployData.vBAYC.address, deployData.vETH.address, uniFeeTier)
+        //         const poolBAYCAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
+        //         const poolBAYC = await ethers.getContractAt('UniswapV3Pool', poolBAYCAddr);
+        //         await vBAYC.addWhitelist(poolBAYC.address)
+        //         await vETH.addWhitelist(poolBAYC.address)
+        //     }
 
-            const vMAYC = await ethers.getContractAt('BaseToken', deployData.vMAYC.address);
-            {
-                await uniswapV3Factory.createPool(deployData.vMAYC.address, deployData.vETH.address, uniFeeTier)
-                const poolMAYCAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
-                const poolMAYC = await ethers.getContractAt('UniswapV3Pool', poolMAYCAddr);
-                await vMAYC.addWhitelist(poolMAYC.address)
-                await vETH.addWhitelist(poolMAYC.address)
-            }
+        //     const vMAYC = await ethers.getContractAt('BaseToken', deployData.vMAYC.address);
+        //     {
+        //         await uniswapV3Factory.createPool(deployData.vMAYC.address, deployData.vETH.address, uniFeeTier)
+        //         const poolMAYCAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
+        //         const poolMAYC = await ethers.getContractAt('UniswapV3Pool', poolMAYCAddr);
+        //         await vMAYC.addWhitelist(poolMAYC.address)
+        //         await vETH.addWhitelist(poolMAYC.address)
+        //     }
 
-            // deploy clearingHouse
+        //     // deploy clearingHouse
             await vETH.addWhitelist(clearingHouse.address)
-            await vBAYC.addWhitelist(clearingHouse.address)
-            await vMAYC.addWhitelist(clearingHouse.address)
+        //     await vBAYC.addWhitelist(clearingHouse.address)
+        //     await vMAYC.addWhitelist(clearingHouse.address)
 
             await vETH.mintMaximumTo(clearingHouse.address)
-            await vBAYC.mintMaximumTo(clearingHouse.address)
-            await vMAYC.mintMaximumTo(clearingHouse.address)
+        //     await vBAYC.mintMaximumTo(clearingHouse.address)
+        //     await vMAYC.mintMaximumTo(clearingHouse.address)
 
-            // initMarket
-            var maxTickCrossedWithinBlock: number = getMaxTickRange()
-            // vBAYC
-            {
-                const poolAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
-                const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
-                await uniPool.initialize(encodePriceSqrt('1', "1"))
-                const uniFeeRatio = await uniPool.fee()
-                await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
-                await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
-            }
-            // vMAYC
-            {
-                const poolAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
-                const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
-                await uniPool.initialize(encodePriceSqrt('1', "1"))
-                const uniFeeRatio = await uniPool.fee()
-                await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
-                await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
+        //     // initMarket
+        //     var maxTickCrossedWithinBlock: number = getMaxTickRange()
+        //     // vBAYC
+        //     {
+        //         const poolAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
+        //         const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
+        //         await uniPool.initialize(encodePriceSqrt('1', "1"))
+        //         const uniFeeRatio = await uniPool.fee()
+        //         await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
+        //         await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
+        //     }
+        //     // vMAYC
+        //     {
+        //         const poolAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
+        //         const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
+        //         await uniPool.initialize(encodePriceSqrt('1', "1"))
+        //         const uniFeeRatio = await uniPool.fee()
+        //         await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
+        //         await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
 
-            }
+        //     }
         }
-        {
-            await marketRegistry.setNftContract(deployData.vBAYC.address, deployData.vMAYC.nftContract)
-            await marketRegistry.setNftContract(deployData.vMAYC.address, deployData.vMAYC.nftContract)
-        }
+        // {
+        //     await marketRegistry.setNftContract(deployData.vBAYC.address, deployData.vMAYC.nftContract)
+        //     await marketRegistry.setNftContract(deployData.vMAYC.address, deployData.vMAYC.nftContract)
+        // }
+
         var vIsolatedToken: VirtualToken
         var vNftAddress = ethers.Wallet.createRandom().address
         {
             let r = await (
-                await marketRegistry.connect(maker).createIsolatedPool(vNftAddress, 'TEST', 'TEST', encodePriceSqrt('1', "1"))
+                await marketRegistry.connect(maker).createIsolatedPool(vNftAddress, 'TEST', encodePriceSqrt('1', "1"), parseEther('10000'))
             ).wait()
             let log = await findPoolAddedEvents(marketRegistry as MarketRegistry, r)[0]
             vIsolatedToken = (await ethers.getContractAt('VirtualToken', log.args.baseToken)) as VirtualToken;

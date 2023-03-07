@@ -69,7 +69,7 @@ describe("ClearingHouse openProtocol", () => {
         {
 
             let r = await (
-                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'vTEST', 'vTEST', encodePriceSqrt(initPrice, "1"), parseEther('10000'))
+                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"), parseEther('10000'))
             ).wait()
 
             let log = await findPoolAddedEvents(marketRegistry, r)[0]

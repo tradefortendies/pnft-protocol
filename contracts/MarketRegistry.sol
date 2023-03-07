@@ -67,14 +67,13 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function createIsolatedPool(
         address nftContractArg,
-        string memory nameArg,
         string memory symbolArg,
         uint160 sqrtPriceX96,
         uint128 liquidity
     ) external returns (address, address) {
         uint24 uniFeeTier = 3000;
         // create baseToken
-        address baseToken = _createBaseToken(nameArg, symbolArg, sqrtPriceX96);
+        address baseToken = _createBaseToken(symbolArg, sqrtPriceX96);
         // add pool
         address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
         //
@@ -87,11 +86,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return (baseToken, uniPool);
     }
 
-    function _createBaseToken(
-        string memory nameArg,
-        string memory symbolArg,
-        uint160 sqrtPriceX96
-    ) internal returns (address) {
+    function _createBaseToken(string memory symbolArg, uint160 sqrtPriceX96) internal returns (address) {
         // appne prefix v for symbol
         symbolArg = string(abi.encodePacked("v", symbolArg));
         //
@@ -99,7 +94,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         // create baseToken
         bytes memory _initializationCalldata = abi.encodeWithSignature(
             "__VirtualToken_initialize(string,string)",
-            nameArg,
+            symbolArg,
             symbolArg
         );
         address baseToken = ClonesUpgradeable.clone(_vBaseToken);
