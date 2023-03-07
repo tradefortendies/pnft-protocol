@@ -53,6 +53,12 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _uniswapV3Factory = uniswapV3FactoryArg;
         _quoteToken = quoteTokenArg;
         _maxOrdersPerMarket = type(uint8).max;
+
+        _insuranceFundFeeRatioGlobal = 500; // 0.05%
+        _platformFundFeeRatioGlobal = 2000; // 0.2%
+        _optimalDeltaTwapRatioGlobal = 30000; // 3%
+        _unhealthyDeltaTwapRatioGlobal = 50000; // 5%
+        _optimalFundingRatioGlobal = 250000; // 25%
     }
 
     function addPool(address baseToken, address nftContractArg, uint24 feeRatio) external onlyOwner returns (address) {
@@ -165,12 +171,6 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _feeReceiverMap[baseToken] = feeReceiverArg;
         _creatorMap[baseToken] = creatorArg;
         _isolatedMap[baseToken] = isIsolatedArg;
-
-        _insuranceFundFeeRatioGlobal = 500; // 0.05%
-        _platformFundFeeRatioGlobal = 2000; // 0.2%
-        _optimalDeltaTwapRatioGlobal = 30000; // 3%
-        _unhealthyDeltaTwapRatioGlobal = 50000; // 5%
-        _optimalFundingRatioGlobal = 250000; // 25%
 
         emit PoolAdded(baseToken, nftContractArg, creatorArg, isIsolatedArg, uniPool);
 
