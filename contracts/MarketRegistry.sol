@@ -59,6 +59,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _optimalDeltaTwapRatioGlobal = 30000; // 3%
         _unhealthyDeltaTwapRatioGlobal = 50000; // 5%
         _optimalFundingRatioGlobal = 250000; // 25%
+
+        _minQuoteTickCrossedGlobal = 1 ether;
+        _maxQuoteTickCrossedGlobal = 1e3 ether;
     }
 
     function addPool(address baseToken, address nftContractArg, uint24 feeRatio) external onlyOwner returns (address) {
@@ -238,12 +241,12 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _sharePlatformFeeRatioGlobal = sharePlatformFeeRatioGlobalArg;
     }
 
-    function setMinPoolLiquidityGlobal(uint128 minPoolLiquidityGlobalArg) external onlyOwner {
-        _minPoolLiquidityGlobal = minPoolLiquidityGlobalArg;
+    function setMinQuoteTickCrossedGlobal(uint128 minQuoteTickCrossedGlobalArg) external onlyOwner {
+        _minQuoteTickCrossedGlobal = minQuoteTickCrossedGlobalArg;
     }
 
-    function setMaxPoolLiquidityGlobal(uint128 maxPoolLiquidityGlobalArg) external onlyOwner {
-        _maxPoolLiquidityGlobal = maxPoolLiquidityGlobalArg;
+    function setMaxQuoteTickCrossedGlobal(uint128 maxQuoteTickCrossedGlobalArg) external onlyOwner {
+        _maxQuoteTickCrossedGlobal = maxQuoteTickCrossedGlobalArg;
     }
 
     //
@@ -343,11 +346,11 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return _sharePlatformFeeRatioGlobal;
     }
 
-    function getMinPoolLiquidityGlobal() external view override returns (uint128) {
-        return _minPoolLiquidityGlobal;
+    function getMinQuoteTickCrossedGlobal() external view override returns (uint256) {
+        return _minQuoteTickCrossedGlobal;
     }
 
-    function getMaxPoolLiquidityGlobal() external view override returns (uint128) {
-        return _maxPoolLiquidityGlobal;
+    function getMaxQuoteTickCrossedGlobal() external view override returns (uint256) {
+        return _maxQuoteTickCrossedGlobal;
     }
 }

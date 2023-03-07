@@ -296,8 +296,8 @@ export function createClearingHouseFixture(
         await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)
         await marketRegistry.setOptimalFundingRatioGlobal(250000)
         await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
-        await marketRegistry.setMinPoolLiquidityGlobal(parseEther('10'))
-        await marketRegistry.setMaxPoolLiquidityGlobal(parseEther('1000000'))
+        await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1'))
+        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('10000000000'))
         // max liquidity TODO
 
         const NFTOracle = await ethers.getContractFactory("NFTOracle")

@@ -107,7 +107,7 @@ interface IMarketRegistry {
 
     function getSharePlatformFeeRatioGlobal() external view returns (uint24);
 
-    function getMinPoolLiquidityGlobal() external view returns (uint128);
+    function getMinQuoteTickCrossedGlobal() external view returns (uint256);
 
-    function getMaxPoolLiquidityGlobal() external view returns (uint128);
+    function getMaxQuoteTickCrossedGlobal() external view returns (uint256);
 }

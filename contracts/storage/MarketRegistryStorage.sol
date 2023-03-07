@@ -41,8 +41,8 @@ abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
     uint24 internal _optimalDeltaTwapRatioGlobal; //[baseToken] = 30000; // 3%
     uint24 internal _unhealthyDeltaTwapRatioGlobal; //[baseToken] = 50000; // 5%
     uint24 internal _optimalFundingRatioGlobal; //[baseToken] = 250000; // 25%
-    uint128 internal _minPoolLiquidityGlobal;
-    uint128 internal _maxPoolLiquidityGlobal;
+    uint256 internal _minQuoteTickCrossedGlobal;
+    uint256 internal _maxQuoteTickCrossedGlobal;
     // percent share platform fee
     uint24 internal _sharePlatformFeeRatioGlobal; //[baseToken] = 500000; // 50%
     //
