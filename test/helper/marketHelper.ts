@@ -26,7 +26,7 @@ export async function initMarket(
 
     // update config
     const marketRegistry = fixture.marketRegistry
-    await marketRegistry.addPool(baseToken, uniFeeRatio)
+    await marketRegistry.addPool(baseToken, ethers.Wallet.createRandom().address, uniFeeRatio)
     // await marketRegistry.setFeeRatio(baseToken, exFeeRatio)
     // await marketRegistry.setInsuranceFundFeeRatio(baseToken, ifFeeRatio)
 

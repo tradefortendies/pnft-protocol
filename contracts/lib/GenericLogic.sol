@@ -592,7 +592,7 @@ library GenericLogic {
         //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
         //   minBase, minQuote & deadline: here
 
-        checkMarketOpen(chAddress, params.baseToken);
+        // checkMarketOpen(chAddress, params.baseToken);
 
         // This condition is to prevent the intentional bad debt attack through price manipulation.
         // CH_OMPS: Over the maximum price spread

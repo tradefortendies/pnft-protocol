@@ -69,7 +69,7 @@ describe("ClearingHouse openProtocol", () => {
         {
 
             let r = await (
-                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'vTEST', 'vTEST', encodePriceSqrt(initPrice, "1"))
+                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'vTEST', 'vTEST', encodePriceSqrt(initPrice, "1"), parseEther('10000'))
             ).wait()
 
             let log = await findPoolAddedEvents(marketRegistry, r)[0]
@@ -107,12 +107,12 @@ describe("ClearingHouse openProtocol", () => {
 
         await clearingHouseConfig.setDurationRepegOverPriceSpread(0)
 
-        // maker add liquidity
-        await clearingHouse.connect(creator).addLiquidity({
-            baseToken: baseToken.address,
-            liquidity: parseEther('1000'),
-            deadline: ethers.constants.MaxUint256,
-        })
+        // // maker add liquidity
+        // await clearingHouse.connect(creator).addLiquidity({
+        //     baseToken: baseToken.address,
+        //     liquidity: parseEther('1000'),
+        //     deadline: ethers.constants.MaxUint256,
+        // })
         var isBaseToQuote: boolean
         isBaseToQuote = true
         {

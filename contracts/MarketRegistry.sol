@@ -15,6 +15,7 @@ import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IVPool } from "./interface/IVPool.sol";
+import { DataTypes } from "./types/DataTypes.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryStorage2 {
@@ -62,7 +63,8 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         address nftContractArg,
         string memory nameArg,
         string memory symbolArg,
-        uint160 sqrtPriceX96
+        uint160 sqrtPriceX96,
+        uint128 liquidity
     ) external returns (address, address) {
         uint24 uniFeeTier = 3000;
         // create baseToken
@@ -71,6 +73,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
         //
         IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
+        // add liquidity
+        IClearingHouse(_clearingHouse).addLiquidity(
+            DataTypes.AddLiquidityParams({ baseToken: baseToken, liquidity: liquidity, deadline: type(uint256).max })
+        );
         //
         return (baseToken, uniPool);
     }

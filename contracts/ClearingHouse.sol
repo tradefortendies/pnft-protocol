@@ -98,8 +98,12 @@ contract ClearingHouse is
 
     modifier checkAllowLiquidity(address baseToken) {
         if (_isIsolated(baseToken)) {
-            // CH_OMC: only market creator
-            require(_msgSender() == IMarketRegistry(_marketRegistry).getCreator(baseToken), "CH_OMC");
+            // CH_OMCOMR: only market creator or marketRegistry
+            require(
+                _msgSender() == _marketRegistry ||
+                    _msgSender() == IMarketRegistry(_marketRegistry).getCreator(baseToken),
+                "CH_OMCOMR"
+            );
         } else {
             // CH_OMM: only market marker
             require(_msgSender() == _maker, "CH_OMM");
