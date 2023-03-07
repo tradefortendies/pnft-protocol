@@ -13,6 +13,7 @@ library PerpMath {
     int256 internal constant _IQ96 = 0x1000000000000000000000000;
 
     using PerpSafeCast for int256;
+    using SafeMathUpgradeable for uint160;
     using PerpSafeCast for uint256;
     using PerpMath for int256;
     using SignedSafeMathUpgradeable for int256;
@@ -140,6 +141,14 @@ library PerpMath {
         z = z.mul(FixedPoint96.Q96);
         z = sqrt(z);
         return PerpSafeCast.toUint160(z);
+    }
+
+    function calculateLiquidity(uint256 amountInX10_18, uint256 priceX10_18) internal pure returns (uint256) {
+        uint160 currentPrice = formatPriceX10_18ToSqrtPriceX96(priceX10_18);
+        uint160 detalPrice = formatPriceX10_18ToSqrtPriceX96(FullMath.mulDiv(priceX10_18, 101, 100)); //.sub(currentPrice);
+        detalPrice = PerpSafeCast.toUint160(detalPrice.sub(currentPrice));
+        uint256 liquidity = FullMath.mulDiv(amountInX10_18, FixedPoint96.Q96, detalPrice);
+        return liquidity;
     }
 
     uint256 internal constant _ONE_HUNDRED_PERCENT = 1e6; // 100%
