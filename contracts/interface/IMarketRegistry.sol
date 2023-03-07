@@ -17,7 +17,13 @@ interface IMarketRegistry {
     /// @param baseToken The address of the base token
     /// @param nftContract Fee ratio of the market
     /// @param pool The address of the pool
-    event PoolAdded(address indexed baseToken, address nftContract, address creator, address indexed pool);
+    event PoolAdded(
+        address indexed baseToken,
+        address nftContract,
+        address creator,
+        bool isIsolated,
+        address indexed pool
+    );
 
     /// @notice Emitted when the fee ratio of a market is updated.
     /// @param baseToken The address of the base token

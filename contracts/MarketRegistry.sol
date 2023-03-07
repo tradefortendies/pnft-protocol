@@ -54,8 +54,8 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _maxOrdersPerMarket = type(uint8).max;
     }
 
-    function addPool(address baseToken, uint24 feeRatio) external onlyOwner returns (address) {
-        return _addPool(baseToken, baseToken, feeRatio, _msgSender(), _msgSender(), false);
+    function addPool(address baseToken, address nftContractArg, uint24 feeRatio) external onlyOwner returns (address) {
+        return _addPool(baseToken, nftContractArg, feeRatio, _msgSender(), _msgSender(), false);
     }
 
     function createIsolatedPool(
@@ -166,7 +166,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _unhealthyDeltaTwapRatioGlobal = 50000; // 5%
         _optimalFundingRatioGlobal = 250000; // 25%
 
-        emit PoolAdded(baseToken, nftContractArg, feeReceiverArg, uniPool);
+        emit PoolAdded(baseToken, nftContractArg, creatorArg, isIsolatedArg, uniPool);
 
         return uniPool;
     }
