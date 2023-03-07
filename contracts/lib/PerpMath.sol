@@ -16,6 +16,7 @@ library PerpMath {
     using SafeMathUpgradeable for uint160;
     using PerpSafeCast for uint256;
     using PerpMath for int256;
+    using PerpMath for uint256;
     using SignedSafeMathUpgradeable for int256;
     using SafeMathUpgradeable for uint256;
 
@@ -143,9 +144,13 @@ library PerpMath {
         return PerpSafeCast.toUint160(z);
     }
 
-    function calculateLiquidity(uint256 amountInX10_18, uint256 priceX10_18) internal pure returns (uint256) {
+    function calculateLiquidity(
+        uint256 amountInX10_18,
+        uint24 slippedRatio,
+        uint256 priceX10_18
+    ) internal pure returns (uint256) {
         uint160 currentPrice = formatPriceX10_18ToSqrtPriceX96(priceX10_18);
-        uint160 detalPrice = formatPriceX10_18ToSqrtPriceX96(FullMath.mulDiv(priceX10_18, 101, 100)); //.sub(currentPrice);
+        uint160 detalPrice = formatPriceX10_18ToSqrtPriceX96(priceX10_18.mulRatio(1e6 + slippedRatio)); //.sub(currentPrice);
         detalPrice = PerpSafeCast.toUint160(detalPrice.sub(currentPrice));
         uint256 liquidity = FullMath.mulDiv(amountInX10_18, FixedPoint96.Q96, detalPrice);
         return liquidity;

@@ -20,7 +20,7 @@ describe("PerpMath test", async () => {
     })
 
     it("testCalculateLiquidity", async () => {
-        let a = await perpMath.testCalculateLiquidity(BigNumber.from(10).pow(18).mul(5), BigNumber.from(10).pow(16).mul(32))
+        let a = await perpMath.testCalculateLiquidity(BigNumber.from(10).pow(18).mul(5), x10_6.div(100), BigNumber.from(10).pow(16).mul(32))
         expect(a).to.be.deep.eq(BigNumber.from("1772175376705177874061"))
     })
 

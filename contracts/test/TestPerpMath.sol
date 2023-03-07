@@ -48,7 +48,11 @@ contract TestPerpMath {
         return value.mulRatio(ratio);
     }
 
-    function testCalculateLiquidity(uint256 amountInX10_18, uint256 priceX10_18) external pure returns (uint256) {
-        return PerpMath.calculateLiquidity(amountInX10_18, priceX10_18);
+    function testCalculateLiquidity(
+        uint256 amountInX10_18,
+        uint24 slippedRatio,
+        uint256 currentPriceX10_18
+    ) external pure returns (uint256) {
+        return PerpMath.calculateLiquidity(amountInX10_18, slippedRatio, currentPriceX10_18);
     }
 }
