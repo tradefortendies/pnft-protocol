@@ -102,12 +102,12 @@ async function deploy() {
     //     console.log('migrateClearingHouseConfig -- END --')
     // }
 
-    // // import migrateMarketRegistry from "./8_migrate_MarketRegistry";
-    // {
-    //     console.log('migrateMarketRegistry -- START --')
-    //     await migrateMarketRegistry();
-    //     console.log('migrateMarketRegistry -- END --')
-    // }
+    // import migrateMarketRegistry from "./8_migrate_MarketRegistry";
+    {
+        console.log('migrateMarketRegistry -- START --')
+        await migrateMarketRegistry();
+        console.log('migrateMarketRegistry -- END --')
+    }
 
     // // import migrateAccountBalance from "./10_migrate_AccountBalance";
     // {
@@ -185,7 +185,7 @@ async function deploy() {
     //     console.log('migrate_VBaseToken -- END --')
     // }
 
-    // return
+    return
 
 
     const network = hre.network.name;

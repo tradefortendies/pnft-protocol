@@ -68,8 +68,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     function createIsolatedPool(
         address nftContractArg,
         string memory symbolArg,
-        uint160 sqrtPriceX96,
-        uint128 liquidity
+        uint160 sqrtPriceX96
     ) external returns (address, address) {
         uint24 uniFeeTier = 3000;
         // create baseToken
@@ -78,10 +77,6 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
         //
         IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
-        // add liquidity
-        IClearingHouse(_clearingHouse).addLiquidity(
-            DataTypes.AddLiquidityParams({ baseToken: baseToken, liquidity: liquidity, deadline: type(uint256).max })
-        );
         //
         return (baseToken, uniPool);
     }
@@ -103,8 +98,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         IVirtualToken(baseToken).addWhitelist(_clearingHouse);
         IVirtualToken(baseToken).mintMaximumTo(_clearingHouse);
         // add pool
-        IUniswapV3Factory(_uniswapV3Factory).createPool(baseToken, _quoteToken, uniFeeTier);
-        address poolAddr = IUniswapV3Factory(_uniswapV3Factory).getPool(baseToken, _quoteToken, uniFeeTier);
+        address poolAddr = IUniswapV3Factory(_uniswapV3Factory).createPool(baseToken, _quoteToken, uniFeeTier);
         // whitelist
         IVirtualToken(baseToken).addWhitelist(poolAddr);
         IVirtualToken(_quoteToken).marketRegistryAddWhitelist(poolAddr);

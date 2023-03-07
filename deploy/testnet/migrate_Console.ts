@@ -192,7 +192,7 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
 
-    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, hieuq] = await ethers.getSigners()
+    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, miner] = await ethers.getSigners()
 
     // deploy UniV3 factory
     var genericLogic = (await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address)) as GenericLogic;
@@ -208,117 +208,127 @@ async function deploy() {
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
     var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+    const vETH = (await hre.ethers.getContractAt('QuoteToken', deployData.vETH.address)) as BaseToken;
+
+    // console.log(
+    //     '',
+    //     (await vETH.)
+    // )
 
     // await waitForTx(
-    //     await clearingHouse.setDelegateApproval(limitOrderBook.address)
+    //     await marketRegistry.connect(miner).createIsolatedPool('0x59Ad67e9c6a84e602BC73B3A606F731CC6dF210d', 'HOLO', encodePriceSqrt('0.32', "1"), parseEther('1772.18'))
     // )
 
-    // console.log(
-    //     await clearingHouse.getDelegateApproval()
-    // )
+    // // await waitForTx(
+    // //     await clearingHouse.setDelegateApproval(limitOrderBook.address)
+    // // )
 
-    var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+    // // console.log(
+    // //     await clearingHouse.getDelegateApproval()
+    // // )
 
-    // console.log(
-    //     (await limitOrderBook.getClearingHouse()),
-    //     (await limitOrderBook.getAccountBalance()),
-    //     formatEther(await limitOrderBook.getMinOrderValue()),
-    //     formatEther(await limitOrderBook.getFeeOrderValue()),
-    // )
+    // var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
 
-    // console.log(
-    //     formatEther(await accountBalance.getReferencePrice(deployData.vBAYC.address))
-    // )
+    // // console.log(
+    // //     (await limitOrderBook.getClearingHouse()),
+    // //     (await limitOrderBook.getAccountBalance()),
+    // //     formatEther(await limitOrderBook.getMinOrderValue()),
+    // //     formatEther(await limitOrderBook.getFeeOrderValue()),
+    // // )
 
-    // return
+    // // console.log(
+    // //     formatEther(await accountBalance.getReferencePrice(deployData.vBAYC.address))
+    // // )
 
-    {
-        let multiplier = await accountBalance.getMarketMultiplier(deployData.vBAYC.address)
-        let fillOrderParams = {
-            multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
-            orderType: '0',
-            nonce: '0',
-            trader: trader1.address,
-            baseToken: deployData.vBAYC.address,
-            isBaseToQuote: false,
-            isExactInput: false,
-            amount: parseEther('0.1').toString(),
-            oppositeAmountBound: parseUnits('0', 0).toString(),
-            deadline: ethers.constants.MaxUint256.toString(),
-            triggerPrice: parseUnits('70', 18).toString(),
-            takeProfitPrice: parseUnits("0", 18).toString(),
-            stopLossPrice: parseUnits("0", 18).toString(),
-        }
+    // // return
 
-        const { chainId } = await ethers.provider.getNetwork()
+    // {
+    //     let multiplier = await accountBalance.getMarketMultiplier(deployData.vBAYC.address)
+    //     let fillOrderParams = {
+    //         multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
+    //         orderType: '0',
+    //         nonce: '0',
+    //         trader: trader1.address,
+    //         baseToken: deployData.vBAYC.address,
+    //         isBaseToQuote: false,
+    //         isExactInput: false,
+    //         amount: parseEther('0.1').toString(),
+    //         oppositeAmountBound: parseUnits('0', 0).toString(),
+    //         deadline: ethers.constants.MaxUint256.toString(),
+    //         triggerPrice: parseUnits('70', 18).toString(),
+    //         takeProfitPrice: parseUnits("0", 18).toString(),
+    //         stopLossPrice: parseUnits("0", 18).toString(),
+    //     }
 
-        const typedData: TypedMessage<any> = {
-            types: {
-                EIP712Domain: [
-                    { name: "name", type: "string" },
-                    { name: "version", type: "string" },
-                    { name: "chainId", type: "uint256" },
-                    { name: "verifyingContract", type: "address" },
-                ],
-                LimitOrderParams: [
-                    { name: "multiplier", type: "uint256" },
-                    { name: "orderType", type: "uint8" },
-                    { name: "nonce", type: "uint256" },
-                    { name: "trader", type: "address" },
-                    { name: "baseToken", type: "address" },
-                    { name: "isBaseToQuote", type: "bool" },
-                    { name: "isExactInput", type: "bool" },
-                    { name: "amount", type: "uint256" },
-                    { name: "oppositeAmountBound", type: "uint256" },
-                    { name: "deadline", type: "uint256" },
-                    { name: "triggerPrice", type: "uint256" },
-                    { name: "takeProfitPrice", type: "uint256" },
-                    { name: "stopLossPrice", type: "uint256" },
-                ]
-            },
-            primaryType: "LimitOrderParams",
-            domain: {
-                name: "pNFT LimitOrderBook",
-                version: "1.0",
-                chainId: chainId,
-                verifyingContract: limitOrderBook.address,
-            },
-            message: fillOrderParams
-        };
+    //     const { chainId } = await ethers.provider.getNetwork()
 
-        const privateKey = Buffer.from(
-            TRADER1_KEY.substring(2),
-            "hex"
-        );
+    //     const typedData: TypedMessage<any> = {
+    //         types: {
+    //             EIP712Domain: [
+    //                 { name: "name", type: "string" },
+    //                 { name: "version", type: "string" },
+    //                 { name: "chainId", type: "uint256" },
+    //                 { name: "verifyingContract", type: "address" },
+    //             ],
+    //             LimitOrderParams: [
+    //                 { name: "multiplier", type: "uint256" },
+    //                 { name: "orderType", type: "uint8" },
+    //                 { name: "nonce", type: "uint256" },
+    //                 { name: "trader", type: "address" },
+    //                 { name: "baseToken", type: "address" },
+    //                 { name: "isBaseToQuote", type: "bool" },
+    //                 { name: "isExactInput", type: "bool" },
+    //                 { name: "amount", type: "uint256" },
+    //                 { name: "oppositeAmountBound", type: "uint256" },
+    //                 { name: "deadline", type: "uint256" },
+    //                 { name: "triggerPrice", type: "uint256" },
+    //                 { name: "takeProfitPrice", type: "uint256" },
+    //                 { name: "stopLossPrice", type: "uint256" },
+    //             ]
+    //         },
+    //         primaryType: "LimitOrderParams",
+    //         domain: {
+    //             name: "pNFT LimitOrderBook",
+    //             version: "1.0",
+    //             chainId: chainId,
+    //             verifyingContract: limitOrderBook.address,
+    //         },
+    //         message: fillOrderParams
+    //     };
 
-        const signature = signTypedData({
-            privateKey,
-            data: typedData,
-            version: SignTypedDataVersion.V4,
-        });
-        console.log("Metamask sig utils generated signature", signature);
+    //     const privateKey = Buffer.from(
+    //         TRADER1_KEY.substring(2),
+    //         "hex"
+    //     );
 
-        // // const signature = await ethers.provider.send("eth_signTypedData_v4", [
-        // //     trader1.address,
-        // //     JSON.stringify(typedData)
-        // // ]);
+    //     const signature = signTypedData({
+    //         privateKey,
+    //         data: typedData,
+    //         version: SignTypedDataVersion.V4,
+    //     });
+    //     console.log("Metamask sig utils generated signature", signature);
 
-        // let orderHash = await limitOrderBook.getOrderHash(fillOrderParams)
+    //     // // const signature = await ethers.provider.send("eth_signTypedData_v4", [
+    //     // //     trader1.address,
+    //     // //     JSON.stringify(typedData)
+    //     // // ]);
 
-        // // eth_sign
-        // const signature = await ethers.provider.send("eth_sign", [
-        //     trader1.address,
-        //     ethers.utils.arrayify(orderHash),
-        // ]);
+    //     // let orderHash = await limitOrderBook.getOrderHash(fillOrderParams)
 
-        // trader1._signTypedData
+    //     // // eth_sign
+    //     // const signature = await ethers.provider.send("eth_sign", [
+    //     //     trader1.address,
+    //     //     ethers.utils.arrayify(orderHash),
+    //     // ]);
 
-        await waitForTx(
-            await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
-        )
-    }
+    //     // trader1._signTypedData
 
-    var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
+    //     await waitForTx(
+    //         await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+    //     )
+    // }
+
+    // var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
 
     // await waitForTx(
     //     await clearingHouse.setRewardMiner(ethers.constants.AddressZero)
