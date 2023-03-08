@@ -5,7 +5,7 @@ import helpers from "../helpers";
 
 import { TestERC20, TestWETH9 } from "../../typechain";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB } = helpers;
 
 async function main() {
     await deploy();
@@ -17,7 +17,7 @@ async function deploy() {
     const network = hre.network.name;
     let deployData = (await loadDB(network))
     // 
-    if (network != 'arbitrum' && network != 'arbitrumGoerli') {
+    if (network != 'arbitrum' && network != 'arbitrumGoerli' && network != 'arbitrumDev') {
         const TestERC20 = await hre.ethers.getContractFactory("TestERC20")
 
         if (deployData.wETH.address == undefined || deployData.wETH.address == '') {

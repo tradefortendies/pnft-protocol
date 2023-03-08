@@ -1,8 +1,3 @@
-type PriceFeedData = {
-    address: string,
-    aggregatorAddress: string,
-}
-
 type TokenData = {
     address: string,
     symbol: string,
@@ -32,13 +27,6 @@ type DeployData = {
     priceAdminAddress: string,
     wETH: TokenData,
     vETH: TokenData,
-    nftPriceFeedBAYC: TokenData,
-    nftPriceFeedMAYC: TokenData,
-    nftPriceFeedCRYPTOPUNKS: TokenData,
-    nftPriceFeedMOONBIRD: TokenData,
-    nftPriceFeedAZUKI: TokenData,
-    nftPriceFeedCLONEX: TokenData,
-    nftPriceFeedDOODLE: TokenData,
     baseToken: ContractData,
     vBAYC: TokenData,
     vMAYC: TokenData,

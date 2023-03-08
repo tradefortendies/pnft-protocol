@@ -36,22 +36,6 @@ async function deploy() {
     var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
     var nftOracle = (await hre.ethers.getContractAt('NFTOracle', deployData.nftOracle.address)) as NFTOracle;
 
-    var uniFeeTier = '3000' // 0.3%
-
-    // deploy vault
-    // await collateralManager.addCollateral(deployData.wETH.address, {
-    //     priceFeed: deployData.priceFeedETH.address,
-    //     collateralRatio: (0.8e6).toString(),
-    //     discountRatio: (0.5e6).toString(),
-    //     depositCap: parseUnits("1000", deployData.wETH.decimals),
-    // })
-    // await collateralManager.addCollateral(deployData.wBTC.address, {
-    //     priceFeed: deployData.priceFeedBTC.address,
-    //     collateralRatio: (0.8e6).toString(),
-    //     discountRatio: (0.5e6).toString(),
-    //     depositCap: parseUnits("1000", deployData.wBTC.decimals),
-    // })
-
     const vETH = (await ethers.getContractAt('QuoteToken', deployData.vETH.address)) as QuoteToken;
 
     if ((await vPool.getAccountBalance()).toLowerCase() != accountBalance.address.toLowerCase()) {
@@ -75,7 +59,7 @@ async function deploy() {
     if ((await vault.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(await vault.setClearingHouse(clearingHouse.address), 'vault.setClearingHouse(clearingHouse.address)')
     }
-    if (network == 'arbitrum' || network == 'arbitrumGoerli' || network == 'local') {
+    if (network == 'arbitrum' || network == 'arbitrumGoerli' || network == 'arbitrumDev' || network == 'local') {
         if ((await vault.getWETH9()).toLowerCase() != deployData.wETH.address.toLowerCase()) {
             await waitForTx(await vault.setWETH9(deployData.wETH.address), 'vault.setWETH9(deployData.wETH.address)')
         }
@@ -125,14 +109,12 @@ async function deploy() {
     }
 
     // new update for open protocol
-
     if ((await nftOracle.getPriceAdmin()).toLowerCase() != priceAdmin.address.toLowerCase()) {
         await waitForTx(
             await nftOracle.setPriceAdmin(priceAdmin.address),
             'nftOracle.setPriceAdmin(' + priceAdmin.address + ')'
         )
     }
-
     await waitForTx(
         await marketRegistry.setInsuranceFundFeeRatioGlobal(500),
         'marketRegistry.setInsuranceFundFeeRatioGlobal(500)'
@@ -162,8 +144,8 @@ async function deploy() {
         'marketRegistry.setMinQuoteTickCrossedGlobal(parseEther(1))'
     )
     await waitForTx(
-        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000000')),
-        'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000000))'
+        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000')),
+        'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000))'
     )
 
     await waitForTx(

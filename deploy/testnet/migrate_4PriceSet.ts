@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, MarketRegistry, NftPriceFeed, QuoteToken, UniswapV3Pool } from "../../typechain";
+import { AccountBalance, BaseToken, MarketRegistry, NFTOracle, NftPriceFeed, QuoteToken, UniswapV3Pool } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { formatEther, parseEther } from "ethers/lib/utils";
@@ -27,14 +27,16 @@ async function deploy() {
     // 
     const [admin, maker, priceAdmin, platformFund, trader, liquidator] = await ethers.getSigners()
 
-    let nftPriceFeeds = [
-        deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
-        deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
-        deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
+    var nftOracle = (await hre.ethers.getContractAt('NFTOracle', deployData.nftOracle.address)) as NFTOracle;
+
+    let baseTokens = [
+        deployData.vBAYC,
+        deployData.vMAYC,
+        deployData.vCRYPTOPUNKS,
+        deployData.vMOONBIRD,
+        deployData.vAZUKI,
+        deployData.vCLONEX,
+        deployData.vDOODLE,
     ];
     let priceKeys = [
         'priceBAYC',
@@ -45,20 +47,19 @@ async function deploy() {
         'priceCLONEX',
         'priceDOODLE'
     ];
-    for (let i = 0; i < nftPriceFeeds.length; i++) {
+    for (let i = 0; i < 7; i++) {
         console.log(
             '--------------------------------------',
             priceKeys[i].substring(5),
             '--------------------------------------',
         )
-        var nftPriceFeedAddress = nftPriceFeeds[i].address
+        var nftContractAddress = baseTokens[i].nftContract
         var initPrice = formatEther(priceData[priceKeys[i]]);
-        console.log(initPrice);
-        var priceFeed = (await hre.ethers.getContractAt('NftPriceFeed', nftPriceFeedAddress)) as NftPriceFeed;
-        if (!(await priceFeed.getPrice(0)).eq(parseEther(initPrice))) {
+        // oracle price
+        {
             await waitForTx(
-                await priceFeed.connect(priceAdmin).setPrice(parseEther(initPrice)),
-                'priceFeed.connect(priceAdmin).setPrice(parseEther(' + initPrice + '))'
+                await nftOracle.connect(priceAdmin).setNftPrice(nftContractAddress, parseEther(initPrice)),
+                'nftOracle.connect(priceAdmin).setNftPrice(' + nftContractAddress + ', parseEther(' + initPrice + '))'
             )
         }
     }
