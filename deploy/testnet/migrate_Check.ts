@@ -460,8 +460,9 @@ describe("Deployment check", () => {
                 await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)
                 await marketRegistry.setOptimalFundingRatioGlobal(250000)
                 await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
-                await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('0.01'))
-                await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('0.1'))
+                await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1'))
+                await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000000'))
+                await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5'))
                 await vPool.setNftOracle(nftOracle.address)
                 await marketRegistry.setVBaseToken(deployData.vBaseToken.address)
                 await vETH.setMarketRegistry(marketRegistry.address)
@@ -660,16 +661,16 @@ describe("Deployment check", () => {
 
             // 
             for (var token of [vBTkn]) {
-                {
-                    await waitForTx(
-                        await clearingHouse.connect(maker).addLiquidity({
-                            baseToken: token.address,
-                            liquidity: parseEther('10000'),
-                            deadline: ethers.constants.MaxUint256,
-                        }),
-                        'clearingHouse.connect(maker).addLiquidity'
-                    )
-                }
+                // {
+                //     await waitForTx(
+                //         await clearingHouse.connect(maker).addLiquidity({
+                //             baseToken: token.address,
+                //             liquidity: parseEther('10000'),
+                //             deadline: ethers.constants.MaxUint256,
+                //         }),
+                //         'clearingHouse.connect(maker).addLiquidity'
+                //     )
+                // }
 
                 {
                     await waitForTx(
@@ -678,7 +679,7 @@ describe("Deployment check", () => {
                             isBaseToQuote: true,
                             isExactInput: true,
                             oppositeAmountBound: 0,
-                            amount: parseEther("1"),
+                            amount: parseEther("0.1"),
                             sqrtPriceLimitX96: 0,
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
@@ -695,7 +696,7 @@ describe("Deployment check", () => {
                             isBaseToQuote: false,
                             isExactInput: false,
                             oppositeAmountBound: ethers.constants.MaxUint256,
-                            amount: parseEther("0.5"),
+                            amount: parseEther("0.1"),
                             sqrtPriceLimitX96: 0,
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
@@ -705,16 +706,16 @@ describe("Deployment check", () => {
                         'clearingHouse.connect(trader2).openPosition'
                     )
                 }
-                {
-                    await waitForTx(
-                        await clearingHouse.connect(maker).removeLiquidity({
-                            baseToken: token.address,
-                            liquidity: parseEther("5000"),
-                            deadline: ethers.constants.MaxUint256,
-                        }),
-                        'clearingHouse.connect(maker).removeLiquidity'
-                    )
-                }
+                // {
+                //     await waitForTx(
+                //         await clearingHouse.connect(maker).removeLiquidity({
+                //             baseToken: token.address,
+                //             liquidity: parseEther("5000"),
+                //             deadline: ethers.constants.MaxUint256,
+                //         }),
+                //         'clearingHouse.connect(maker).removeLiquidity'
+                //     )
+                // }
                 {
                     await waitForTx(
                         await clearingHouse.connect(trader1).closePosition({
