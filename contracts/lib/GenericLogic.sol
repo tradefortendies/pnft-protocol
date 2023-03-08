@@ -634,7 +634,7 @@ library GenericLogic {
                         .toUint256()
                         .mul(100)
                         .toUint24(),
-                    IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(params.baseToken)
+                    IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
                 ),
             "CHL_MAL"
         );
@@ -705,7 +705,7 @@ library GenericLogic {
                         .toUint256()
                         .mul(100)
                         .toUint24(),
-                    IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(params.baseToken)
+                    IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
                 ),
             "CHL_MIL"
         );

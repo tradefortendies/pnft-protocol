@@ -71,7 +71,8 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     function createIsolatedPool(
         address nftContractArg,
         string memory symbolArg,
-        uint160 sqrtPriceX96
+        uint160 sqrtPriceX96,
+        uint128 liquidity
     ) external returns (address, address) {
         uint24 uniFeeTier = 3000;
         // create baseToken
@@ -80,7 +81,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
         //
         IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
-        //
+        // add liquidity
+        IClearingHouse(_clearingHouse).addLiquidity(
+            DataTypes.AddLiquidityParams({ baseToken: baseToken, liquidity: liquidity, deadline: type(uint256).max })
+        );
         return (baseToken, uniPool);
     }
 
