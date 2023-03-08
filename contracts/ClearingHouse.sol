@@ -11,6 +11,7 @@ import { IUniswapV3MintCallback } from "@uniswap/v3-core/contracts/interfaces/ca
 import { IUniswapV3SwapCallback } from "@uniswap/v3-core/contracts/interfaces/callback/IUniswapV3SwapCallback.sol";
 import { SafeERC20Upgradeable, IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
+import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IVault } from "./interface/IVault.sol";
@@ -43,6 +44,7 @@ contract ClearingHouse is
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
+    using PerpSafeCast for uint256;
     using PerpMath for uint256;
     using PerpMath for uint160;
     using PerpMath for uint128;
@@ -575,6 +577,18 @@ contract ClearingHouse is
     }
 
     function isAbleRepeg(address baseToken) external view override returns (bool) {
+        int256 indexPrice = IVPool(_vPool).getIndexPrice(baseToken).toInt256();
+        int256 markPrice = IVPool(_vPool).getMarkPrice(baseToken).toInt256();
+        if (indexPrice <= 0) {
+            return false;
+        }
+        if (markPrice <= 0) {
+            return false;
+        }
+        // price over spread <= 0.1%
+        if (indexPrice.sub(markPrice).abs() < indexPrice.abs().mulRatio(1000)) {
+            return false;
+        }
         (uint256 longPositionSize, uint256 shortPositionSize) = IAccountBalance(_accountBalance).getMarketPositionSize(
             baseToken
         );
