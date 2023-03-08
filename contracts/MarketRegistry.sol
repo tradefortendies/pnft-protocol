@@ -233,6 +233,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _nftContractMap[baseToken] = nftContractArg;
     }
 
+    function setCreator(address baseToken, address creatorArg) external checkPool(baseToken) onlyOwner {
+        _creatorMap[baseToken] = creatorArg;
+    }
+
     function setVBaseToken(address vBaseTokenArg) external onlyOwner {
         _vBaseToken = vBaseTokenArg;
     }
