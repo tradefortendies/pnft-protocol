@@ -167,6 +167,11 @@ async function deploy() {
     )
 
     await waitForTx(
+        await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
+        'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
+    )
+
+    await waitForTx(
         await vPool.setNftOracle(nftOracle.address),
         'vPool.setNftOracle(nftOracle.address)'
     )

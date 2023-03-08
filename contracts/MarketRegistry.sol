@@ -4,6 +4,8 @@ pragma abicoder v2;
 
 import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import { ClonesUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/ClonesUpgradeable.sol";
+import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
+import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { IERC20Metadata } from "./interface/IERC20Metadata.sol";
 import { IUniswapV3Factory } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Factory.sol";
 import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
@@ -16,10 +18,22 @@ import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IVPool } from "./interface/IVPool.sol";
 import { DataTypes } from "./types/DataTypes.sol";
+import { PerpMath } from "./lib/PerpMath.sol";
+import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryStorage2 {
     using AddressUpgradeable for address;
+    using SafeMathUpgradeable for uint256;
+    using SignedSafeMathUpgradeable for int256;
+    using PerpSafeCast for uint256;
+    using PerpSafeCast for uint128;
+    using PerpSafeCast for uint24;
+    using PerpSafeCast for int256;
+    using PerpMath for uint256;
+    using PerpMath for uint160;
+    using PerpMath for uint128;
+    using PerpMath for int256;
 
     //
     // MODIFIER
@@ -62,6 +76,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
         _minQuoteTickCrossedGlobal = 1 ether;
         _maxQuoteTickCrossedGlobal = 1e3 ether;
+        _defaultQuoteTickCrossedGlobal = 5 ether;
     }
 
     function addPool(address baseToken, address nftContractArg, uint24 feeRatio) external onlyOwner returns (address) {
@@ -71,9 +86,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     function createIsolatedPool(
         address nftContractArg,
         string memory symbolArg,
-        uint160 sqrtPriceX96,
-        uint128 liquidity
+        uint160 sqrtPriceX96
     ) external returns (address, address) {
+        require(_defaultQuoteTickCrossedGlobal > 0, "MR_DQCTZ");
         uint24 uniFeeTier = 3000;
         // create baseToken
         address baseToken = _createBaseToken(symbolArg, sqrtPriceX96);
@@ -82,8 +97,21 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         //
         IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
         // add liquidity
+        uint256 liquidity = PerpMath.calculateLiquidity(
+            _defaultQuoteTickCrossedGlobal,
+            IVPool(IClearingHouse(_clearingHouse).getVPool())
+                .getMaxTickCrossedWithinBlock(baseToken)
+                .toUint256()
+                .mul(100)
+                .toUint24(),
+            IVPool(IClearingHouse(_clearingHouse).getVPool()).getMarkPrice(baseToken)
+        );
         IClearingHouse(_clearingHouse).addLiquidity(
-            DataTypes.AddLiquidityParams({ baseToken: baseToken, liquidity: liquidity, deadline: type(uint256).max })
+            DataTypes.AddLiquidityParams({
+                baseToken: baseToken,
+                liquidity: liquidity.toUint128(),
+                deadline: type(uint256).max
+            })
         );
         return (baseToken, uniPool);
     }
@@ -253,6 +281,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _maxQuoteTickCrossedGlobal = maxQuoteTickCrossedGlobalArg;
     }
 
+    function setDefaultQuoteTickCrossedGlobal(uint128 defaultQuoteTickCrossedGlobalArg) external onlyOwner {
+        _defaultQuoteTickCrossedGlobal = defaultQuoteTickCrossedGlobalArg;
+    }
+
     //
     // EXTERNAL VIEW
     //
@@ -356,5 +388,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function getMaxQuoteTickCrossedGlobal() external view override returns (uint256) {
         return _maxQuoteTickCrossedGlobal;
+    }
+
+    function getDefaultQuoteTickCrossedGlobal() external view override returns (uint256) {
+        return _defaultQuoteTickCrossedGlobal;
     }
 }
