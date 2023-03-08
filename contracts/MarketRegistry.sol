@@ -47,7 +47,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     modifier checkPool(address baseToken) {
         // pool not exists
-        require(_poolMap[baseToken] != address(0), "MR_PNE");
+        require(baseToken == address(0) || _poolMap[baseToken] != address(0), "MR_PNE");
         _;
     }
 
@@ -185,11 +185,11 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
         _poolMap[baseToken] = uniPool;
         _uniswapFeeRatioMap[baseToken] = feeRatio;
-        _insuranceFundFeeRatioMap[baseToken] = 500; // 0.05%
-        _platformFundFeeRatioMap[baseToken] = 2000; // 0.2%
-        _optimalDeltaTwapRatioMap[baseToken] = 30000; // 3%
-        _unhealthyDeltaTwapRatioMap[baseToken] = 50000; // 5%
-        _optimalFundingRatioMap[baseToken] = 250000; // 25%
+        // _insuranceFundFeeRatioMap[baseToken] = 500; // 0.05%
+        // _platformFundFeeRatioMap[baseToken] = 2000; // 0.2%
+        // _optimalDeltaTwapRatioMap[baseToken] = 30000; // 3%
+        // _unhealthyDeltaTwapRatioMap[baseToken] = 50000; // 5%
+        // _optimalFundingRatioMap[baseToken] = 250000; // 25%
         // for open protocol
         _nftContractMap[baseToken] = nftContractArg;
         _feeReceiverMap[baseToken] = feeReceiverArg;
@@ -201,33 +201,33 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return uniPool;
     }
 
-    function setPlatformFundFeeRatio(
-        address baseToken,
-        uint24 feeRatio
-    ) external checkPool(baseToken) checkRatio(feeRatio) onlyOwner {
-        _platformFundFeeRatioMap[baseToken] = feeRatio;
-        emit PlatformFundFeeRatioChanged(baseToken, feeRatio);
-    }
+    // function setPlatformFundFeeRatio(
+    //     address baseToken,
+    //     uint24 feeRatio
+    // ) external checkPool(baseToken) checkRatio(feeRatio) onlyOwner {
+    //     _platformFundFeeRatioMap[baseToken] = feeRatio;
+    //     emit PlatformFundFeeRatioChanged(baseToken, feeRatio);
+    // }
 
-    function setInsuranceFundFeeRatio(
-        address baseToken,
-        uint24 feeRatio
-    ) external checkPool(baseToken) checkRatio(feeRatio) onlyOwner {
-        _insuranceFundFeeRatioMap[baseToken] = feeRatio;
-        emit InsuranceFundFeeRatioChanged(baseToken, feeRatio);
-    }
+    // function setInsuranceFundFeeRatio(
+    //     address baseToken,
+    //     uint24 feeRatio
+    // ) external checkPool(baseToken) checkRatio(feeRatio) onlyOwner {
+    //     _insuranceFundFeeRatioMap[baseToken] = feeRatio;
+    //     emit InsuranceFundFeeRatioChanged(baseToken, feeRatio);
+    // }
 
     function setMaxOrdersPerMarket(uint8 maxOrdersPerMarketArg) external onlyOwner {
         _maxOrdersPerMarket = maxOrdersPerMarketArg;
         emit MaxOrdersPerMarketChanged(maxOrdersPerMarketArg);
     }
 
-    function setOptimalDeltaTwapRatio(
-        address baseToken,
-        uint24 optimalDeltaTwapRatio
-    ) external checkPool(baseToken) onlyOwner {
-        _optimalDeltaTwapRatioMap[baseToken] = optimalDeltaTwapRatio;
-    }
+    // function setOptimalDeltaTwapRatio(
+    //     address baseToken,
+    //     uint24 optimalDeltaTwapRatio
+    // ) external checkPool(baseToken) onlyOwner {
+    //     _optimalDeltaTwapRatioMap[baseToken] = optimalDeltaTwapRatio;
+    // }
 
     function setNftContract(address baseToken, address nftContractArg) external checkPool(baseToken) onlyOwner {
         _nftContractMap[baseToken] = nftContractArg;
@@ -321,23 +321,23 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     /// @inheritdoc IMarketRegistry
     function getInsuranceFundFeeRatio(address baseToken) external view override checkPool(baseToken) returns (uint24) {
-        return _insuranceFundFeeRatioMap[baseToken];
+        return _insuranceFundFeeRatioGlobal;
     }
 
     function getPlatformFundFeeRatio(address baseToken) external view override checkPool(baseToken) returns (uint24) {
-        return _platformFundFeeRatioMap[baseToken];
+        return _platformFundFeeRatioGlobal;
     }
 
     function getOptimalDeltaTwapRatio(address baseToken) external view override checkPool(baseToken) returns (uint24) {
-        return _optimalDeltaTwapRatioMap[baseToken];
+        return _optimalDeltaTwapRatioGlobal;
     }
 
     function getOptimalFundingRatio(address baseToken) external view override checkPool(baseToken) returns (uint24) {
-        return _optimalFundingRatioMap[baseToken];
+        return _optimalFundingRatioGlobal;
     }
 
     function getNftContract(address baseToken) external view override checkPool(baseToken) returns (address) {
-        return _nftContractMap[baseToken] == address(0) ? baseToken : _nftContractMap[baseToken];
+        return _nftContractMap[baseToken];
     }
 
     function getCreator(address baseToken) external view override checkPool(baseToken) returns (address) {

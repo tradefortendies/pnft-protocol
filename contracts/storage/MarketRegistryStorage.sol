@@ -17,19 +17,19 @@ abstract contract MarketRegistryStorageV1 {
     mapping(address => address) internal _poolMap;
 
     // key: baseToken, what insurance fund get = exchangeFee * insuranceFundFeeRatio
-    mapping(address => uint24) internal _insuranceFundFeeRatioMap;
+    mapping(address => uint24) internal __insuranceFundFeeRatioMap;
 
     // key: baseToken , uniswap fee will be ignored and use the exchangeFeeRatio instead
-    mapping(address => uint24) internal _platformFundFeeRatioMap;
+    mapping(address => uint24) internal __platformFundFeeRatioMap;
 
     // key: baseToken, _uniswapFeeRatioMap cache only
     mapping(address => uint24) internal _uniswapFeeRatioMap;
 
-    mapping(address => uint24) internal _optimalDeltaTwapRatioMap;
+    mapping(address => uint24) internal __optimalDeltaTwapRatioMap;
 
-    mapping(address => uint24) internal _optimalFundingRatioMap;
+    mapping(address => uint24) internal __optimalFundingRatioMap;
 
-    mapping(address => uint24) internal _unhealthyDeltaTwapRatioMap;
+    mapping(address => uint24) internal __unhealthyDeltaTwapRatioMap;
 }
 
 abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
