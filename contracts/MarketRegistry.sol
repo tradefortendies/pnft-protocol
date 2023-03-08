@@ -364,8 +364,8 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     }
 
     /// @inheritdoc IMarketRegistry
-    function isIsolated(address baseToken) external view override returns (bool) {
-        return baseToken == address(0) || _isolatedMap[baseToken];
+    function isIsolated(address baseToken) external view override checkPool(baseToken) returns (bool) {
+        return baseToken == address(0) ? false : _isolatedMap[baseToken];
     }
 
     function getInsuranceFundFeeRatioGlobal() external view override returns (uint24) {
