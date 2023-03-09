@@ -329,9 +329,6 @@ contract ClearingHouse is
         returns (uint256 base, uint256 quote, uint256 fee)
     {
         (base, quote, fee) = ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
-        if (_isIsolated(params.baseToken)) {
-            IVault(_vault).requestWithdrawAllFor(_msgSender(), IVault(_vault).getSettlementToken(), params.baseToken);
-        }
     }
 
     function closePositionAndWithdrawAllEther(
@@ -524,7 +521,7 @@ contract ClearingHouse is
         return
             ClearingHouseLogic.liquidate(
                 ClearingHouseLogic.InternalLiquidateParams({
-                    chAddress: address(this),
+                    clearingHouse: address(this),
                     marketRegistry: _marketRegistry,
                     liquidator: _msgSender(),
                     trader: trader,
