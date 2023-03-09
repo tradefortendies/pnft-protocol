@@ -1,7 +1,7 @@
 {
     "verifiedContracts": {},
     "wETH": {
-        "address": "0x48880ee400B7cb952F8704d6a78c403C0c35B01D",
+        "address": "0xe39Ab88f8A4777030A534146A9Ca3B52bd5D43A3",
         "name": "Wrapped Ether",
         "symbol": "WETH",
         "decimals": 18
@@ -10,56 +10,56 @@
         "name": "vETH",
         "symbol": "vETH",
         "decimals": 18,
-        "address": "",
-        "implAddress": ""
+        "address": "0xf7916893eA170595f202Ad4Caf0e4671eec7637F",
+        "implAddress": "0x27Ac054fC4074B41b0872070C78c07C7B9B7f703"
     },
     "baseToken": {
-        "implAddress": "0x02cbdce98721EBD335FaECF1f625a339615dE6cF"
+        "implAddress": "0x8e7eAB7CF883D70DbDFe103929A7f166faf5d739"
     },
     "vBAYC": {
-        "address": "",
+        "address": "0xe4A0CF6a49a939B560aBe858771B568BAb60188e",
         "name": "vBAYC",
         "symbol": "vBAYC",
         "decimals": 18,
         "nftContract": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"
     },
     "vMAYC": {
-        "address": "",
+        "address": "0xe3b7F2E515f781c124d291D21a689de3e620aA07",
         "name": "vMAYC",
         "symbol": "vMAYC",
         "decimals": 18,
         "nftContract": "0x60E4d786628Fea6478F785A6d7e704777c86a7c6"
     },
     "vCRYPTOPUNKS": {
-        "address": "",
+        "address": "0xd82e659BD81D34C3c7C24EE96692De4B3898CbbA",
         "name": "vCRYPTOPUNKS",
         "symbol": "vCRYPTOPUNKS",
         "decimals": 18,
         "nftContract": "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6"
     },
     "vMOONBIRD": {
-        "address": "",
+        "address": "0xB6fE205a53ea0e7800276855b05a3ba8Eb7546cD",
         "name": "vMOONBIRD",
         "symbol": "vMOONBIRD",
         "decimals": 18,
         "nftContract": "0x23581767a106ae21c074b2276D25e5C3e136a68b"
     },
     "vAZUKI": {
-        "address": "",
+        "address": "0x837BB79633e15b6b8959250eB6f8510Afb908a27",
         "name": "vAZUKI",
         "symbol": "vAZUKI",
         "decimals": 18,
         "nftContract": "0xED5AF388653567Af2F388E6224dC7C4b3241C544"
     },
     "vCLONEX": {
-        "address": "0x1BbBe185E4DEeE1da03fd7282439323D884552d9",
+        "address": "0xaD165fb893a1702cA914f747d47e2131bda70FD2",
         "name": "vCLONEX",
         "symbol": "vCLONEX",
         "decimals": 18,
         "nftContract": "0x49cF6f5d44E70224e2E23fDcdd2C053F30aDA28B"
     },
     "vDOODLE": {
-        "address": "",
+        "address": "0x2a64f6eb836F567f5Ad93882b8629ddbAC0eBEB0",
         "name": "vDOODLE",
         "symbol": "vDOODLE",
         "decimals": 18,
@@ -68,62 +68,54 @@
     "priceAdminAddress": "0x9686203be0cae320bb4Dee971BB8a530A15EF489",
     "platformFundAddress": "0x618B9BD8C290D55af7fBD5185b178071Fec8DF36",
     "makerFundAddress": "0x9cEDf5C18B8c93E4DE45A446C9caDFF98DB1a756",
-    "proxyAdminAddress": "",
+    "proxyAdminAddress": "0xDb6d8d9E3cCe1d94FcdCfA7527e0F865b2e6de70",
     "uniswapV3Factory": {
         "address": "0x4893376342d5D7b3e31d4184c08b265e5aB2A3f6"
     },
-    "genericLogic": {
-        "address": ""
+    "uniswapV3Broker": {
+        "address": "0x791781062f7ABf47b482E6428F5418304d12cCc5"
     },
-    "vaultLogic": {
-        "address": ""
+    "genericLogic": {
+        "address": "0xfFC9d0630C8F812Ca2980ABF2B4AC9985cDE7ABd"
     },
     "clearingHouseLogic": {
-        "address": ""
+        "address": "0xCFab309F2fcBd4cFe8e695E9f5583b00146f6848"
     },
     "clearingHouseConfig": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xA1C0735D72A212350a6f0a9c3D395EcC3AAB240f",
+        "implAddress": "0x6cB30aF9E5daA2F7Be0aCa50e15a8B652074113d"
     },
     "marketRegistry": {
-        "address": "",
-        "implAddress": ""
-    },
-    "orderBook": {
-        "address": "",
-        "implAddress": ""
+        "address": "0x2E1b44d30a1805c1671B6B6e2266266f9061a785",
+        "implAddress": "0x16c4C31a28924d149cFC4d0bB9596527ac4cED31"
     },
     "accountBalance": {
-        "address": "",
-        "implAddress": ""
+        "address": "0x4f92e92216bD2a3B2aba39453F6eee337cc8b362",
+        "implAddress": "0x2F7cC6015C9D6DA2b331F46b7Aaa0965B59b99aF"
     },
     "vPool": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xB26ed2e8EaAF0d4AA68fb6f02F08e15622d7c918",
+        "implAddress": "0xd3672ED75D967E5c1c4aD66310235a78C80BCBc8"
     },
     "insuranceFund": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xa857Ea6eDC0D3c61C176DCdc4d6c8A25c8c52eB6",
+        "implAddress": "0x79D19abdB700b8F6c8aA02CceeAde57c101A1104"
     },
     "vault": {
-        "address": "",
-        "implAddress": ""
-    },
-    "collateralManager": {
-        "address": "",
-        "implAddress": ""
+        "address": "0x5e1D5E73DaAf3FD5C61Af6745c7CD47Fd4237669",
+        "implAddress": "0x0270f2aeC2542f3bEa8557F863d5CC442A7839B1"
     },
     "clearingHouse": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xe0b9f964a1eb94B18591040d7ED3CfBc6cc7A92a",
+        "implAddress": "0xA266170F9D396681eb32Fd3944f34fEa54Ac655A"
     },
     "testFaucet": {
         "address": "",
         "implAddress": ""
     },
     "pNFTToken": {
-        "address": "",
-        "implAddress": "",
+        "address": "0x5Df63EE67b207C2c260de242652073b1e1d49241",
+        "implAddress": "0x1B9c0f3Dd51Cd26d912aB9298Cfa1F22f3748AA8",
         "name": "PNFT Token",
         "symbol": "PNFT",
         "decimals": 18,
@@ -132,16 +124,24 @@
         "rewardAddress": "0x688d89B7512e512CEfbF1e7b03b7b9F32026A180"
     },
     "rewardMiner": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xf004EcfBAa15fbf10E1eb9Df635200Fe1B5cfE57",
+        "implAddress": "0xE2495868BbCBEEdC1fFeF694B43FabEd1461F9b5"
     },
     "referralAdminAddress": "0xBD91528e1B91AdbddF9f049e4CF5A5D9A45F1B8B",
     "referralPayment": {
-        "address": "",
-        "implAddress": ""
+        "address": "0xb4D02Bb20ADa52df8Aee2F138b571F0aEeb4B60f",
+        "implAddress": "0x49289FE1df6359Aa9Ed90456194CBa88C5D2d47A"
     },
     "limitOrderBook": {
-        "address": "",
+        "address": "0xf3977Af59211275613430237241EED019C187DaB",
+        "implAddress": "0x9505227F7E402FAE1C4B79a1D8E64E7755EeB767"
+    },
+    "nftOracle": {
+        "address": "0xEdd08021629d02F9b87F337F6cdeE5A961B2F674",
+        "implAddress": "0x3B5CEDA148ef128794a13D1DBFB74d4AA2271914"
+    },
+    "vBaseToken": {
+        "address": "0x511948C14C5225ecBaCbd1CC977b928caa209872",
         "implAddress": ""
     },
     "testCheck": {
