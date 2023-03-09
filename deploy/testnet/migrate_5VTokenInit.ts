@@ -123,15 +123,6 @@ async function deploy() {
                 )
             }
         }
-        {
-            var maxTickCrossedWithinBlock: number = 100
-            if ((await vPool.getMaxTickCrossedWithinBlock(baseToken.address)).toString() != maxTickCrossedWithinBlock.toString()) {
-                await tryWaitForTx(
-                    await vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock),
-                    'vPool.setMaxTickCrossedWithinBlock(baseToken.address, maxTickCrossedWithinBlock)'
-                )
-            }
-        }
     }
 }
 

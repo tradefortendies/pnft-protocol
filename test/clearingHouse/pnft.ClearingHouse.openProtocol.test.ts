@@ -69,7 +69,7 @@ describe("ClearingHouse openProtocol", () => {
         {
 
             let r = await (
-                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"), parseEther('10000'))
+                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"))
             ).wait()
 
             let log = await findPoolAddedEvents(marketRegistry, r)[0]
@@ -97,7 +97,7 @@ describe("ClearingHouse openProtocol", () => {
 
         await collateral.connect(trader1).approve(vault.address, parseUnits("1000000", collateralDecimals))
 
-        await vPool.setMaxTickCrossedWithinBlock(baseToken.address, getMaxTickRange())
+        await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
 
         await nftOracle.setNftPrice(nftAddress, parseUnits(initPrice, 18))
     })

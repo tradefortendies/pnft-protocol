@@ -44,10 +44,6 @@ describe("Deployment check", () => {
         // deployData.priceAdminAddress = priceAdmin.address
         deployData.platformFundAddress = platformFund.address
         deployData.makerFundAddress = maker.address
-        deployData.nftPriceFeedBAYC = {
-        } as TokenData
-        deployData.nftPriceFeedMAYC = {
-        } as TokenData
         deployData.wETH = {
             address: '',
             symbol: 'WETH',
@@ -89,16 +85,6 @@ describe("Deployment check", () => {
 
         let proxyAdmin = await waitForDeploy(await ProxyAdmin.deploy());
         deployData.proxyAdminAddress = proxyAdmin.address
-        {
-            const NftPriceFeed = await ethers.getContractFactory("NftPriceFeed")
-            const priceFeed = (await waitForDeploy(await NftPriceFeed.deploy('BAYC_ETH'))) as NftPriceFeed
-            deployData.nftPriceFeedBAYC.address = priceFeed.address
-        }
-        {
-            const NftPriceFeed = await ethers.getContractFactory("NftPriceFeed")
-            const priceFeed = (await waitForDeploy(await NftPriceFeed.deploy('MAYC_ETH'))) as NftPriceFeed
-            deployData.nftPriceFeedMAYC.address = priceFeed.address
-        }
         {
             const TestWETH9 = await ethers.getContractFactory("TestWETH9")
             const wETH = (await waitForDeploy(await TestWETH9.deploy())) as TestWETH9
@@ -144,7 +130,7 @@ describe("Deployment check", () => {
         }
         var baseToken = await ethers.getContractAt('BaseToken', deployData.baseToken.implAddress);
         {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [deployData.vBAYC.name, deployData.vBAYC.symbol, deployData.nftPriceFeedBAYC.address]);
+            var initializeData = baseToken.interface.encodeFunctionData('initialize', [deployData.vBAYC.name, deployData.vBAYC.symbol]);
             var transparentUpgradeableProxy: BaseContract
             do {
                 transparentUpgradeableProxy = await waitForDeploy(
@@ -160,7 +146,7 @@ describe("Deployment check", () => {
             }
         }
         {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [deployData.vMAYC.name, deployData.vMAYC.symbol, deployData.nftPriceFeedMAYC.address]);
+            var initializeData = baseToken.interface.encodeFunctionData('initialize', [deployData.vMAYC.name, deployData.vMAYC.symbol]);
             var transparentUpgradeableProxy: BaseContract
             do {
                 transparentUpgradeableProxy = await waitForDeploy(
@@ -469,6 +455,7 @@ describe("Deployment check", () => {
                 await vault.setMarketRegistry(marketRegistry.address)
                 await accountBalance.setMarketRegistry(marketRegistry.address)
                 await insuranceFund.setMarketRegistry(marketRegistry.address)
+                await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
             }
 
             //     const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);

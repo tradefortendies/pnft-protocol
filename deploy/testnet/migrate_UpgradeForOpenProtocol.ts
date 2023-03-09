@@ -246,7 +246,7 @@ async function deploy() {
             priceKeys[i].substring(5),
             '--------------------------------------',
         )
-        
+
         var nftContractAddress = baseTokens[i].nftContract
         var baseTokenAddress = baseTokens[i].address
         var initPrice = formatEther(priceData[priceKeys[i]]);
@@ -330,6 +330,13 @@ async function deploy() {
         await insuranceFund.setMarketRegistry(marketRegistry.address),
         'insuranceFund.setMarketRegistry(marketRegistry.address)'
     )
+    var maxTickCrossedWithinBlock: number = 100
+    if ((await vPool.getMaxTickCrossedWithinBlock()).toString() != maxTickCrossedWithinBlock.toString()) {
+        await tryWaitForTx(
+            await vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock),
+            'vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)'
+        )
+    }
 }
 
 // We recommend this pattern to be able to use async/await everywhere

@@ -629,11 +629,7 @@ library GenericLogic {
             IClearingHouse(clearingHouse).getLiquidity(params.baseToken) <=
                 PerpMath.calculateLiquidity(
                     IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getMaxQuoteTickCrossedGlobal(),
-                    IVPool(IClearingHouse(clearingHouse).getVPool())
-                        .getMaxTickCrossedWithinBlock(params.baseToken)
-                        .toUint256()
-                        .mul(100)
-                        .toUint24(),
+                    10000,
                     IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
                 ),
             "CHL_MAL"
@@ -700,11 +696,7 @@ library GenericLogic {
             IClearingHouse(clearingHouse).getLiquidity(params.baseToken) >=
                 PerpMath.calculateLiquidity(
                     IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getMinQuoteTickCrossedGlobal(),
-                    IVPool(IClearingHouse(clearingHouse).getVPool())
-                        .getMaxTickCrossedWithinBlock(params.baseToken)
-                        .toUint256()
-                        .mul(100)
-                        .toUint24(),
+                    10000,
                     IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
                 ),
             "CHL_MIL"

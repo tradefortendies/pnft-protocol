@@ -118,23 +118,17 @@ contract VPool is
     /// @dev Restrict the price impact by setting the ticks can be crossed within a block when
     /// trader reducing liquidity. It is used to prevent the malicious behavior of the malicious traders.
     /// The restriction is applied in _isOverPriceLimitWithTick()
-    /// @param baseToken The base token address
     /// @param maxTickCrossedWithinBlock The maximum ticks can be crossed within a block
-    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external override {
+    function setMaxTickCrossedWithinBlock(uint24 maxTickCrossedWithinBlock) external {
         // EX_NOM: not owner marketRegistry
         require(_msgSender() == owner() || _msgSender() == _marketRegistry, "EX_NOM");
-
-        // EX_BNC: baseToken is not contract
-        require(baseToken.isContract(), "EX_BNC");
-        // EX_BTNE: base token does not exists
-        require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
         // tick range is [MIN_TICK, MAX_TICK], maxTickCrossedWithinBlock should be in [0, MAX_TICK - MIN_TICK]
         // EX_MTCLOOR: max tick crossed limit out of range
         require(maxTickCrossedWithinBlock <= _getMaxTickCrossedWithinBlockCap(), "EX_MTCLOOR");
 
-        _maxTickCrossedWithinBlockMap[baseToken] = maxTickCrossedWithinBlock;
-        emit MaxTickCrossedWithinBlockChanged(baseToken, maxTickCrossedWithinBlock);
+        _maxTickCrossedWithinBlock = maxTickCrossedWithinBlock;
+        emit MaxTickCrossedWithinBlockChanged(maxTickCrossedWithinBlock);
     }
 
     /// @inheritdoc IUniswapV3SwapCallback
@@ -174,7 +168,7 @@ contract VPool is
         _requireOnlyClearingHouse();
 
         // EX_MIP: market is paused
-        require(_maxTickCrossedWithinBlockMap[params.baseToken] > 0, "EX_MIP");
+        require(_maxTickCrossedWithinBlock > 0, "EX_MIP");
 
         int256 takerPositionSize = IAccountBalance(_accountBalance).getTakerPositionSize(
             params.trader,
@@ -409,8 +403,8 @@ contract VPool is
     }
 
     /// @inheritdoc IVPool
-    function getMaxTickCrossedWithinBlock(address baseToken) external view override returns (uint24) {
-        return _maxTickCrossedWithinBlockMap[baseToken];
+    function getMaxTickCrossedWithinBlock() external view override returns (uint24) {
+        return _maxTickCrossedWithinBlock;
     }
 
     /// @inheritdoc IVPool
@@ -582,7 +576,7 @@ contract VPool is
     }
 
     function _isOverPriceLimitWithTick(address baseToken, int24 tick) internal view returns (bool) {
-        uint24 maxDeltaTick = _maxTickCrossedWithinBlockMap[baseToken];
+        uint24 maxDeltaTick = _maxTickCrossedWithinBlock;
         int24 lastUpdatedTick = _lastUpdatedTickMap[baseToken];
         // no overflow/underflow issue because there are range limits for tick and maxDeltaTick
         int24 upperTickBound = lastUpdatedTick.add(maxDeltaTick).toInt24();
@@ -791,8 +785,8 @@ contract VPool is
     function _getSqrtPriceLimitForReplaySwap(address baseToken, bool isLong) internal view returns (uint160) {
         // price limit = max tick + 1 or min tick - 1, depending on which direction
         int24 tickBoundary = isLong
-            ? _lastUpdatedTickMap[baseToken] + int24(_maxTickCrossedWithinBlockMap[baseToken]) + 1
-            : _lastUpdatedTickMap[baseToken] - int24(_maxTickCrossedWithinBlockMap[baseToken]) - 1;
+            ? _lastUpdatedTickMap[baseToken] + int24(_maxTickCrossedWithinBlock) + 1
+            : _lastUpdatedTickMap[baseToken] - int24(_maxTickCrossedWithinBlock) - 1;
 
         // tickBoundary should be in [MIN_TICK, MAX_TICK]
         tickBoundary = tickBoundary > TickMath.MAX_TICK ? TickMath.MAX_TICK : tickBoundary;

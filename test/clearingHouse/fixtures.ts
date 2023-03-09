@@ -25,6 +25,7 @@ import { MockPNFTToken } from "../../typechain/MockPNFTToken"
 import { TestAccountBalance } from "../../typechain/TestAccountBalance"
 import { TestPNFTToken } from "../../typechain/TestPNFTToken"
 import { TestRewardMiner } from "../../typechain/TestRewardMiner"
+import { getMaxTickRange } from "../helper/number"
 import { createQuoteTokenFixture, token0Fixture, tokensFixture, uniswapV3FactoryFixture } from "../shared/fixtures"
 
 export interface ClearingHouseFixture {
@@ -298,6 +299,8 @@ export function createClearingHouseFixture(
         await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
         await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1'))
         await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('10000000000'))
+
+        await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
         // max liquidity TODO
 
         const NFTOracle = await ethers.getContractFactory("NFTOracle")

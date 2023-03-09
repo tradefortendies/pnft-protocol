@@ -58,9 +58,8 @@ interface IVPool {
     );
 
     /// @notice Emitted when maxTickCrossedWithinBlock is updated
-    /// @param baseToken Address of the base token
     /// @param maxTickCrossedWithinBlock Max tick allowed to be crossed within block when reducing position
-    event MaxTickCrossedWithinBlockChanged(address indexed baseToken, uint24 maxTickCrossedWithinBlock);
+    event MaxTickCrossedWithinBlockChanged(uint24 maxTickCrossedWithinBlock);
 
     /// @notice Emitted when accountBalance is updated
     /// @param accountBalance The address of accountBalance contract
@@ -88,14 +87,16 @@ interface IVPool {
     ) external returns (int256 fundingPayment, DataTypes.Growth memory fundingGrowthGlobal);
 
     /// @notice Get the max ticks allowed to be crossed within a block when reducing position
-    /// @param baseToken Address of the base token
     /// @return maxTickCrossedWithinBlock The max ticks allowed to be crossed within a block when reducing position
-    function getMaxTickCrossedWithinBlock(address baseToken) external view returns (uint24 maxTickCrossedWithinBlock);
+    function getMaxTickCrossedWithinBlock() external view returns (uint24 maxTickCrossedWithinBlock);
 
     /// @notice Get all the pending funding payment for a trader
     /// @return pendingFundingPayment The pending funding payment of the trader.
     /// Positive value means the trader pays funding, negative value means the trader receives funding.
-    function getAllPendingFundingPayment(address trader, address baseToken) external view returns (int256 pendingFundingPayment);
+    function getAllPendingFundingPayment(
+        address trader,
+        address baseToken
+    ) external view returns (int256 pendingFundingPayment);
 
     /// @notice Check if current price spread between market price and index twap is over maximum price spread.
     /// @param baseToken Address of the base token
@@ -150,6 +151,4 @@ interface IVPool {
     function getIndexPrice(address baseToken) external view returns (uint256);
 
     function getMarkPrice(address baseToken) external view returns (uint256);
-
-    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external;
 }

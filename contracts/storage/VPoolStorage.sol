@@ -24,7 +24,7 @@ abstract contract VPoolStorageV1 {
 
     // key: base token
     // value: a threshold to limit the price impact per block when reducing or closing the position
-    mapping(address => uint24) internal _maxTickCrossedWithinBlockMap;
+    mapping(address => uint24) internal __maxTickCrossedWithinBlockMap;
 
     // first key: trader, second key: baseToken
     // value: the last timestamp when a trader exceeds price limit when closing a position/being liquidated
@@ -36,4 +36,6 @@ abstract contract VPoolStorageV2 is VPoolStorageV1 {
     // key: base token
     // value: the last timestamp to update the tick
     mapping(address => uint256) internal _lastTickUpdatedTimestampMap;
+
+    uint24 internal _maxTickCrossedWithinBlock;
 }

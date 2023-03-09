@@ -94,16 +94,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         address baseToken = _createBaseToken(symbolArg, sqrtPriceX96);
         // add pool
         address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
-        //
-        IVPool(IClearingHouse(_clearingHouse).getVPool()).setMaxTickCrossedWithinBlock(baseToken, 100);
         // add liquidity
         uint256 liquidity = PerpMath.calculateLiquidity(
             _defaultQuoteTickCrossedGlobal,
-            IVPool(IClearingHouse(_clearingHouse).getVPool())
-                .getMaxTickCrossedWithinBlock(baseToken)
-                .toUint256()
-                .mul(100)
-                .toUint24(),
+            10000,
             IVPool(IClearingHouse(_clearingHouse).getVPool()).getMarkPrice(baseToken)
         );
         IClearingHouse(_clearingHouse).addLiquidity(
