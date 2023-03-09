@@ -202,4 +202,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
             }
         }
     }
+
+    function contributeEther(address baseToken) external payable {
+        address vault = _vault;
+        IVault(vault).depositEther{ value: msg.value }(baseToken);
+        address contributor = _msgSender();
+        // credit fund for contributor
+    }
 }
