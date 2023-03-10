@@ -55,4 +55,14 @@ contract TestPerpMath {
     ) external pure returns (uint256) {
         return PerpMath.calculateLiquidity(amountInX10_18, slippedRatio, currentPriceX10_18);
     }
+
+    function testEstimateCostAddLiquidity(
+        bool isLong,
+        uint256 baseAmountX10_18,
+        uint256 liquidity,
+        uint256 newLiquidity,
+        uint256 priceX10_18
+    ) external view returns (int256) {
+        return PerpMath.estimateCostAddLiquidity(isLong, baseAmountX10_18, liquidity, newLiquidity, priceX10_18);
+    }
 }

@@ -7,6 +7,7 @@ import { FullMath } from "@uniswap/v3-core/contracts/libraries/FullMath.sol";
 import { PerpSafeCast } from "./PerpSafeCast.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
+import "hardhat/console.sol";
 
 library PerpMath {
     // CONST
@@ -154,6 +155,55 @@ library PerpMath {
         detalPrice = PerpSafeCast.toUint160(detalPrice.sub(currentPrice));
         uint256 liquidity = FullMath.mulDiv(amountInX10_18, FixedPoint96.Q96, detalPrice);
         return liquidity;
+    }
+
+    function estimateCostAddLiquidity(
+        bool isLong,
+        uint256 baseAmountX10_18,
+        uint256 liquidity,
+        uint256 newLiquidity,
+        uint256 priceX10_18
+    ) internal view returns (int256) {
+        if (isLong) {
+            uint160 currentPrice = formatPriceX10_18ToSqrtPriceX96(priceX10_18);
+            uint256 nextPrice = liquidity
+                .mul(currentPrice)
+                .mul(2 ** 48)
+                .div(liquidity.mul(2 ** 96).sub(baseAmountX10_18.mul(currentPrice)))
+                .mul(2 ** 48);
+            uint256 deltaP = nextPrice.sub(currentPrice);
+            uint256 oldQuoteAmountX10_18 = FullMath.mulDiv(deltaP, liquidity, FixedPoint96.Q96);
+            nextPrice = newLiquidity
+                .mul(currentPrice)
+                .mul(2 ** 48)
+                .div(newLiquidity.mul(2 ** 96).sub(baseAmountX10_18.mul(currentPrice)))
+                .mul(2 ** 48);
+            deltaP = nextPrice.sub(currentPrice);
+            uint256 newQuoteAmountX10_18 = FullMath.mulDiv(deltaP, newLiquidity, FixedPoint96.Q96);
+            if (newQuoteAmountX10_18 > oldQuoteAmountX10_18) {
+                return PerpSafeCast.toInt256(newQuoteAmountX10_18.sub(oldQuoteAmountX10_18));
+            }
+            return oldQuoteAmountX10_18.sub(newQuoteAmountX10_18).neg256();
+        } else {
+            uint160 currentPrice = formatPriceX10_18ToSqrtPriceX96(priceX10_18);
+            uint256 nextPrice = liquidity
+                .mul(currentPrice)
+                .mul(2 ** 48)
+                .div(liquidity.mul(2 ** 96).add(baseAmountX10_18.mul(currentPrice)))
+                .mul(2 ** 48);
+            uint256 oldQuoteAmountX10_18 = FullMath.mulDiv(liquidity, currentPrice.sub(nextPrice), FixedPoint96.Q96);
+            nextPrice = newLiquidity
+                .mul(currentPrice)
+                .mul(2 ** 48)
+                .div(newLiquidity.mul(2 ** 96).add(baseAmountX10_18.mul(currentPrice)))
+                .mul(2 ** 48);
+            uint256 newQuoteAmountX10_18 = FullMath.mulDiv(newLiquidity, currentPrice.sub(nextPrice), FixedPoint96.Q96);
+            if (oldQuoteAmountX10_18 > newQuoteAmountX10_18) {
+                return PerpSafeCast.toInt256(oldQuoteAmountX10_18.sub(newQuoteAmountX10_18));
+            }
+            return newQuoteAmountX10_18.sub(oldQuoteAmountX10_18).neg256();
+        }
+        return 0;
     }
 
     uint256 internal constant _ONE_HUNDRED_PERCENT = 1e6; // 100%

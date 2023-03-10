@@ -24,4 +24,13 @@ describe("PerpMath test", async () => {
         expect(a).to.be.deep.eq(BigNumber.from("1772175376705177874061"))
     })
 
+    it("testimateCostAddLiquidity long", async () => {
+        let a = await perpMath.testEstimateCostAddLiquidity(true, BigNumber.from("1829541324").mul(x10_18).div(1000000000), BigNumber.from(1517882343751490).mul(x10_6), BigNumber.from(1517882343751490).mul(2).mul(x10_6), BigNumber.from(5000).mul(x10_18))
+        console.log(a.toString());
+    })
+    it("testimateCostAddLiquidity short", async () => {
+        let a = await perpMath.testEstimateCostAddLiquidity(false, BigNumber.from("1").mul(x10_18), BigNumber.from(1517882343751490).mul(x10_6), BigNumber.from(1517882343751490).mul(2).mul(x10_6), BigNumber.from(5000).mul(x10_18))
+        console.log(a.toString());
+    })
+
 })
