@@ -104,7 +104,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address vault = _vault;
         int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this), baseToken);
         insuranceFundSettlementTokenValueX10_S = insuranceFundSettlementTokenValueX10_S.sub(
-            _getTotalPlatformFee(baseToken).toInt256()
+            _getTotalSharedPlatformFee(baseToken).toInt256()
         );
         // IF_V0 : check zero value
         require(insuranceFundSettlementTokenValueX10_S >= 0, "IF_V0");
@@ -167,16 +167,20 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function modifyPlatformFee(address baseToken, int256 amount) external override {
+        // IF_NIT: not isolated token
+        require(_isIsolated(baseToken), "IF_NIT");
         _requireOnlyClearingHouse();
         _modifyPlatformFee(baseToken, amount);
     }
 
     function addContributionFund(address baseToken, address contributor, uint256 amountX10_18) external override {
+        require(_isIsolated(baseToken), "IF_NIT");
         _requireOnlyClearingHouse();
         _contributeFund(baseToken, contributor, amountX10_18);
     }
 
     function contributeEther(address baseToken) external payable {
+        require(_isIsolated(baseToken), "IF_NIT");
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
@@ -189,6 +193,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function contribute(address baseToken, address token, uint256 amount) external payable {
+        require(_isIsolated(baseToken), "IF_NIT");
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() != token, "IF_STNWE");
@@ -202,9 +207,9 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function getAvailableFund(
         address baseToken,
         address user
-    ) external view returns (uint256 insuranceFee, uint256 sharedFee, uint256 pendingFee) {
-        insuranceFee = _getSharedInsuranceFundBalance(baseToken, user);
-        (sharedFee, pendingFee) = _getSharedPlatfromFeeTotalOfUser(baseToken, user);
+    ) external view returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
+        insuranceBalance = _getSharedInsuranceFundBalance(baseToken, user);
+        (sharedFee, pendingFee) = _getSharedPlatfromFee(baseToken, user);
     }
 
     //
@@ -214,53 +219,28 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function _isContributed(address baseToken) internal view returns (bool) {
-        return
-            _contributionFundDataMap[baseToken].total > _contributionFundDataMap[baseToken].contributors[address(this)];
+        return _contributedFundAllUsers(baseToken) > 0;
     }
 
-    function _contributeFundTotalOfUsers(address baseToken) internal view returns (uint256) {
+    function _contributedFundAllUsers(address baseToken) internal view returns (uint256) {
         return
             _contributionFundDataMap[baseToken].total.sub(
                 _contributionFundDataMap[baseToken].contributors[address(this)]
             );
     }
 
-    function _contributeFundTotalOfUser(address baseToken, address contributor) internal view returns (uint256) {
-        return _contributionFundDataMap[baseToken].contributors[contributor];
-    }
-
-    function _settlePlatformFee(address baseToken) internal {
-        if (_contributeFundTotalOfUsers(baseToken) > 0) {
-            uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
-            _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
-                settleAmount.mul(_PLATFORM_FUND_SHARED_PER_AMOUNT).div(_contributeFundTotalOfUsers(baseToken))
-            );
-            _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].total;
-        }
-    }
-
-    // function _getSharedPlatformFeeTotal(address baseToken) internal view returns (uint256) {
-    //     return _platformFundDataMap[baseToken].total;
-    // }
-
-    // function _getCreatorPendingFee(address baseToken) internal view returns (uint256) {
-    //     return _platformFundDataMap[baseToken].creatorPendingFee;
-    // }
-
-    function _getTotalPlatformFee(address baseToken) internal view returns (uint256) {
+    function _getTotalSharedPlatformFee(address baseToken) internal view returns (uint256) {
         return _platformFundDataMap[baseToken].total.add(_platformFundDataMap[baseToken].creatorPendingFee);
     }
 
-    function _getSharedPlatfromFeeTotalOfUser(
+    function _getSharedPlatfromFee(
         address baseToken,
         address contributor
     ) internal view returns (uint256 sharedFee, uint256 pendingFee) {
-        uint256 amountContributor = _contributeFundTotalOfUser(baseToken, contributor);
+        uint256 amountContributor = _contributionFundDataMap[baseToken].contributors[contributor];
         uint256 lastSharedContributor = _platformFundDataMap[baseToken].lastSharedMap[contributor];
-        uint256 lastSharedTotal = _platformFundDataMap[baseToken].lastShared;
-        sharedFee = amountContributor.mul(lastSharedTotal.sub(lastSharedContributor)).div(
-            _PLATFORM_FUND_SHARED_PER_AMOUNT
-        );
+        uint256 lastShared = _platformFundDataMap[baseToken].lastShared;
+        sharedFee = amountContributor.mul(lastShared.sub(lastSharedContributor)).div(_PLATFORM_FUND_SHARED_PER_AMOUNT);
         if (contributor == IMarketRegistry(_marketRegistry).getCreator(baseToken)) {
             pendingFee = _platformFundDataMap[baseToken].creatorPendingFee;
         }
@@ -279,27 +259,39 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return sharedFund;
     }
 
-    function _modifyPlatformFee(address baseToken, int256 amount) internal {
+    function _settlePlatformFee(address baseToken) internal {
         if (_isContributed(baseToken)) {
-            if (amount > 0) {
-                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amount.abs());
-            } else {
-                _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].lastTotal.sub(amount.abs());
-                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.sub(amount.abs());
-            }
-        } else {
-            _modifyCreatorPendingFee(baseToken, amount);
+            uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
+            _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
+                settleAmount.mul(_PLATFORM_FUND_SHARED_PER_AMOUNT).div(_contributedFundAllUsers(baseToken))
+            );
+            _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].total;
         }
     }
 
-    function _modifyCreatorPendingFee(address baseToken, int256 amount) internal {
-        if (amount > 0) {
+    function _modifyPlatformFee(address baseToken, int256 amountX10_18) internal {
+        if (_isContributed(baseToken)) {
+            if (amountX10_18 > 0) {
+                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amountX10_18.abs());
+            } else {
+                _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].lastTotal.sub(
+                    amountX10_18.abs()
+                );
+                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.sub(amountX10_18.abs());
+            }
+        } else {
+            _modifyCreatorPendingFee(baseToken, amountX10_18);
+        }
+    }
+
+    function _modifyCreatorPendingFee(address baseToken, int256 amountX10_18) internal {
+        if (amountX10_18 > 0) {
             _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken].creatorPendingFee.add(
-                amount.abs()
+                amountX10_18.abs()
             );
         } else {
             _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken].creatorPendingFee.sub(
-                amount.abs()
+                amountX10_18.abs()
             );
         }
     }
@@ -307,10 +299,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function _releasePlatfromFee(address baseToken, address contributor) internal {
         _settlePlatformFee(baseToken);
         if (contributor != address(0) && contributor != address(this)) {
-            (uint256 sharedFeeX10_18, uint256 pendingFeeX10_18) = _getSharedPlatfromFeeTotalOfUser(
-                baseToken,
-                contributor
-            );
+            (uint256 sharedFeeX10_18, uint256 pendingFeeX10_18) = _getSharedPlatfromFee(baseToken, contributor);
             uint256 releasedFeeX10_18 = sharedFeeX10_18.add(pendingFeeX10_18);
             if (releasedFeeX10_18 > 0) {
                 uint256 sharedFeeX10_D = releasedFeeX10_18.formatSettlementToken(IVault(_vault).decimals());
@@ -332,25 +321,27 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _platformFundDataMap[baseToken].lastSharedMap[contributor] = _platformFundDataMap[baseToken].lastShared;
     }
 
-    function _contributeFund(address baseToken, address contributor, uint256 settlementTokenAmount) internal {
+    function _contributeFund(address baseToken, address contributor, uint256 amountX10_18) internal {
         _releasePlatfromFee(baseToken, contributor);
         // contribute fund
-        if (settlementTokenAmount > 0) {
+        if (amountX10_18 > 0) {
             uint256 fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
-            uint256 scaleAmount;
+            uint256 contributedAmount;
             if (fundCapacity == 0) {
-                scaleAmount = settlementTokenAmount;
+                contributedAmount = amountX10_18;
             } else {
-                scaleAmount = settlementTokenAmount.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
+                contributedAmount = amountX10_18.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
             }
-            _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(scaleAmount);
+            _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(
+                contributedAmount
+            );
             _contributionFundDataMap[baseToken].contributors[contributor] = _contributionFundDataMap[baseToken]
                 .contributors[contributor]
-                .add(scaleAmount);
+                .add(contributedAmount);
             //
-            emit InsuranceFundContributed(baseToken, contributor, settlementTokenAmount, scaleAmount);
+            emit InsuranceFundContributed(baseToken, contributor, amountX10_18, contributedAmount);
             // add repeg fund
-            _addRepegFund(settlementTokenAmount, baseToken);
+            _addRepegFund(amountX10_18, baseToken);
         }
     }
 }

@@ -175,6 +175,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
 
         // V_DFZA: Deposit for zero address
         require(to != address(0), "V_DFZA");
+        require(to != address(_insuranceFund), "V_DFNIF");
 
         address from = _msgSender();
         _deposit(from, to, token, amount, baseToken);
