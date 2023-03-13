@@ -36,4 +36,10 @@ interface IInsuranceFund {
     function modifyPlatformFee(address baseToken, int256 amount) external;
 
     function addContributionFund(address baseToken, address contributor, uint256 amount) external;
+
+    function contributeEther(address baseToken) external payable;
+
+    function contribute(address baseToken, address token, uint256 amount) external;
+
+    function withdrawPlatformFee(address baseToken) external;
 }

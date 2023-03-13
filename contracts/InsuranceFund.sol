@@ -179,7 +179,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _contributeFund(baseToken, contributor, amountX10_18);
     }
 
-    function contributeEther(address baseToken) external payable {
+    function contributeEther(address baseToken) external payable override {
         require(_isIsolated(baseToken), "IF_NIT");
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
@@ -191,7 +191,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).depositEther{ value: amount }(baseToken);
     }
 
-    function contribute(address baseToken, address token, uint256 amount) external payable {
+    function contribute(address baseToken, address token, uint256 amount) external override {
         require(_isIsolated(baseToken), "IF_NIT");
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
@@ -200,6 +200,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
         IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
+    }
+
+    function withdrawPlatformFee(address baseToken) external override {
+        require(_isIsolated(baseToken), "IF_NIT");
+        _releasePlatfromFee(baseToken, _msgSender());
     }
 
     function getAvailableFund(
@@ -230,10 +235,13 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function getSharedPlatformFeeInfo(
         address baseToken,
         address user
-    ) external view returns (uint256 balance, uint256 userShared, uint256 lastShared) {
+    ) external view returns (uint256 balance, uint256 userShared, uint256 lastShared, uint256 pendingFee) {
         balance = _contributionFundDataMap[baseToken].contributors[user];
         userShared = _platformFundDataMap[baseToken].lastSharedMap[user];
         lastShared = _platformFundDataMap[baseToken].lastShared;
+        if (user == IMarketRegistry(_marketRegistry).getCreator(baseToken)) {
+            pendingFee = _platformFundDataMap[baseToken].creatorPendingFee;
+        }
     }
 
     //
@@ -309,14 +317,16 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function _modifyCreatorPendingFee(address baseToken, int256 amountX10_18) internal {
-        if (amountX10_18 > 0) {
-            _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken].creatorPendingFee.add(
-                amountX10_18.abs()
-            );
-        } else {
-            _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken].creatorPendingFee.sub(
-                amountX10_18.abs()
-            );
+        if (amountX10_18 != 0) {
+            if (amountX10_18 > 0) {
+                _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken]
+                    .creatorPendingFee
+                    .add(amountX10_18.abs());
+            } else {
+                _platformFundDataMap[baseToken].creatorPendingFee = _platformFundDataMap[baseToken]
+                    .creatorPendingFee
+                    .sub(amountX10_18.abs());
+            }
         }
     }
 
