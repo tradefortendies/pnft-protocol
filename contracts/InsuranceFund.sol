@@ -183,7 +183,17 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         }
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
-        _addRepegFund(amount, baseToken);
+    }
+
+    function contribute(address baseToken, address token, uint256 amount) external payable {
+        address vault = _vault;
+        // IF_STNWE: settlementToken != WETH
+        require(IVault(vault).getSettlementToken() != token, "IF_STNWE");
+        if (amount > 0) {
+            IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
+        }
+        // credit fund for contributor
+        _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
     }
 
     //
@@ -265,6 +275,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
             _contributionFundDataMap[baseToken].contributors[contributor] = _contributionFundDataMap[baseToken]
                 .contributors[contributor]
                 .add(scaleAmount);
+            //
+            _addRepegFund(amount, baseToken);
         }
     }
 }

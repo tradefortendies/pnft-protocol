@@ -64,6 +64,11 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         require(_msgSender() == _clearingHouse, "RF_OCH");
     }
 
+    function _requireOnlyClearingHouseOrInsuranceFund() internal view {
+        // only AccountBalance
+        require(_msgSender() == _clearingHouse || _msgSender() == _insuranceFund, "RF_OCHOIF");
+    }
+
     //
     // EXTERNAL NON-VIEW
     //
@@ -185,7 +190,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         // input requirement checks:
         //   token: here
         //   amount: _deposit
-        _requireOnlyClearingHouse();
+        _requireOnlyClearingHouseOrInsuranceFund();
 
         // V_DFZA: Deposit for zero address
         require(trader != address(0), "V_DFZA");
