@@ -206,7 +206,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         require(amount > 0, "IF_ZV");
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
-        IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
+        IVault(vault).requestDepositFromTo(_msgSender(), address(this), token, amount, baseToken);
     }
 
     function withdrawPlatformFee(address baseToken) external override onlyIsolated(baseToken) {

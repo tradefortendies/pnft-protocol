@@ -46,7 +46,13 @@ interface IVault {
     /// @param amount The amount of the token to deposit
     function depositFor(address to, address token, uint256 amount, address baseToken) external;
 
-    function requestDepositFor(address trader, address token, uint256 amount, address baseToken) external;
+    function requestDepositFromTo(
+        address trader,
+        address to,
+        address token,
+        uint256 amount,
+        address baseToken
+    ) external;
 
     /// @notice Deposit ETH as collateral into vault
     function depositEther(address baseToken) external payable;

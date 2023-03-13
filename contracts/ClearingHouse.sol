@@ -267,7 +267,7 @@ contract ClearingHouse is
     ) external override returns (uint256 base, uint256 quote, uint256 fee) {
         if (amount > 0) {
             // deposit for trader
-            IVault(_vault).requestDepositFor(_msgSender(), token, amount, params.baseToken);
+            IVault(_vault).requestDepositFromTo(_msgSender(), _msgSender(), token, amount, params.baseToken);
         }
         (base, quote, fee) = _openPositionFor(_msgSender(), params);
     }

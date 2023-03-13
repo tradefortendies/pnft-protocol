@@ -22,7 +22,7 @@ import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse openProtocol", () => {
 
-    const [admin, maker, trader1, trader2, liquidator, priceAdmin, creator, fundingFund, platformFund] = waffle.provider.getWallets()
+    const [admin, maker, trader1, trader2, liquidator, priceAdmin, creator, contributor, platformFund] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
@@ -94,9 +94,10 @@ describe("ClearingHouse openProtocol", () => {
         // await deposit(liquidator, vault, 1000000, collateral, baseToken)
 
         await collateral.mint(trader1.address, parseUnits("1000000", collateralDecimals))
+        await collateral.mint(contributor.address, parseUnits("1000000", collateralDecimals))
 
         await collateral.connect(trader1).approve(vault.address, parseUnits("1000000", collateralDecimals))
-        await collateral.connect(trader2).approve(vault.address, parseUnits("1000000", collateralDecimals))
+        await collateral.connect(contributor).approve(vault.address, parseUnits("1000000", collateralDecimals))
 
         await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
 
@@ -114,13 +115,16 @@ describe("ClearingHouse openProtocol", () => {
         //     liquidity: parseEther('1000'),
         //     deadline: ethers.constants.MaxUint256,
         // })
+
+        await insuranceFund.connect(contributor).contribute(baseToken.address, collateral.address, parseEther('1'))
+
         var isBaseToQuote: boolean
         isBaseToQuote = true
         {
             await clearingHouse.connect(trader1).depositAndOpenPosition({
                 baseToken: baseToken.address,
                 isBaseToQuote: isBaseToQuote,
-                isExactInput: isBaseToQuote,
+                isExactInput: !isBaseToQuote,
                 oppositeAmountBound: 0,
                 amount: parseEther('10'),
                 sqrtPriceLimitX96: 0,
@@ -132,7 +136,7 @@ describe("ClearingHouse openProtocol", () => {
             )
         }
 
-        await clearingHouse.connect(trader1).closePositionAndWithdrawAll(
+        await clearingHouse.connect(trader1).closePosition(
             {
                 baseToken: baseToken.address,
                 sqrtPriceLimitX96: parseEther("0"),
@@ -142,22 +146,26 @@ describe("ClearingHouse openProtocol", () => {
             }
         )
 
-        let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]
-        let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
         let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address, baseToken.address))[0]
-        let owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address, baseToken.address))[0]
+        let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, ethers.constants.AddressZero))[0]
+        let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
         let owedRealizedPnlCreator = (await accountBalance.getPnlAndPendingFee(creator.address, baseToken.address))[0]
+
+        let insuranceFundCapacity = (await insuranceFund.getInsuranceFundCapacity(baseToken.address))
+        let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, contributor.address))
 
         console.log(
             'owedRealizedPnl',
+            formatEther(owedRealizedPnlTrade1),
             formatEther(owedRealizedPnlPlatformFund),
             formatEther(owedRealizedPnlInsuranceFund),
-            formatEther(owedRealizedPnlTrade1),
-            formatEther(owedRealizedPnlAdmin),
             formatEther(owedRealizedPnlCreator),
-            formatEther(owedRealizedPnlPlatformFund.add(owedRealizedPnlInsuranceFund).add(owedRealizedPnlTrade1).add(owedRealizedPnlAdmin).add(owedRealizedPnlCreator)),
-            formatEther(await insuranceFund.getRepegAccumulatedFund(baseToken.address)),
-            formatEther(await insuranceFund.getRepegDistributedFund(baseToken.address)),
+            formatEther(owedRealizedPnlPlatformFund.add(owedRealizedPnlInsuranceFund).add(owedRealizedPnlTrade1).add(owedRealizedPnlCreator)),
+            '---',
+            formatEther(insuranceFundCapacity),
+            formatEther(insuranceBalance),
+            formatEther(sharedFee),
+            formatEther(pendingFee),
         )
     })
 })

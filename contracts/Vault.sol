@@ -182,8 +182,9 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
     }
 
     /// @inheritdoc IVault
-    function requestDepositFor(
+    function requestDepositFromTo(
         address trader,
+        address to,
         address token,
         uint256 amount,
         address baseToken
@@ -196,7 +197,7 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         // V_DFZA: Deposit for zero address
         require(trader != address(0), "V_DFZA");
 
-        _deposit(trader, trader, token, amount, baseToken);
+        _deposit(trader, to, token, amount, baseToken);
     }
 
     /// @inheritdoc IVault
