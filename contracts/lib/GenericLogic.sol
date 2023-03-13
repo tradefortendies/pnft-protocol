@@ -753,17 +753,17 @@ library GenericLogic {
         uint256 amount
     ) external {
         address insuranceFund = IClearingHouse(clearingHouse).getInsuranceFund();
-        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnl(
-            insuranceFund,
-            baseToken,
-            amount.toInt256()
-        );
         // update repeg fund
         if (isIsolated(clearingHouse, baseToken)) {
             IInsuranceFund(insuranceFund).addContributionFund(baseToken, insuranceFund, amount);
         } else {
             IInsuranceFund(insuranceFund).addRepegFund(amount.div(2), baseToken);
         }
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnl(
+            insuranceFund,
+            baseToken,
+            amount.toInt256()
+        );
     }
 
     function isIsolated(address clearingHouse, address baseToken) public view returns (bool) {
