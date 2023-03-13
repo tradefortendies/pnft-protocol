@@ -126,14 +126,14 @@ library ClearingHouseLogic {
                 response.exchangedPositionNotional.abs() >= _BAD_AMOUNT,
             "EL_DA"
         );
+        // platformFundFee
+        GenericLogic.modifyOwedRealizedPnlForPlatformFee(clearingHouse, params.baseToken, response.platformFundFee);
         // insuranceFundFee
         GenericLogic.modifyOwedRealizedPnlForInsuranceFundFee(
             clearingHouse,
             params.baseToken,
             response.insuranceFundFee
         );
-        // platformFundFee
-        GenericLogic.modifyOwedRealizedPnlForPlatformFee(clearingHouse, params.baseToken, response.platformFundFee);
         // sum fee, sub direct balance
         uint256 fee = response.insuranceFundFee.add(response.platformFundFee);
         _modifyOwedRealizedPnl(clearingHouse, params.trader, params.baseToken, fee.toInt256().neg256());

@@ -15,7 +15,7 @@ interface IInsuranceFund {
     /// @return vault The address of `Vault`
     function getVault() external view returns (address vault);
 
-        /// @notice Get `InsuranceFund` capacity
+    /// @notice Get `InsuranceFund` capacity
     /// @return capacityX10_S The capacity value (settlementTokenValue + walletBalance) in settlement token's decimals
     function getInsuranceFundCapacity(address baseToken) external view returns (int256 capacityX10_S);
 
@@ -28,4 +28,8 @@ interface IInsuranceFund {
     function addRepegFund(uint256 fund, address baseToken) external;
 
     function repegFund(int256 fund, address baseToken) external;
+
+    function modifyPlatfromFee(address baseToken, int256 amount) external;
+
+    function modifyContributeFund(address baseToken, address contributor, uint256 amount) external;
 }

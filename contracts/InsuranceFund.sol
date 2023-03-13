@@ -5,7 +5,7 @@ import { AddressUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/Ad
 import { SignedSafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SignedSafeMathUpgradeable.sol";
 import { SafeMathUpgradeable } from "@openzeppelin/contracts-upgradeable/math/SafeMathUpgradeable.sol";
 import { ReentrancyGuardUpgradeable } from "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-import { IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
+import { SafeERC20Upgradeable, IERC20Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC20/SafeERC20Upgradeable.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { InsuranceFundStorageV1 } from "./storage/InsuranceFundStorage.sol";
@@ -15,6 +15,7 @@ import { OwnerPausable } from "./base/OwnerPausable.sol";
 import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
 import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IVault } from "./interface/IVault.sol";
+import { TransferHelper } from "@uniswap/v3-periphery/contracts/libraries/TransferHelper.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausable, InsuranceFundStorageV4 {
@@ -22,12 +23,15 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     using SignedSafeMathUpgradeable for int256;
     using SafeMathUpgradeable for uint256;
     using PerpMath for int256;
+    using PerpMath for uint256;
     using PerpSafeCast for int256;
     using PerpSafeCast for uint256;
 
     //
     // MODIFIER
     //
+
+    receive() external payable {}
 
     function _requireOnlyClearingHouse() internal view {
         // only AccountBalance
@@ -85,11 +89,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
 
     /// @inheritdoc IInsuranceFund
     function getInsuranceFundCapacity(address baseToken) public view override returns (int256) {
-        address vault = _vault;
-        int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this), baseToken);
-        insuranceFundSettlementTokenValueX10_S = insuranceFundSettlementTokenValueX10_S.sub(
-            _getSharePlatfromFeeTotal(baseToken).toInt256()
-        );
+        int256 insuranceFundSettlementTokenValueX10_S = _getInsuranceFundCapacityFull(baseToken);
         if (insuranceFundSettlementTokenValueX10_S > 1e14) {
             insuranceFundSettlementTokenValueX10_S = insuranceFundSettlementTokenValueX10_S.sub(1e14);
         }
@@ -162,6 +162,32 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _distributeRepegFund(fund, baseToken);
     }
 
+    function modifyPlatfromFee(address baseToken, int256 amount) external override {
+        _requireOnlyClearingHouse();
+        _modifyPlatfromFee(baseToken, amount);
+    }
+
+    function modifyContributeFund(address baseToken, address contributor, uint256 amount) external override {
+        _requireOnlyClearingHouse();
+        address vault = _vault;
+        _contributeFund(baseToken, contributor, amount.parseSettlementToken(IVault(vault).decimals()));
+    }
+
+    function contributeEther(address baseToken) external payable {
+        address vault = _vault;
+        // IF_STNWE: settlementToken != WETH
+        require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
+        uint256 amount = msg.value;
+        if (amount > 0) {
+            IVault(vault).depositEther{ value: amount }(baseToken);
+        }
+        // credit fund for contributor
+        _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
+        _addRepegFund(amount, baseToken);
+    }
+
+    //
+
     function _isIsolated(address baseToken) internal view returns (bool) {
         return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
     }
@@ -189,24 +215,56 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return _platformFundDataMap[baseToken].total;
     }
 
-    function _sharePlatfromFee(address baseToken, uint256 amount) internal {
-        _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amount);
+    function _getSharePlatfromFeeTotalOfUser(address baseToken, address contributor) internal view returns (uint256) {
+        uint256 amountContributor = _contributeFundTotalOfUser(baseToken, contributor);
+        uint256 lastSharedContributor = _platformFundDataMap[baseToken].lastSharedMap[contributor];
+        uint256 lastSharedTotal = _platformFundDataMap[baseToken].lastShared;
+        return amountContributor.mul(lastSharedTotal.sub(lastSharedContributor)).div(1e18);
+    }
+
+    function _modifyPlatfromFee(address baseToken, int256 amount) internal {
+        if (amount > 0) {
+            _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amount.abs());
+        } else {
+            _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].lastTotal.sub(amount.abs());
+            _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.sub(amount.abs());
+        }
     }
 
     function _contributeFund(address baseToken, address contributor, uint256 amount) internal {
         _settlePlatfromFee(baseToken);
-        if (amount > 0) {
-            if (contributor != address(this)) {
-                // repay fee for contributor TODO
-                _platformFundDataMap[baseToken].lastSharedMap[contributor] = _platformFundDataMap[baseToken].lastShared;
+        if (contributor != address(0) && contributor != address(this)) {
+            // repay fee for contributor TODO
+            uint256 contributorSharedFeeX10_S = _getSharePlatfromFeeTotalOfUser(baseToken, contributor);
+            if (contributorSharedFeeX10_S > 0) {
+                uint256 contributorSharedFee = contributorSharedFeeX10_S.formatSettlementToken(
+                    IVault(_vault).decimals()
+                );
+                address settlementToken = IVault(_vault).getSettlementToken();
+                if (settlementToken == IVault(_vault).getWETH9()) {
+                    IVault(_vault).withdrawEther(contributorSharedFee, baseToken);
+                    TransferHelper.safeTransferETH(contributor, contributorSharedFee);
+                } else {
+                    IVault(_vault).withdraw(settlementToken, contributorSharedFee, baseToken);
+                    SafeERC20Upgradeable.safeTransfer(
+                        IERC20Upgradeable(settlementToken),
+                        contributor,
+                        contributorSharedFee
+                    );
+                }
+                _modifyPlatfromFee(baseToken, contributorSharedFeeX10_S.toInt256().neg256());
             }
         }
-    }
-
-    function contributeEther(address baseToken) external payable {
-        address vault = _vault;
-        IVault(vault).depositEther{ value: msg.value }(baseToken);
-        address contributor = _msgSender();
-        // credit fund for contributor
+        _platformFundDataMap[baseToken].lastSharedMap[contributor] = _platformFundDataMap[baseToken].lastShared;
+        if (amount > 0) {
+            uint256 fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
+            uint256 scaleAmount = amount.mul(1e18).div(
+                fundCapacity.mul(1e18).div(_contributionFundDataMap[baseToken].total)
+            );
+            _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(scaleAmount);
+            _contributionFundDataMap[baseToken].contributors[contributor] = _contributionFundDataMap[baseToken]
+                .contributors[contributor]
+                .add(scaleAmount);
+        }
     }
 }

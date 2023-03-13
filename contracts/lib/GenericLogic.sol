@@ -719,18 +719,19 @@ library GenericLogic {
     function modifyOwedRealizedPnlForPlatformFee(address clearingHouse, address baseToken, uint256 amount) external {
         address platformFund = IClearingHouse(clearingHouse).getPlatformFund();
         if (isIsolated(clearingHouse, baseToken)) {
+            address insuranceFund = IClearingHouse(clearingHouse).getInsuranceFund();
             uint24 shareFeeRatio = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry())
                 .getSharePlatformFeeRatioGlobal();
             // for creator
-            int256 creatorFee = amount.toInt256().mulRatio(shareFeeRatio);
-            address creator = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getCreator(baseToken);
+            int256 insurancePlatformFee = amount.toInt256().mulRatio(shareFeeRatio);
             IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForCreatorFee(
-                creator,
+                insuranceFund,
                 baseToken,
-                creatorFee
+                insurancePlatformFee
             );
+            IInsuranceFund(insuranceFund).modifyPlatfromFee(baseToken, insurancePlatformFee);
             // for platform
-            int256 platformFundFee = amount.toInt256().sub(creatorFee);
+            int256 platformFundFee = amount.toInt256().sub(insurancePlatformFee);
             IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
                 platformFund,
                 baseToken,
@@ -758,7 +759,12 @@ library GenericLogic {
             amount.toInt256()
         );
         // update repeg fund
-        IInsuranceFund(insuranceFund).addRepegFund(amount.div(2), baseToken);
+        if (isIsolated(clearingHouse, baseToken)) {
+            IInsuranceFund(insuranceFund).addRepegFund(amount, baseToken);
+            IInsuranceFund(insuranceFund).modifyContributeFund(baseToken, insuranceFund, amount);
+        } else {
+            IInsuranceFund(insuranceFund).addRepegFund(amount.div(2), baseToken);
+        }
     }
 
     function isIsolated(address clearingHouse, address baseToken) public view returns (bool) {
