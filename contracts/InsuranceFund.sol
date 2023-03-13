@@ -212,7 +212,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return _contributionFundDataMap[baseToken].contributors[contributor];
     }
 
-    function _settlePlatfromFee(address baseToken) internal {
+    function _settlePlatformFee(address baseToken) internal {
         if (_contributeFundTotalOfUsers(baseToken) > 0) {
             uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
             _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
@@ -243,7 +243,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function _contributeFund(address baseToken, address contributor, uint256 settlementTokenAmount) internal {
-        _settlePlatfromFee(baseToken);
+        _settlePlatformFee(baseToken);
         if (contributor != address(0) && contributor != address(this)) {
             // repay fee for contributor TODO
             uint256 contributorSharedFeeX10_S = _getSharePlatfromFeeTotalOfUser(baseToken, contributor);
