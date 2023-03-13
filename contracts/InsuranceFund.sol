@@ -268,9 +268,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _platformFundDataMap[baseToken].lastSharedMap[contributor] = _platformFundDataMap[baseToken].lastShared;
         if (settlementTokenAmount > 0) {
             uint256 fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
-            uint256 scaleAmount = settlementTokenAmount.mul(1e18).div(
-                fundCapacity.mul(1e18).div(_contributionFundDataMap[baseToken].total)
-            );
+            uint256 scaleAmount;
+            if (fundCapacity == 0) {
+                scaleAmount = settlementTokenAmount;
+            } else {
+                scaleAmount = settlementTokenAmount.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
+            }
             _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(scaleAmount);
             _contributionFundDataMap[baseToken].contributors[contributor] = _contributionFundDataMap[baseToken]
                 .contributors[contributor]
