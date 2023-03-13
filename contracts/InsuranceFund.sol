@@ -216,24 +216,25 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         ratio = _contributionFundDataMap[baseToken]
             .contributors[contributor]
             .mul(1e6)
-            .div(_contributionFundDataMap[baseToken].total)
+            .div(_contributedFundAllUsers(baseToken))
             .toUint24();
     }
 
     function getContributedInfo(
         address baseToken,
         address user
-    ) external view returns (uint256 contributedBalance, uint256 contributedTotal, uint256 fundCapacity) {
-        contributedBalance = _contributionFundDataMap[baseToken].contributors[user];
-        contributedTotal = _contributedFundAllUsers(baseToken);
+    ) external view returns (uint256 balance, uint256 total, uint256 fundCapacity) {
+        balance = _contributionFundDataMap[baseToken].contributors[user];
+        total = _contributionFundDataMap[baseToken].total;
         fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
     }
 
     function getSharedPlatformFeeInfo(
         address baseToken,
         address user
-    ) external view returns (uint256 shared, uint256 lastShared) {
-        shared = _platformFundDataMap[baseToken].lastSharedMap[user];
+    ) external view returns (uint256 balance, uint256 userShared, uint256 lastShared) {
+        balance = _contributionFundDataMap[baseToken].contributors[user];
+        userShared = _platformFundDataMap[baseToken].lastSharedMap[user];
         lastShared = _platformFundDataMap[baseToken].lastShared;
     }
 
