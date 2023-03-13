@@ -106,6 +106,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return insuranceFundSettlementTokenValueX10_S;
     }
 
+    /// @inheritdoc IInsuranceFund
+    function getInsuranceFundCapacityFull(address baseToken) public view override returns (int256) {
+        return _getInsuranceFundCapacityFull(baseToken);
+    }
+
     function _getInsuranceFundCapacityFull(address baseToken) internal view returns (int256) {
         address vault = _vault;
         int256 insuranceFundSettlementTokenValueX10_S = IVault(vault).getSettlementTokenValue(address(this), baseToken);
@@ -217,27 +222,22 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address baseToken,
         address contributor
     ) external view onlyIsolated(baseToken) returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
-        insuranceBalance = _getSharedInsuranceFundBalance(baseToken, contributor);
+        insuranceBalance = _getCurrentInsuranceFundBalance(baseToken, contributor);
         (sharedFee, pendingFee) = _getSharedPlatfromFee(baseToken, contributor);
-    }
-
-    function getContributedRatio(
-        address baseToken,
-        address contributor
-    ) external view onlyIsolated(baseToken) returns (uint24 ratio) {
-        ratio = _contributionFundDataMap[baseToken]
-            .contributors[contributor]
-            .mul(1e6)
-            .div(_contributedFundAllUsers(baseToken))
-            .toUint24();
     }
 
     function getContributedInfo(
         address baseToken,
         address user
-    ) external view onlyIsolated(baseToken) returns (uint256 balance, uint256 total, uint256 fundCapacity) {
+    )
+        external
+        view
+        onlyIsolated(baseToken)
+        returns (uint256 balance, uint256 total, uint256 userAllTotal, uint256 fundCapacity)
+    {
         balance = _contributionFundDataMap[baseToken].contributors[user];
         total = _contributionFundDataMap[baseToken].total;
+        userAllTotal = _contributedFundAllUsers(baseToken);
         fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
     }
 
@@ -283,16 +283,20 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address baseToken,
         address contributor
     ) internal view returns (uint256 sharedFee, uint256 pendingFee) {
-        uint256 amountContributor = _contributionFundDataMap[baseToken].contributors[contributor];
-        uint256 lastSharedContributor = _platformFundDataMap[baseToken].lastSharedMap[contributor];
-        uint256 lastShared = _platformFundDataMap[baseToken].lastShared;
-        sharedFee = amountContributor.mul(lastShared.sub(lastSharedContributor)).div(_PLATFORM_FUND_SHARED_PER_AMOUNT);
-        if (contributor == IMarketRegistry(_marketRegistry).getCreator(baseToken)) {
-            pendingFee = _platformFundDataMap[baseToken].creatorPendingFee;
+        if (contributor != address(0) && contributor != address(this)) {
+            uint256 amountContributor = _contributionFundDataMap[baseToken].contributors[contributor];
+            uint256 lastSharedContributor = _platformFundDataMap[baseToken].lastSharedMap[contributor];
+            uint256 lastShared = _platformFundDataMap[baseToken].lastShared;
+            sharedFee = amountContributor.mul(lastShared.sub(lastSharedContributor)).div(
+                _PLATFORM_FUND_SHARED_PER_AMOUNT
+            );
+            if (contributor == IMarketRegistry(_marketRegistry).getCreator(baseToken)) {
+                pendingFee = _platformFundDataMap[baseToken].creatorPendingFee;
+            }
         }
     }
 
-    function _getSharedInsuranceFundBalance(
+    function _getCurrentInsuranceFundBalance(
         address baseToken,
         address contributor
     ) internal view returns (uint256 sharedFund) {
@@ -305,12 +309,17 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         return sharedFund;
     }
 
+    function _getNewSharedPlatformFee(address baseToken) internal view returns (uint256 newLastShared) {
+        uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
+        newLastShared = _platformFundDataMap[baseToken].lastShared.add(
+            settleAmount.mul(_PLATFORM_FUND_SHARED_PER_AMOUNT).div(_contributedFundAllUsers(baseToken))
+        );
+        return newLastShared;
+    }
+
     function _settlePlatformFee(address baseToken) internal {
         if (_isContributed(baseToken)) {
-            uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
-            _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
-                settleAmount.mul(_PLATFORM_FUND_SHARED_PER_AMOUNT).div(_contributedFundAllUsers(baseToken))
-            );
+            _platformFundDataMap[baseToken].lastShared = _getNewSharedPlatformFee(baseToken);
             _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].total;
         }
     }

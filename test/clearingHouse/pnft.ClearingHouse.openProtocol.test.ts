@@ -116,8 +116,6 @@ describe("ClearingHouse openProtocol", () => {
         //     deadline: ethers.constants.MaxUint256,
         // })
 
-        await insuranceFund.connect(contributor).contribute(baseToken.address, collateral.address, parseEther('1'))
-
         var isBaseToQuote: boolean
         isBaseToQuote = true
         {
@@ -135,7 +133,31 @@ describe("ClearingHouse openProtocol", () => {
                 parseUnits("1000000", collateralDecimals),
             )
         }
+        await clearingHouse.connect(trader1).closePosition(
+            {
+                baseToken: baseToken.address,
+                sqrtPriceLimitX96: parseEther("0"),
+                oppositeAmountBound: parseEther("0"),
+                deadline: ethers.constants.MaxUint256,
+                referralCode: ethers.constants.HashZero,
+            }
+        )
 
+        await insuranceFund.connect(contributor).contribute(baseToken.address, collateral.address, parseEther('1'))
+
+        {
+            await clearingHouse.connect(trader1).openPosition({
+                baseToken: baseToken.address,
+                isBaseToQuote: isBaseToQuote,
+                isExactInput: !isBaseToQuote,
+                oppositeAmountBound: 0,
+                amount: parseEther('10'),
+                sqrtPriceLimitX96: 0,
+                deadline: ethers.constants.MaxUint256,
+                referralCode: ethers.constants.HashZero,
+            },
+            )
+        }
         await clearingHouse.connect(trader1).closePosition(
             {
                 baseToken: baseToken.address,
@@ -151,9 +173,6 @@ describe("ClearingHouse openProtocol", () => {
         let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
         let owedRealizedPnlCreator = (await accountBalance.getPnlAndPendingFee(creator.address, baseToken.address))[0]
 
-        let insuranceFundCapacity = (await insuranceFund.getInsuranceFundCapacity(baseToken.address))
-        let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, contributor.address))
-
         console.log(
             'owedRealizedPnl',
             formatEther(owedRealizedPnlTrade1),
@@ -161,11 +180,33 @@ describe("ClearingHouse openProtocol", () => {
             formatEther(owedRealizedPnlInsuranceFund),
             formatEther(owedRealizedPnlCreator),
             formatEther(owedRealizedPnlPlatformFund.add(owedRealizedPnlInsuranceFund).add(owedRealizedPnlTrade1).add(owedRealizedPnlCreator)),
-            '---',
-            formatEther(insuranceFundCapacity),
-            formatEther(insuranceBalance),
-            formatEther(sharedFee),
-            formatEther(pendingFee),
         )
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, creator.address))
+            console.log(
+                'creator-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, contributor.address))
+            console.log(
+                'contributor-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, insuranceFund.address))
+            console.log(
+                'insuranceFund-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
     })
 })
