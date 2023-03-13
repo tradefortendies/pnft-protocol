@@ -185,23 +185,21 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
         uint256 amount = msg.value;
-        if (amount > 0) {
-            IVault(vault).depositEther{ value: amount }(baseToken);
-        }
+        require(amount > 0, "IF_ZV");
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
+        IVault(vault).depositEther{ value: amount }(baseToken);
     }
 
     function contribute(address baseToken, address token, uint256 amount) external payable {
         require(_isIsolated(baseToken), "IF_NIT");
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
-        require(IVault(vault).getSettlementToken() != token, "IF_STNWE");
-        if (amount > 0) {
-            IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
-        }
+        require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
+        require(amount > 0, "IF_ZV");
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
+        IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
     }
 
     function getAvailableFund(
@@ -364,6 +362,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
                 .contributors[contributor]
                 .add(contributedAmount);
             //
+
             emit InsuranceFundContributed(baseToken, contributor, amountX10_18, contributedAmount);
             // add repeg fund
             _addRepegFund(amountX10_18, baseToken);
