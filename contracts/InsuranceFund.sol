@@ -213,11 +213,13 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function _settlePlatfromFee(address baseToken) internal {
-        uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
-        _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
-            settleAmount.mul(1e18).div(_contributeFundTotalOfUsers(baseToken))
-        );
-        _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].total;
+        if (_contributeFundTotalOfUsers(baseToken) > 0) {
+            uint256 settleAmount = _platformFundDataMap[baseToken].total.sub(_platformFundDataMap[baseToken].lastTotal);
+            _platformFundDataMap[baseToken].lastShared = _platformFundDataMap[baseToken].lastShared.add(
+                settleAmount.mul(1e18).div(_contributeFundTotalOfUsers(baseToken))
+            );
+            _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].total;
+        }
     }
 
     function _getSharePlatfromFeeTotal(address baseToken) internal view returns (uint256) {
