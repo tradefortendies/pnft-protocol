@@ -31,5 +31,5 @@ interface IInsuranceFund {
 
     function modifyPlatfromFee(address baseToken, int256 amount) external;
 
-    function modifyContributeFund(address baseToken, address contributor, uint256 amount) external;
+    function addContributionFund(address baseToken, address contributor, uint256 amount) external;
 }

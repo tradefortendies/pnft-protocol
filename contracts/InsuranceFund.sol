@@ -167,7 +167,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _modifyPlatfromFee(baseToken, amount);
     }
 
-    function modifyContributeFund(address baseToken, address contributor, uint256 amount) external override {
+    function addContributionFund(address baseToken, address contributor, uint256 amount) external override {
         _requireOnlyClearingHouse();
         address vault = _vault;
         _contributeFund(baseToken, contributor, amount.parseSettlementToken(IVault(vault).decimals()));
@@ -241,7 +241,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         }
     }
 
-    function _contributeFund(address baseToken, address contributor, uint256 amount) internal {
+    function _contributeFund(address baseToken, address contributor, uint256 settlementTokenAmount) internal {
         _settlePlatfromFee(baseToken);
         if (contributor != address(0) && contributor != address(this)) {
             // repay fee for contributor TODO
@@ -266,17 +266,17 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
             }
         }
         _platformFundDataMap[baseToken].lastSharedMap[contributor] = _platformFundDataMap[baseToken].lastShared;
-        if (amount > 0) {
+        if (settlementTokenAmount > 0) {
             uint256 fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
-            uint256 scaleAmount = amount.mul(1e18).div(
+            uint256 scaleAmount = settlementTokenAmount.mul(1e18).div(
                 fundCapacity.mul(1e18).div(_contributionFundDataMap[baseToken].total)
             );
             _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(scaleAmount);
             _contributionFundDataMap[baseToken].contributors[contributor] = _contributionFundDataMap[baseToken]
                 .contributors[contributor]
                 .add(scaleAmount);
-            //
-            _addRepegFund(amount, baseToken);
+            // add repeg fund
+            _addRepegFund(settlementTokenAmount, baseToken);
         }
     }
 }

@@ -760,8 +760,7 @@ library GenericLogic {
         );
         // update repeg fund
         if (isIsolated(clearingHouse, baseToken)) {
-            IInsuranceFund(insuranceFund).addRepegFund(amount, baseToken);
-            IInsuranceFund(insuranceFund).modifyContributeFund(baseToken, insuranceFund, amount);
+            IInsuranceFund(insuranceFund).addContributionFund(baseToken, insuranceFund, amount);
         } else {
             IInsuranceFund(insuranceFund).addRepegFund(amount.div(2), baseToken);
         }
