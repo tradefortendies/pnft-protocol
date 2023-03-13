@@ -222,10 +222,19 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
 
     function getContributedInfo(
         address baseToken,
-        address contributor
-    ) external view returns (uint256 contributed, uint256 total) {
-        contributed = _contributionFundDataMap[baseToken].contributors[contributor];
-        total = _contributionFundDataMap[baseToken].total;
+        address user
+    ) external view returns (uint256 contributedBalance, uint256 contributedTotal, uint256 fundCapacity) {
+        contributedBalance = _contributionFundDataMap[baseToken].contributors[user];
+        contributedTotal = _contributedFundAllUsers(baseToken);
+        fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
+    }
+
+    function getSharedPlatformFeeInfo(
+        address baseToken,
+        address user
+    ) external view returns (uint256 shared, uint256 lastShared) {
+        shared = _platformFundDataMap[baseToken].lastSharedMap[user];
+        lastShared = _platformFundDataMap[baseToken].lastShared;
     }
 
     //
