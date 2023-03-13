@@ -7,6 +7,10 @@ interface IInsuranceFund {
 
     event ClearingHouseChanged(address clearingHouse);
 
+    event InsuranceFundContributed(address baseToken, address contributor, uint256 amount, uint256 contributedAmount);
+
+    event PlatformFeeReleased(address baseToken, address contributor, uint256 sharedFee, uint256 pendingFee);
+
     /// @notice Get settlement token address
     /// @return token The address of settlement token
     function getToken() external view returns (address token);
@@ -29,7 +33,7 @@ interface IInsuranceFund {
 
     function repegFund(int256 fund, address baseToken) external;
 
-    function modifyPlatfromFee(address baseToken, int256 amount) external;
+    function modifyPlatformFee(address baseToken, int256 amount) external;
 
     function addContributionFund(address baseToken, address contributor, uint256 amount) external;
 }

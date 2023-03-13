@@ -39,15 +39,18 @@ abstract contract InsuranceFundStorageV3 is InsuranceFundStorageV2 {
 
 abstract contract InsuranceFundStorageV4 is InsuranceFundStorageV3 {
     struct PlatformFundData {
-        uint256 total;
-        uint256 lastTotal;
-        uint256 lastShared;
-        mapping(address => uint256) lastSharedMap;
+        uint256 total; // X10_18
+        uint256 lastTotal; // X10_18
+        uint256 lastShared; // X10_18
+        uint256 creatorPendingFee; // X10_18
+        // contributor -> lastShared
+        mapping(address => uint256) lastSharedMap; // X10_18
     }
 
     struct ContributionFundData {
-        uint256 total;
-        mapping(address => uint256) contributors;
+        uint256 total; // X10_18
+        // contributor -> amount
+        mapping(address => uint256) contributors; // X10_18
     }
     //
     mapping(address => PlatformFundData) internal _platformFundDataMap;

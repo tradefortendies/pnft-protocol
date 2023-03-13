@@ -729,7 +729,7 @@ library GenericLogic {
                 baseToken,
                 insurancePlatformFee
             );
-            IInsuranceFund(insuranceFund).modifyPlatfromFee(baseToken, insurancePlatformFee);
+            IInsuranceFund(insuranceFund).modifyPlatformFee(baseToken, insurancePlatformFee);
             // for platform
             int256 platformFundFee = amount.toInt256().sub(insurancePlatformFee);
             IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
