@@ -40,6 +40,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         require(_msgSender() == _clearingHouse, "RF_OCH");
     }
 
+    modifier onlyIsolated(address baseToken) {
+        // transaction expires
+        require(_isIsolated(baseToken), "IF_NIT");
+        _;
+    }
+
     function initialize(address tokenArg) external initializer {
         // token address is not contract
         require(tokenArg.isContract(), "IF_TNC");
@@ -173,14 +179,16 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _modifyPlatformFee(baseToken, amount);
     }
 
-    function addContributionFund(address baseToken, address contributor, uint256 amountX10_18) external override {
-        require(_isIsolated(baseToken), "IF_NIT");
+    function addContributionFund(
+        address baseToken,
+        address contributor,
+        uint256 amountX10_18
+    ) external override onlyIsolated(baseToken) {
         _requireOnlyClearingHouse();
         _contributeFund(baseToken, contributor, amountX10_18);
     }
 
-    function contributeEther(address baseToken) external payable override {
-        require(_isIsolated(baseToken), "IF_NIT");
+    function contributeEther(address baseToken) external payable override onlyIsolated(baseToken) {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
@@ -191,8 +199,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).depositEther{ value: amount }(baseToken);
     }
 
-    function contribute(address baseToken, address token, uint256 amount) external override {
-        require(_isIsolated(baseToken), "IF_NIT");
+    function contribute(address baseToken, address token, uint256 amount) external override onlyIsolated(baseToken) {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
@@ -202,20 +209,22 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).requestDepositFor(_msgSender(), token, amount, baseToken);
     }
 
-    function withdrawPlatformFee(address baseToken) external override {
-        require(_isIsolated(baseToken), "IF_NIT");
+    function withdrawPlatformFee(address baseToken) external override onlyIsolated(baseToken) {
         _releasePlatfromFee(baseToken, _msgSender());
     }
 
     function getAvailableFund(
         address baseToken,
         address contributor
-    ) external view returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
+    ) external view onlyIsolated(baseToken) returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
         insuranceBalance = _getSharedInsuranceFundBalance(baseToken, contributor);
         (sharedFee, pendingFee) = _getSharedPlatfromFee(baseToken, contributor);
     }
 
-    function getContributedRatio(address baseToken, address contributor) external view returns (uint24 ratio) {
+    function getContributedRatio(
+        address baseToken,
+        address contributor
+    ) external view onlyIsolated(baseToken) returns (uint24 ratio) {
         ratio = _contributionFundDataMap[baseToken]
             .contributors[contributor]
             .mul(1e6)
@@ -226,7 +235,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function getContributedInfo(
         address baseToken,
         address user
-    ) external view returns (uint256 balance, uint256 total, uint256 fundCapacity) {
+    ) external view onlyIsolated(baseToken) returns (uint256 balance, uint256 total, uint256 fundCapacity) {
         balance = _contributionFundDataMap[baseToken].contributors[user];
         total = _contributionFundDataMap[baseToken].total;
         fundCapacity = _getInsuranceFundCapacityFull(baseToken).abs();
@@ -235,7 +244,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function getSharedPlatformFeeInfo(
         address baseToken,
         address user
-    ) external view returns (uint256 balance, uint256 userShared, uint256 lastShared, uint256 pendingFee) {
+    )
+        external
+        view
+        onlyIsolated(baseToken)
+        returns (uint256 balance, uint256 userShared, uint256 lastShared, uint256 pendingFee)
+    {
         balance = _contributionFundDataMap[baseToken].contributors[user];
         userShared = _platformFundDataMap[baseToken].lastSharedMap[user];
         lastShared = _platformFundDataMap[baseToken].lastShared;
