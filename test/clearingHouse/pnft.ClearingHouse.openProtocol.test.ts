@@ -208,5 +208,37 @@ describe("ClearingHouse openProtocol", () => {
                 formatEther(pendingFee),
             )
         }
+        console.log('---spendFund---0.01')
+
+        await accountBalance.testModifyOwedRealizedPnl(insuranceFund.address, parseEther('-0.1'), baseToken.address)
+
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, creator.address))
+            console.log(
+                'creator-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, contributor.address))
+            console.log(
+                'contributor-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
+        {
+            let [insuranceBalance, sharedFee, pendingFee] = (await insuranceFund.getAvailableFund(baseToken.address, insuranceFund.address))
+            console.log(
+                'insuranceFund-getAvailableFund',
+                formatEther(insuranceBalance),
+                formatEther(sharedFee),
+                formatEther(pendingFee),
+            )
+        }
+
     })
 })
