@@ -167,10 +167,9 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         _modifyPlatfromFee(baseToken, amount);
     }
 
-    function addContributionFund(address baseToken, address contributor, uint256 amount) external override {
+    function addContributionFund(address baseToken, address contributor, uint256 amountX10_8) external override {
         _requireOnlyClearingHouse();
-        address vault = _vault;
-        _contributeFund(baseToken, contributor, amount.parseSettlementToken(IVault(vault).decimals()));
+        _contributeFund(baseToken, contributor, amountX10_8);
     }
 
     function contributeEther(address baseToken) external payable {
