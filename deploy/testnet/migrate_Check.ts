@@ -458,59 +458,57 @@ describe("Deployment check", () => {
                 await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
             }
 
-            //     const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);
-            //     {
-            //         await uniswapV3Factory.createPool(deployData.vBAYC.address, deployData.vETH.address, uniFeeTier)
-            //         const poolBAYCAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
-            //         const poolBAYC = await ethers.getContractAt('UniswapV3Pool', poolBAYCAddr);
-            //         await vBAYC.addWhitelist(poolBAYC.address)
-            //         await vETH.addWhitelist(poolBAYC.address)
-            //     }
+            const vBAYC = await ethers.getContractAt('BaseToken', deployData.vBAYC.address);
+            {
+                await uniswapV3Factory.createPool(deployData.vBAYC.address, deployData.vETH.address, uniFeeTier)
+                const poolBAYCAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
+                const poolBAYC = await ethers.getContractAt('UniswapV3Pool', poolBAYCAddr);
+                await vBAYC.addWhitelist(poolBAYC.address)
+                await vETH.addWhitelist(poolBAYC.address)
+            }
 
-            //     const vMAYC = await ethers.getContractAt('BaseToken', deployData.vMAYC.address);
-            //     {
-            //         await uniswapV3Factory.createPool(deployData.vMAYC.address, deployData.vETH.address, uniFeeTier)
-            //         const poolMAYCAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
-            //         const poolMAYC = await ethers.getContractAt('UniswapV3Pool', poolMAYCAddr);
-            //         await vMAYC.addWhitelist(poolMAYC.address)
-            //         await vETH.addWhitelist(poolMAYC.address)
-            //     }
+            const vMAYC = await ethers.getContractAt('BaseToken', deployData.vMAYC.address);
+            {
+                await uniswapV3Factory.createPool(deployData.vMAYC.address, deployData.vETH.address, uniFeeTier)
+                const poolMAYCAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
+                const poolMAYC = await ethers.getContractAt('UniswapV3Pool', poolMAYCAddr);
+                await vMAYC.addWhitelist(poolMAYC.address)
+                await vETH.addWhitelist(poolMAYC.address)
+            }
 
             //     // deploy clearingHouse
             await vETH.addWhitelist(clearingHouse.address)
-            //     await vBAYC.addWhitelist(clearingHouse.address)
-            //     await vMAYC.addWhitelist(clearingHouse.address)
+            await vBAYC.addWhitelist(clearingHouse.address)
+            await vMAYC.addWhitelist(clearingHouse.address)
 
             await vETH.mintMaximumTo(clearingHouse.address)
-            //     await vBAYC.mintMaximumTo(clearingHouse.address)
-            //     await vMAYC.mintMaximumTo(clearingHouse.address)
+            await vBAYC.mintMaximumTo(clearingHouse.address)
+            await vMAYC.mintMaximumTo(clearingHouse.address)
 
-            //     // initMarket
-            //     var maxTickCrossedWithinBlock: number = getMaxTickRange()
-            //     // vBAYC
-            //     {
-            //         const poolAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
-            //         const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
-            //         await uniPool.initialize(encodePriceSqrt('1', "1"))
-            //         const uniFeeRatio = await uniPool.fee()
-            //         await marketRegistry.addPool(vBAYC.address, uniFeeRatio)
-            //         await vPool.setMaxTickCrossedWithinBlock(vBAYC.address, maxTickCrossedWithinBlock)
-            //     }
-            //     // vMAYC
-            //     {
-            //         const poolAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
-            //         const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
-            //         await uniPool.initialize(encodePriceSqrt('1', "1"))
-            //         const uniFeeRatio = await uniPool.fee()
-            //         await marketRegistry.addPool(vMAYC.address, uniFeeRatio)
-            //         await vPool.setMaxTickCrossedWithinBlock(vMAYC.address, maxTickCrossedWithinBlock)
-
-            //     }
+            // initMarket
+            var maxTickCrossedWithinBlock: number = getMaxTickRange()
+            await vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)
+            // vBAYC
+            {
+                const poolAddr = await uniswapV3Factory.getPool(vBAYC.address, vETH.address, uniFeeTier)
+                const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
+                await uniPool.initialize(encodePriceSqrt('1', "1"))
+                const uniFeeRatio = await uniPool.fee()
+                await marketRegistry.addPool(vBAYC.address, deployData.vBAYC.nftContract, uniFeeRatio)
+            }
+            // vMAYC
+            {
+                const poolAddr = await uniswapV3Factory.getPool(vMAYC.address, vETH.address, uniFeeTier)
+                const uniPool = await ethers.getContractAt('UniswapV3Pool', poolAddr);
+                await uniPool.initialize(encodePriceSqrt('1', "1"))
+                const uniFeeRatio = await uniPool.fee()
+                await marketRegistry.addPool(vMAYC.address, deployData.vMAYC.nftContract, uniFeeRatio)
+            }
         }
-        // {
-        //     await marketRegistry.setNftContract(deployData.vBAYC.address, deployData.vMAYC.nftContract)
-        //     await marketRegistry.setNftContract(deployData.vMAYC.address, deployData.vMAYC.nftContract)
-        // }
+        {
+            await marketRegistry.setNftContract(deployData.vBAYC.address, deployData.vMAYC.nftContract)
+            await marketRegistry.setNftContract(deployData.vMAYC.address, deployData.vMAYC.nftContract)
+        }
 
         var vIsolatedToken: VirtualToken
         var vNftAddress = ethers.Wallet.createRandom().address
@@ -659,11 +657,15 @@ describe("Deployment check", () => {
                 //     )
                 // }
 
+                await waitForTx(
+                    await nftOracle.connect(priceAdmin).setNftPrice(vNftAddress, parseEther('1.0375'))
+                )
+
                 {
                     await waitForTx(
                         await clearingHouse.connect(trader1).depositEtherAndOpenPosition({
                             baseToken: token.address,
-                            isBaseToQuote: true,
+                            isBaseToQuote: false,
                             isExactInput: true,
                             oppositeAmountBound: 0,
                             amount: parseEther("0.1"),
@@ -671,28 +673,29 @@ describe("Deployment check", () => {
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
                         },
-                            { value: parseEther('0.2025') }
+                            { value: parseEther('0.0202') }
                         ),
-                        'clearingHouse.connect(trader1).openPosition'
+                        'clearingHouse.connect(trader1).depositEtherAndOpenPosition'
                     )
                 }
-                {
-                    await waitForTx(
-                        await clearingHouse.connect(trader2).depositEtherAndOpenPosition({
-                            baseToken: token.address,
-                            isBaseToQuote: false,
-                            isExactInput: false,
-                            oppositeAmountBound: ethers.constants.MaxUint256,
-                            amount: parseEther("0.1"),
-                            sqrtPriceLimitX96: 0,
-                            deadline: ethers.constants.MaxUint256,
-                            referralCode: ethers.constants.HashZero,
-                        },
-                            { value: parseEther('0.2025') }
-                        ),
-                        'clearingHouse.connect(trader2).openPosition'
-                    )
-                }
+                // {
+                //     await waitForTx(
+                //         await clearingHouse.connect(trader2).depositEtherAndOpenPosition({
+                //             baseToken: token.address,
+                //             isBaseToQuote: false,
+                //             isExactInput: true,
+                //             oppositeAmountBound: 0,
+                //             amount: parseEther("0.1"),
+                //             sqrtPriceLimitX96: 0,
+                //             deadline: ethers.constants.MaxUint256,
+                //             referralCode: ethers.constants.HashZero,
+                //         },
+                //             { value: parseEther('0.0225') }
+                //         ),
+                //         'clearingHouse.connect(trader2).openPosition'
+                //     )
+                // }
+
                 // {
                 //     await waitForTx(
                 //         await clearingHouse.connect(maker).removeLiquidity({
@@ -703,6 +706,7 @@ describe("Deployment check", () => {
                 //         'clearingHouse.connect(maker).removeLiquidity'
                 //     )
                 // }
+
                 {
                     await waitForTx(
                         await clearingHouse.connect(trader1).closePosition({
@@ -715,18 +719,20 @@ describe("Deployment check", () => {
                         'clearingHouse.connect(trader1).closePosition'
                     )
                 }
-                {
-                    await waitForTx(
-                        await clearingHouse.connect(trader2).closePosition({
-                            baseToken: token.address,
-                            sqrtPriceLimitX96: parseEther("0"),
-                            oppositeAmountBound: parseEther("0"),
-                            deadline: ethers.constants.MaxUint256,
-                            referralCode: ethers.constants.HashZero,
-                        }),
-                        'clearingHouse.connect(trader2).closePosition'
-                    )
-                }
+
+                // {
+                //     await waitForTx(
+                //         await clearingHouse.connect(trader2).closePosition({
+                //             baseToken: token.address,
+                //             sqrtPriceLimitX96: parseEther("0"),
+                //             oppositeAmountBound: parseEther("0"),
+                //             deadline: ethers.constants.MaxUint256,
+                //             referralCode: ethers.constants.HashZero,
+                //         }),
+                //         'clearingHouse.connect(trader2).closePosition'
+                //     )
+                // }
+
                 // {
                 //     await waitForTx(
                 //         await clearingHouse.connect(maker).removeLiquidity({

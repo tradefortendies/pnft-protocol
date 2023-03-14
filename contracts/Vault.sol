@@ -624,14 +624,14 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
         address baseToken
     ) internal view returns (int256 freeCollateralX10_18) {
         // conservative config: freeCollateral = min(totalCollateralValue, accountValue) - openOrderMarginReq
-        (int256 accountValueX10_18, int256 totalCollateralValueX10_18) = _getAccountValueAndTotalCollateralValue(
-            trader,
-            baseToken
-        );
+
+        (int256 accountValueX10_18, ) = _getAccountValueAndTotalCollateralValue(trader, baseToken);
         uint256 totalMarginRequirementX10_18 = _getTotalMarginRequirement(trader, ratio, baseToken);
 
-        return
-            PerpMath.min(totalCollateralValueX10_18, accountValueX10_18).sub(totalMarginRequirementX10_18.toInt256());
+        return accountValueX10_18.sub(totalMarginRequirementX10_18.toInt256());
+
+        // return
+        //     PerpMath.min(totalCollateralValueX10_18, accountValueX10_18).sub(totalMarginRequirementX10_18.toInt256());
 
         // moderate config: freeCollateral = min(totalCollateralValue, accountValue - openOrderMarginReq)
         // return
