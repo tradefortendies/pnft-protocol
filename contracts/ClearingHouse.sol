@@ -278,11 +278,12 @@ contract ClearingHouse is
         );
         // openPosition() is already published, returned types remain the same (without fee)
         (base, quote, ) = _openPositionFor(_msgSender(), params);
-        int256 positionSizeAfter = IAccountBalance(_accountBalance).getTotalPositionSize(
-            _msgSender(),
-            params.baseToken
-        );
+        // for isolated market
         if (_isIsolated(params.baseToken)) {
+            int256 positionSizeAfter = IAccountBalance(_accountBalance).getTotalPositionSize(
+                _msgSender(),
+                params.baseToken
+            );
             // CH_OPNDPS: open position not decrease position size
             require(
                 positionSizeBefore.mul(positionSizeAfter) >= 0 && positionSizeBefore.abs() >= positionSizeAfter.abs(),
