@@ -1,7 +1,7 @@
 import fs from "fs";
 
 import hre, { ethers } from "hardhat";
-import { BaseContract, ContractTransaction, Signer } from "ethers";
+import { BaseContract, ContractReceipt, ContractTransaction, Signer } from "ethers";
 import { ProxyAdmin } from "../typechain/openzeppelin/ProxyAdmin";
 
 const res = {
@@ -12,24 +12,25 @@ const res = {
     waitForDeploy: async (contract: BaseContract, note: string = ''): Promise<BaseContract> => {
         var tx: ContractTransaction = contract.deployTransaction
         console.log(note, 'deploy contract', contract.address, 'at', tx.hash, 'waiting...')
-        await tx.wait(1)
-        console.log(note, 'deploy contract', contract.address, 'at', tx.hash, 'confirmed')
+        let r = await tx.wait(1)
+        console.log(note, 'deploy contract', contract.address, 'at', tx.hash, 'confirmed', 'gasUsed', r.gasUsed.toNumber())
         return contract
     },
     waitForTx: async (tx: ContractTransaction, note: string = '') => {
         console.log(note, 'contract call method at', tx.hash, 'waiting...')
-        await tx.wait(1)
-        console.log(note, 'contract call method at', tx.hash, 'confirmed')
+        let r = await tx.wait(1)
+        console.log(note, 'contract call method at', tx.hash, 'confirmed', r.gasUsed.toNumber())
     },
     tryWaitForTx: async (tx: ContractTransaction, note: string = '') => {
         console.log(note, 'contract call method at', tx.hash, 'waiting...')
+        let r: ContractReceipt
         try {
-            await tx.wait(1)
+            r = await tx.wait(1)
         } catch (ex) {
             console.log(note, 'contract call method at', tx.hash, 'error', ex)
             return
         }
-        console.log(note, 'contract call method at', tx.hash, 'confirmed')
+        console.log(note, 'contract call method at', tx.hash, 'confirmed', 'gasUsed', r.gasUsed.toNumber())
     },
     sleep: (ms: number) => {
         return new Promise(resolve => setTimeout(resolve, ms));
@@ -64,8 +65,8 @@ const res = {
         if ((await proxyAdmin.getProxyImplementation(address)) != implAddress) {
             var tx = await proxyAdmin.upgrade(address, implAddress)
             console.log('proxyAdmin.upgrade at', address, implAddress, tx.hash, 'waiting...')
-            await tx.wait(1)
-            console.log('proxyAdmin.upgrade at', address, implAddress, tx.hash, 'confirmed')
+            let r = await tx.wait(1)
+            console.log('proxyAdmin.upgrade at', address, implAddress, tx.hash, 'confirmed', 'gasUsed', r.gasUsed.toNumber())
         }
     },
 
