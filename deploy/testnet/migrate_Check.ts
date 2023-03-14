@@ -658,7 +658,7 @@ describe("Deployment check", () => {
                 // }
 
                 await waitForTx(
-                    await nftOracle.connect(priceAdmin).setNftPrice(vNftAddress, parseEther('1.0375'))
+                    await nftOracle.connect(priceAdmin).setNftPrice(vNftAddress, parseEther('1'))
                 )
 
                 {
@@ -673,7 +673,7 @@ describe("Deployment check", () => {
                             deadline: ethers.constants.MaxUint256,
                             referralCode: ethers.constants.HashZero,
                         },
-                            { value: parseEther('0.0202') }
+                            { value: parseEther('0.02025') }
                         ),
                         'clearingHouse.connect(trader1).depositEtherAndOpenPosition'
                     )

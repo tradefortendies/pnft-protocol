@@ -130,7 +130,7 @@ describe("ClearingHouse openProtocol", () => {
                 referralCode: ethers.constants.HashZero,
             },
                 collateral.address,
-                parseUnits("1000000", collateralDecimals),
+                parseUnits("3", collateralDecimals),
             )
         }
         await clearingHouse.connect(trader1).closePosition(
@@ -146,7 +146,7 @@ describe("ClearingHouse openProtocol", () => {
         await insuranceFund.connect(contributor).contribute(baseToken.address, collateral.address, parseEther('1'))
 
         {
-            await clearingHouse.connect(trader1).openPosition({
+            await clearingHouse.connect(trader1).depositAndOpenPosition({
                 baseToken: baseToken.address,
                 isBaseToQuote: isBaseToQuote,
                 isExactInput: !isBaseToQuote,
@@ -156,6 +156,8 @@ describe("ClearingHouse openProtocol", () => {
                 deadline: ethers.constants.MaxUint256,
                 referralCode: ethers.constants.HashZero,
             },
+                collateral.address,
+                parseUnits("3", collateralDecimals),
             )
         }
         await clearingHouse.connect(trader1).closePosition(

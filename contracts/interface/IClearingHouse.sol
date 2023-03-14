@@ -265,6 +265,20 @@ interface IClearingHouse {
         int256 positionSize
     ) external returns (uint256 base, uint256 quote, uint256 fee);
 
+    function depositAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize,
+        address token,
+        uint256 amount
+    ) external payable returns (uint256 base, uint256 quote, uint256 fee);
+
+    function depositEtherAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize
+    ) external payable returns (uint256 base, uint256 quote, uint256 fee);
+
     // /// @notice Cancel excess order of a maker
     // /// @dev Order id can get from `OrderBook.getOpenOrderIds`
     // /// @param baseToken The address of baseToken

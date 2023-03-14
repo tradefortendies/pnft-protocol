@@ -98,18 +98,29 @@ contract ClearingHouse is
         _;
     }
 
-    modifier checkAllowLiquidity(address baseToken) {
+    modifier checkAllowableForLiquidity(address baseToken) {
         if (_isIsolated(baseToken)) {
             // CH_OMCOMR: only market creator or marketRegistry
-            require(
-                _msgSender() == _marketRegistry ||
-                    _msgSender() == IMarketRegistry(_marketRegistry).getCreator(baseToken),
-                "CH_OMCOMR"
-            );
+            require(_msgSender() == _marketRegistry, "CH_OMR");
+            // require(
+            //     _msgSender() == _marketRegistry ||
+            //         _msgSender() == IMarketRegistry(_marketRegistry).getCreator(baseToken),
+            //     "CH_OMCOMR"
+            // );
         } else {
             // CH_OMM: only market marker
             require(_msgSender() == _maker, "CH_OMM");
         }
+        _;
+    }
+
+    modifier onlyIsolatedMarket(address baseToken) {
+        require(_isIsolated(baseToken), "CH_NIM");
+        _;
+    }
+
+    modifier onlyCrossMarket(address baseToken) {
+        require(!_isIsolated(baseToken), "CH_NCM");
         _;
     }
 
@@ -203,7 +214,7 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
-        checkAllowLiquidity(params.baseToken)
+        checkAllowableForLiquidity(params.baseToken)
         returns (
             // check onlyLiquidityAdmin
             DataTypes.AddLiquidityResponse memory
@@ -221,7 +232,7 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
-        checkAllowLiquidity(params.baseToken)
+        checkAllowableForLiquidity(params.baseToken)
         returns (DataTypes.RemoveLiquidityResponse memory)
     {
         return GenericLogic.removeLiquidity(address(this), params);
@@ -250,28 +261,6 @@ contract ClearingHouse is
         ClearingHouseLogic.rewardMinerMint(address(this), trader, 0, fundingPaymentTotal.neg256());
     }
 
-    function depositEtherAndOpenPosition(
-        DataTypes.OpenPositionParams memory params
-    ) external payable override returns (uint256 base, uint256 quote, uint256 fee) {
-        if (msg.value > 0) {
-            // deposit for trader
-            IVault(_vault).depositEtherFor{ value: msg.value }(_msgSender(), params.baseToken);
-        }
-        (base, quote, fee) = _openPositionFor(_msgSender(), params);
-    }
-
-    function depositAndOpenPosition(
-        DataTypes.OpenPositionParams memory params,
-        address token,
-        uint256 amount
-    ) external override returns (uint256 base, uint256 quote, uint256 fee) {
-        if (amount > 0) {
-            // deposit for trader
-            IVault(_vault).requestDepositFromTo(_msgSender(), _msgSender(), token, amount, params.baseToken);
-        }
-        (base, quote, fee) = _openPositionFor(_msgSender(), params);
-    }
-
     /// @inheritdoc IClearingHouse
     function openPosition(
         DataTypes.OpenPositionParams memory params
@@ -281,11 +270,68 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
+        onlyCrossMarket(params.baseToken)
         returns (uint256 base, uint256 quote)
     {
         // openPosition() is already published, returned types remain the same (without fee)
         (base, quote, ) = _openPositionFor(_msgSender(), params);
         return (base, quote);
+    }
+
+    function depositEtherAndOpenPosition(
+        DataTypes.OpenPositionParams memory params
+    )
+        external
+        payable
+        override
+        whenNotPaused
+        nonReentrant
+        checkDeadline(params.deadline)
+        onlyIsolatedMarket(params.baseToken)
+        returns (uint256 base, uint256 quote, uint256 fee)
+    {
+        require(IVault(_vault).getSettlementToken() == IVault(_vault).getWETH9(), "IF_STNWE");
+        uint256 amount = msg.value;
+        if (amount > 0) {
+            // deposit for trader
+            IVault(_vault).depositEtherFor{ value: amount }(_msgSender(), params.baseToken);
+        }
+        (base, quote, fee) = _openPositionFor(_msgSender(), params);
+        // check free collateral order
+        GenericLogic.requireEnoughCollateralForOrder(
+            address(this),
+            quote,
+            fee,
+            amount.parseSettlementToken(IVault(_vault).decimals())
+        );
+    }
+
+    function depositAndOpenPosition(
+        DataTypes.OpenPositionParams memory params,
+        address token,
+        uint256 amount
+    )
+        external
+        override
+        whenNotPaused
+        nonReentrant
+        checkDeadline(params.deadline)
+        onlyIsolatedMarket(params.baseToken)
+        returns (uint256 base, uint256 quote, uint256 fee)
+    {
+        require(IVault(_vault).getSettlementToken() == token, "IF_STNWE");
+        if (amount > 0) {
+            // deposit for trader
+            IVault(_vault).requestDepositFromTo(_msgSender(), _msgSender(), token, amount, params.baseToken);
+        }
+        (base, quote, fee) = _openPositionFor(_msgSender(), params);
+        // check free collateral order
+        GenericLogic.requireEnoughCollateralForOrder(
+            address(this),
+            quote,
+            fee,
+            amount.parseSettlementToken(IVault(_vault).decimals())
+        );
     }
 
     /// @inheritdoc IClearingHouse
@@ -339,6 +385,7 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
+        onlyIsolatedMarket(params.baseToken)
         returns (uint256 base, uint256 quote, uint256 fee)
     {
         (base, quote, fee) = ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
@@ -354,6 +401,7 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
+        onlyIsolatedMarket(params.baseToken)
         returns (uint256 base, uint256 quote, uint256 fee)
     {
         (base, quote, fee) = ClearingHouseLogic.closePosition(address(this), _msgSender(), params);
@@ -367,6 +415,36 @@ contract ClearingHouse is
         address baseToken,
         int256 positionSize
     ) external override whenNotPaused nonReentrant returns (uint256 base, uint256 quote, uint256 fee) {
+        // positionSizeToBeLiquidated = 0 means liquidating as much as possible
+        return _liquidate(trader, baseToken, positionSize, false);
+    }
+
+    /// @inheritdoc IClearingHouse
+    function depositAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize,
+        address token,
+        uint256 amount
+    ) external payable override whenNotPaused nonReentrant returns (uint256 base, uint256 quote, uint256 fee) {
+        if (amount > 0) {
+            // deposit for trader
+            IVault(_vault).requestDepositFromTo(_msgSender(), _msgSender(), token, amount, baseToken);
+        }
+        // positionSizeToBeLiquidated = 0 means liquidating as much as possible
+        return _liquidate(trader, baseToken, positionSize, false);
+    }
+
+    /// @inheritdoc IClearingHouse
+    function depositEtherAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize
+    ) external payable override whenNotPaused nonReentrant returns (uint256 base, uint256 quote, uint256 fee) {
+        if (msg.value > 0) {
+            // deposit for trader
+            IVault(_vault).depositEtherFor{ value: msg.value }(_msgSender(), baseToken);
+        }
         // positionSizeToBeLiquidated = 0 means liquidating as much as possible
         return _liquidate(trader, baseToken, positionSize, false);
     }

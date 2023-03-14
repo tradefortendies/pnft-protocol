@@ -191,15 +191,27 @@ library GenericLogic {
     function requireEnoughFreeCollateral(address clearingHouse, address trader, address baseToken) public view {
         if (trader == IClearingHouse(clearingHouse).getMaker()) return;
         // CH_NEFCI: not enough free collateral by imRatio
-        require(
-            getFreeCollateralByRatio(
-                clearingHouse,
-                trader,
-                IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio(),
-                baseToken
-            ) >= 0,
-            "CH_NEFCI"
-        );
+        if (isIsolated(clearingHouse, baseToken)) {
+            require(
+                getFreeCollateralByRatio(
+                    clearingHouse,
+                    trader,
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getMmRatio(),
+                    baseToken
+                ) >= 0,
+                "CH_NEFCI"
+            );
+        } else {
+            require(
+                getFreeCollateralByRatio(
+                    clearingHouse,
+                    trader,
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio(),
+                    baseToken
+                ) >= 0,
+                "CH_NEFCI"
+            );
+        }
     }
 
     function requireEnoughFreeCollateralForClose(address clearingHouse, address trader, address baseToken) public view {
@@ -213,6 +225,21 @@ library GenericLogic {
                 baseToken
             ) >= 0,
             "CH_NEFCM"
+        );
+    }
+
+    function requireEnoughCollateralForOrder(
+        address clearingHouse,
+        uint256 quote,
+        uint256 fee,
+        uint256 freeCollateralX10_18
+    ) public view {
+        require(
+            freeCollateralX10_18 >=
+                quote
+                    .mulRatio(IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio())
+                    .add(fee),
+            "CH_NEFCO"
         );
     }
 

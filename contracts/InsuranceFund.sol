@@ -40,9 +40,9 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         require(_msgSender() == _clearingHouse, "RF_OCH");
     }
 
-    modifier onlyIsolated(address baseToken) {
+    modifier onlyIsolatedMarket(address baseToken) {
         // transaction expires
-        require(_isIsolated(baseToken), "IF_NIT");
+        require(_isIsolated(baseToken), "IF_NIM");
         _;
     }
 
@@ -188,12 +188,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address baseToken,
         address contributor,
         uint256 amountX10_18
-    ) external override onlyIsolated(baseToken) {
+    ) external override onlyIsolatedMarket(baseToken) {
         _requireOnlyClearingHouse();
         _contributeFund(baseToken, contributor, amountX10_18);
     }
 
-    function contributeEther(address baseToken) external payable override onlyIsolated(baseToken) {
+    function contributeEther(address baseToken) external payable override onlyIsolatedMarket(baseToken) {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
@@ -204,7 +204,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).depositEther{ value: amount }(baseToken);
     }
 
-    function contribute(address baseToken, address token, uint256 amount) external override onlyIsolated(baseToken) {
+    function contribute(address baseToken, address token, uint256 amount) external override onlyIsolatedMarket(baseToken) {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
@@ -214,14 +214,14 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).requestDepositFromTo(_msgSender(), address(this), token, amount, baseToken);
     }
 
-    function withdrawPlatformFee(address baseToken) external override onlyIsolated(baseToken) {
+    function withdrawPlatformFee(address baseToken) external override onlyIsolatedMarket(baseToken) {
         _releasePlatfromFee(baseToken, _msgSender());
     }
 
     function getAvailableFund(
         address baseToken,
         address contributor
-    ) external view onlyIsolated(baseToken) returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
+    ) external view onlyIsolatedMarket(baseToken) returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
         insuranceBalance = _getCurrentInsuranceFundBalance(baseToken, contributor);
         (sharedFee, pendingFee) = _getSharedPlatfromFee(baseToken, contributor);
     }
@@ -232,7 +232,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     )
         external
         view
-        onlyIsolated(baseToken)
+        onlyIsolatedMarket(baseToken)
         returns (uint256 balance, uint256 total, uint256 userAllTotal, uint256 fundCapacity)
     {
         balance = _contributionFundDataMap[baseToken].contributors[user];
@@ -247,7 +247,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     )
         external
         view
-        onlyIsolated(baseToken)
+        onlyIsolatedMarket(baseToken)
         returns (uint256 balance, uint256 userShared, uint256 lastShared, uint256 pendingFee)
     {
         balance = _contributionFundDataMap[baseToken].contributors[user];
