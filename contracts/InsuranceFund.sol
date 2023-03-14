@@ -181,7 +181,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_NIT: not isolated token
         require(_isIsolated(baseToken), "IF_NIT");
         _requireOnlyClearingHouse();
-        _modifyPlatformFee(baseToken, amount);
+        if (_isContributed(baseToken)) {
+            _modifySharedPlatformFee(baseToken, amount);
+        } else {
+            _modifyCreatorPendingFee(baseToken, amount);
+        }
     }
 
     function addContributionFund(
@@ -333,18 +337,14 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         }
     }
 
-    function _modifyPlatformFee(address baseToken, int256 amountX10_18) internal {
-        if (_isContributed(baseToken)) {
-            if (amountX10_18 > 0) {
-                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amountX10_18.abs());
-            } else {
-                _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].lastTotal.sub(
-                    amountX10_18.abs()
-                );
-                _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.sub(amountX10_18.abs());
-            }
+    function _modifySharedPlatformFee(address baseToken, int256 amountX10_18) internal {
+        if (amountX10_18 > 0) {
+            _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.add(amountX10_18.abs());
         } else {
-            _modifyCreatorPendingFee(baseToken, amountX10_18);
+            _platformFundDataMap[baseToken].lastTotal = _platformFundDataMap[baseToken].lastTotal.sub(
+                amountX10_18.abs()
+            );
+            _platformFundDataMap[baseToken].total = _platformFundDataMap[baseToken].total.sub(amountX10_18.abs());
         }
     }
 
@@ -377,7 +377,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
                     IVault(_vault).withdraw(settlementToken, sharedFeeX10_D, baseToken);
                     SafeERC20Upgradeable.safeTransfer(IERC20Upgradeable(settlementToken), contributor, sharedFeeX10_D);
                 }
-                _modifyPlatformFee(baseToken, releasedFeeX10_18.toInt256().neg256());
+                _modifySharedPlatformFee(baseToken, sharedFeeX10_18.toInt256().neg256());
                 _modifyCreatorPendingFee(baseToken, pendingFeeX10_18.toInt256().neg256());
                 //
                 emit PlatformFeeReleased(baseToken, contributor, sharedFeeX10_18, pendingFeeX10_18);
@@ -396,11 +396,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
             if (fundCapacity == 0) {
                 contributedAmount = amountX10_18;
             } else {
-                if (_contributionFundDataMap[baseToken].total == 0) {
-                    contributedAmount = amountX10_18.add(fundCapacity);
-                } else {
-                    contributedAmount = amountX10_18.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
-                }
+                contributedAmount = amountX10_18.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
             }
             _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(
                 contributedAmount
@@ -409,6 +405,7 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
                 .contributors[contributor]
                 .add(contributedAmount);
             //
+
             emit InsuranceFundContributed(baseToken, contributor, amountX10_18, contributedAmount);
             // add repeg fund
             _addRepegFund(amountX10_18, baseToken);
