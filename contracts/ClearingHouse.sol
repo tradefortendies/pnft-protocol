@@ -624,8 +624,8 @@ contract ClearingHouse is
     ) internal returns (uint256 base, uint256 quote, uint256 fee) {
         (base, quote, fee) = ClearingHouseLogic.openPositionFor(address(this), trader, params);
         if (_isIsolated(params.baseToken)) {
-            int256 positionSize = IAccountBalance(_accountBalance).getTotalPositionSize(_msgSender(), params.baseToken);
-            if (positionSize == 0) {
+            // check position size zero for withdraw all
+            if (IAccountBalance(_accountBalance).getTotalPositionSize(_msgSender(), params.baseToken) == 0) {
                 IVault(_vault).requestWithdrawAllFor(
                     _msgSender(),
                     IVault(_vault).getSettlementToken(),
