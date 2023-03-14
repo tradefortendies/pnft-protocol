@@ -204,7 +204,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         IVault(vault).depositEther{ value: amount }(baseToken);
     }
 
-    function contribute(address baseToken, address token, uint256 amount) external override onlyIsolatedMarket(baseToken) {
+    function contribute(
+        address baseToken,
+        address token,
+        uint256 amount
+    ) external override onlyIsolatedMarket(baseToken) {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
@@ -221,7 +225,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     function getAvailableFund(
         address baseToken,
         address contributor
-    ) external view onlyIsolatedMarket(baseToken) returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee) {
+    )
+        external
+        view
+        onlyIsolatedMarket(baseToken)
+        returns (uint256 insuranceBalance, uint256 sharedFee, uint256 pendingFee)
+    {
         insuranceBalance = _getCurrentInsuranceFundBalance(baseToken, contributor);
         (sharedFee, pendingFee) = _getSharedPlatfromFee(baseToken, contributor);
     }
@@ -387,7 +396,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
             if (fundCapacity == 0) {
                 contributedAmount = amountX10_18;
             } else {
-                contributedAmount = amountX10_18.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
+                if (_contributionFundDataMap[baseToken].total == 0) {
+                    contributedAmount = amountX10_18.add(fundCapacity);
+                } else {
+                    contributedAmount = amountX10_18.mul(_contributionFundDataMap[baseToken].total).div(fundCapacity);
+                }
             }
             _contributionFundDataMap[baseToken].total = _contributionFundDataMap[baseToken].total.add(
                 contributedAmount
@@ -396,7 +409,6 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
                 .contributors[contributor]
                 .add(contributedAmount);
             //
-
             emit InsuranceFundContributed(baseToken, contributor, amountX10_18, contributedAmount);
             // add repeg fund
             _addRepegFund(amountX10_18, baseToken);
