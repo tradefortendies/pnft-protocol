@@ -270,11 +270,25 @@ contract ClearingHouse is
         whenNotPaused
         nonReentrant
         checkDeadline(params.deadline)
-        onlyCrossMarket(params.baseToken)
         returns (uint256 base, uint256 quote)
     {
+        int256 positionSizeBefore = IAccountBalance(_accountBalance).getTotalPositionSize(
+            _msgSender(),
+            params.baseToken
+        );
         // openPosition() is already published, returned types remain the same (without fee)
         (base, quote, ) = _openPositionFor(_msgSender(), params);
+        int256 positionSizeAfter = IAccountBalance(_accountBalance).getTotalPositionSize(
+            _msgSender(),
+            params.baseToken
+        );
+        if (_isIsolated(params.baseToken)) {
+            // CH_OPNDPS: open position not decrease position size
+            require(
+                positionSizeBefore.mul(positionSizeAfter) >= 0 && positionSizeBefore.abs() >= positionSizeAfter.abs(),
+                "CH_OPNDPS"
+            );
+        }
         return (base, quote);
     }
 
