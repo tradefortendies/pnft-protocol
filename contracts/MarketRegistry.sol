@@ -289,6 +289,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _defaultQuoteTickCrossedGlobal = defaultQuoteTickCrossedGlobalArg;
     }
 
+    function setMinInsuranceFundPerContribution(uint256 minInsuranceFundPerContributionArg) external onlyOwner {
+        _minInsuranceFundPerContribution = minInsuranceFundPerContributionArg;
+    }
+
     //
     // EXTERNAL VIEW
     //
@@ -396,5 +400,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function getDefaultQuoteTickCrossedGlobal() external view override returns (uint256) {
         return _defaultQuoteTickCrossedGlobal;
+    }
+
+    function getMinInsuranceFundPerContribution() external view override returns (uint256) {
+        return _minInsuranceFundPerContribution;
     }
 }

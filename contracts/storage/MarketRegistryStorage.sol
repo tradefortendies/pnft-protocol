@@ -57,4 +57,6 @@ abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
     mapping(address => uint24) internal _sharePlatformFeeRatioMap;
 
     uint256 internal _defaultQuoteTickCrossedGlobal;
+    //
+    uint256 internal _minInsuranceFundPerContribution;
 }

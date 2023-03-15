@@ -203,6 +203,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
         uint256 amount = msg.value;
         require(amount > 0, "IF_ZV");
+        // IF_NMPC: not min per contribution
+        require(amount > IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
         IVault(vault).depositEther{ value: amount }(baseToken);
@@ -217,6 +219,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
         require(amount > 0, "IF_ZV");
+        // IF_NMPC: not min per contribution
+        require(amount > IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         // credit fund for contributor
         _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
         IVault(vault).requestDepositFromTo(_msgSender(), address(this), token, amount, baseToken);

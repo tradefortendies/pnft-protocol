@@ -299,6 +299,10 @@ async function deploy() {
         'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
     )
     await waitForTx(
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1')),
+        'marketRegistry.setMinInsuranceFundPerContribution(parseEther(0.1))'
+    )
+    await waitForTx(
         await vETH.setMarketRegistry(marketRegistry.address),
         'vETH.setMarketRegistry(marketRegistry.address)'
     )

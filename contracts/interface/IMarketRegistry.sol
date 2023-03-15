@@ -112,4 +112,6 @@ interface IMarketRegistry {
     function getMaxQuoteTickCrossedGlobal() external view returns (uint256);
 
     function getDefaultQuoteTickCrossedGlobal() external view returns (uint256);
+
+    function getMinInsuranceFundPerContribution() external view returns (uint256);
 }

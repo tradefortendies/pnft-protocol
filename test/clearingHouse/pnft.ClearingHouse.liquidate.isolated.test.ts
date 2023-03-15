@@ -12,6 +12,7 @@ import {
     VirtualToken
 } from "../../typechain"
 import {
+    findPoolAddedEvents,
     findPositionLiquidatedEvents
 } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
@@ -20,7 +21,7 @@ import { encodePriceSqrt } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
 
 describe("ClearingHouse liquidate trader", () => {
-    const [admin, maker, trader1, trader2, liquidator, priceAdmin, user01, fundingFund, platformFund] = waffle.provider.getWallets()
+    const [admin, maker, trader1, trader2, liquidator, priceAdmin, user01, creator, platformFund] = waffle.provider.getWallets()
     const loadFixture: ReturnType<typeof waffle.createFixtureLoader> = waffle.createFixtureLoader([admin])
     let fixture: ClearingHouseFixture
     let clearingHouse: TestClearingHouse
@@ -30,11 +31,9 @@ describe("ClearingHouse liquidate trader", () => {
     let vault: Vault
     let collateral: TestERC20
     let baseToken: VirtualToken
-    let mockedNFTPriceFeed: MockContract
     let collateralDecimals: number
-    const lowerTick: number = 45780
-    const upperTick: number = 46440
     const initPrice = "100"
+    let nftAddress: string
 
     beforeEach(async () => {
         fixture = await loadFixture(createClearingHouseFixture(true, 3000))
@@ -49,9 +48,25 @@ describe("ClearingHouse liquidate trader", () => {
         collateralDecimals = await collateral.decimals()
 
         await initMarket(fixture, initPrice, undefined, 0)
-        mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
-            return parseUnits(initPrice, 18)
-        })
+
+        nftAddress = ethers.Wallet.createRandom().address
+        console.log('nftAddress', nftAddress)
+        // open baseToken
+        {
+
+            let r = await (
+                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"))
+            ).wait()
+
+            let log = await findPoolAddedEvents(marketRegistry, r)[0]
+            console.log(
+                'baseToken',
+                (log.args.baseToken),
+            )
+
+            baseToken = (await ethers.getContractAt('VirtualToken', log.args.baseToken)) as VirtualToken;
+        }
+        await marketRegistry.setNftContract(baseToken.address, nftAddress)
 
         // prepare collateral for trader
         await collateral.mint(trader1.address, parseUnits("10", collateralDecimals))
