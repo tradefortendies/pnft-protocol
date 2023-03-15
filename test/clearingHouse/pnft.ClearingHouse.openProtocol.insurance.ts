@@ -102,6 +102,10 @@ describe("ClearingHouse openProtocol", () => {
 
         await collateral.connect(trader2).approve(vault.address, parseUnits("1000000", collateralDecimals))
 
+        await collateral.mint(liquidator.address, parseUnits("1000000", collateralDecimals))
+
+        await collateral.connect(liquidator).approve(vault.address, parseUnits("1000000", collateralDecimals))
+
 
         await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
 
@@ -137,10 +141,9 @@ describe("ClearingHouse openProtocol", () => {
                 parseUnits("1000000", collateralDecimals),
             )
         }
-        await insuranceFund.connect(trader2).contribute(baseToken.address, collateral.address, parseEther("10"))
-        let tmp = await insuranceFund.connect(trader2).getAvailableFund(baseToken.address, trader2.address)
-        console.log(tmp)
-        return
+
+        await insuranceFund.connect(trader2).contribute(baseToken.address, collateral.address, parseEther("20"))
+        await insuranceFund.connect(liquidator).contribute(baseToken.address, collateral.address, parseEther("10"))
 
         await clearingHouse.connect(trader1).closePositionAndWithdrawAll(
             {
@@ -171,5 +174,19 @@ describe("ClearingHouse openProtocol", () => {
             formatEther(await insuranceFund.getRepegAccumulatedFund(baseToken.address)),
             formatEther(await insuranceFund.getRepegDistributedFund(baseToken.address)),
         )
+
+        let tmp = await insuranceFund.connect(creator).getAvailableFund(baseToken.address, creator.address)
+        console.log("insuranceBalance", tmp.insuranceBalance.toString())
+        console.log("sharedFee", tmp.sharedFee.toString())
+        console.log("pendingFee", tmp.pendingFee.toString())
+        tmp = await insuranceFund.connect(trader2).getAvailableFund(baseToken.address, trader2.address)
+        console.log("insuranceBalance", tmp.insuranceBalance.toString())
+        console.log("sharedFee", tmp.sharedFee.toString())
+        console.log("pendingFee", tmp.pendingFee.toString())
+        tmp = await insuranceFund.connect(liquidator).getAvailableFund(baseToken.address, liquidator.address)
+        console.log("insuranceBalance", tmp.insuranceBalance.toString())
+        console.log("sharedFee", tmp.sharedFee.toString())
+        console.log("pendingFee", tmp.pendingFee.toString())
+        return
     })
 })
