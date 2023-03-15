@@ -53,10 +53,12 @@ abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
     mapping(address => address) internal _creatorMap;
     //
     mapping(address => address) internal _feeReceiverMap;
-    //
+    // baseToken -> feeRatio
     mapping(address => uint24) internal _sharePlatformFeeRatioMap;
-
+    //
     uint256 internal _defaultQuoteTickCrossedGlobal;
     //
     uint256 internal _minInsuranceFundPerContribution;
+    // nft address -> book
+    mapping(address => bool) internal _nftCreatedMap;
 }

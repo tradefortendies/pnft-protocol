@@ -88,6 +88,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         string memory symbolArg,
         uint160 sqrtPriceX96
     ) external returns (address, address) {
+        // check created
+        // MR_MIRE: market is ready existsed
+        require(_nftCreatedMap[nftContractArg] == false, "MR_MIRE");
         require(_defaultQuoteTickCrossedGlobal > 0, "MR_DQCTZ");
         uint24 uniFeeTier = 3000;
         // create baseToken
@@ -107,6 +110,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
                 deadline: type(uint256).max
             })
         );
+        // update created status
+        _nftCreatedMap[nftContractArg] = true;
+        //
         return (baseToken, uniPool);
     }
 
