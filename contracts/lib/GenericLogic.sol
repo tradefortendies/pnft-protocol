@@ -745,33 +745,27 @@ library GenericLogic {
 
     function modifyOwedRealizedPnlForPlatformFee(address clearingHouse, address baseToken, uint256 amount) external {
         address platformFund = IClearingHouse(clearingHouse).getPlatformFund();
+        int256 platformFundFee;
         if (isIsolated(clearingHouse, baseToken)) {
             address insuranceFund = IClearingHouse(clearingHouse).getInsuranceFund();
             uint24 shareFeeRatio = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry())
                 .getSharePlatformFeeRatioGlobal();
-            // for creator
+            // for isolated platform fee
             int256 insurancePlatformFee = amount.toInt256().mulRatio(shareFeeRatio);
-            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForCreatorFee(
-                insuranceFund,
-                baseToken,
-                insurancePlatformFee
-            );
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance())
+                .modifyOwedRealizedPnlForInsurancePlatformFee(insuranceFund, baseToken, insurancePlatformFee);
             IInsuranceFund(insuranceFund).modifyPlatformFee(baseToken, insurancePlatformFee);
             // for platform
-            int256 platformFundFee = amount.toInt256().sub(insurancePlatformFee);
-            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
-                platformFund,
-                baseToken,
-                platformFundFee
-            );
+            platformFundFee = amount.toInt256().sub(insurancePlatformFee);
             // revert("TODO");
         } else {
-            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
-                platformFund,
-                baseToken,
-                amount.toInt256()
-            );
+            platformFundFee = amount.toInt256();
         }
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
+            platformFund,
+            baseToken,
+            platformFundFee
+        );
     }
 
     function modifyOwedRealizedPnlForInsuranceFundFee(

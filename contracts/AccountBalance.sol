@@ -107,9 +107,9 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     }
 
     /// @inheritdoc IAccountBalance
-    function modifyOwedRealizedPnlForCreatorFee(address trader, address baseToken, int256 amount) external override {
+    function modifyOwedRealizedPnlForInsurancePlatformFee(address trader, address baseToken, int256 amount) external override {
         _requireOnlyClearingHouse();
-        _modifyOwedRealizedPnlCreatorFee(trader, amount, baseToken);
+        _modifyOwedRealizedPnlForInsurancePlatformFee(trader, amount, baseToken);
     }
 
     /// @inheritdoc IAccountBalance
@@ -580,7 +580,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         }
     }
 
-    function _modifyOwedRealizedPnlCreatorFee(address trader, int256 amount, address baseToken) internal {
+    function _modifyOwedRealizedPnlForInsurancePlatformFee(address trader, int256 amount, address baseToken) internal {
         if (amount != 0) {
             if (_isIsolated(baseToken)) {
                 _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
@@ -590,7 +590,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
             } else {
                 _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
             }
-            emit PnlRealizedForCreatorFee(trader, baseToken, amount);
+            emit PnlRealizedForInsurancePlatformFee(trader, baseToken, amount);
         }
     }
 

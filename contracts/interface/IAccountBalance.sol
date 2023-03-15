@@ -20,7 +20,7 @@ interface IAccountBalance {
     /// @param amount The amount changed
     event PnlRealized(address indexed trader, address indexed baseToken, int256 amount);
 
-    event PnlRealizedForCreatorFee(address indexed trader, address indexed baseToken, int256 amount);
+    event PnlRealizedForInsurancePlatformFee(address indexed trader, address indexed baseToken, int256 amount);
     event PnlRealizedForPlatformFee(address indexed trader, address indexed baseToken, int256 amount);
 
     event MultiplierChanged(uint256 longMultiplier, uint256 shortMultiplier);
@@ -48,7 +48,7 @@ interface IAccountBalance {
 
     function modifyOwedRealizedPnlForPlatformFee(address trader, address baseToken, int256 amount) external;
 
-    function modifyOwedRealizedPnlForCreatorFee(address trader, address baseToken, int256 amount) external;
+    function modifyOwedRealizedPnlForInsurancePlatformFee(address trader, address baseToken, int256 amount) external;
 
     /// @notice Settle owedRealizedPnl
     /// @dev Only used by `Vault.withdraw()`
