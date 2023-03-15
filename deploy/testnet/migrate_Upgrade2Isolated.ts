@@ -221,7 +221,6 @@ async function deploy() {
             'nftOracle.setPriceAdmin(' + priceAdmin.address + ')'
         )
     }
-
     let priceKeys = [
         'priceBAYC',
         'priceMAYC',
@@ -246,11 +245,9 @@ async function deploy() {
             priceKeys[i].substring(5),
             '--------------------------------------',
         )
-
         var nftContractAddress = baseTokens[i].nftContract
         var baseTokenAddress = baseTokens[i].address
         var initPrice = formatEther(priceData[priceKeys[i]]);
-
         if (!(await nftOracle.getNftPrice(nftContractAddress)).eq(parseEther(initPrice))) {
             await waitForTx(
                 await nftOracle.connect(priceAdmin).setNftPrice(nftContractAddress, parseEther(initPrice)),
@@ -264,7 +261,6 @@ async function deploy() {
             )
         }
     }
-
     // new update for open protocol
     await waitForTx(
         await marketRegistry.setInsuranceFundFeeRatioGlobal(500),
@@ -302,22 +298,10 @@ async function deploy() {
         await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
         'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
     )
-
-    await waitForTx(
-        await vPool.setNftOracle(nftOracle.address),
-        'vPool.setNftOracle(nftOracle.address)'
-    )
-
-    await waitForTx(
-        await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
-        'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
-    )
-
     await waitForTx(
         await vETH.setMarketRegistry(marketRegistry.address),
         'vETH.setMarketRegistry(marketRegistry.address)'
     )
-
     await waitForTx(
         await vault.setMarketRegistry(marketRegistry.address),
         'vault.setMarketRegistry(marketRegistry.address)'
@@ -337,6 +321,14 @@ async function deploy() {
             'vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)'
         )
     }
+    await waitForTx(
+        await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
+        'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
+    )
+    await waitForTx(
+        await vPool.setNftOracle(nftOracle.address),
+        'vPool.setNftOracle(nftOracle.address)'
+    )
 }
 
 // We recommend this pattern to be able to use async/await everywhere
