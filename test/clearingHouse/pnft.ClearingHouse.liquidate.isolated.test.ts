@@ -6,16 +6,20 @@ import {
     BaseToken,
     InsuranceFund,
     MarketRegistry,
+    NFTOracle,
     TestClearingHouse,
     TestERC20,
     Vault,
-    VirtualToken
+    VirtualToken,
+    VPool
 } from "../../typechain"
 import {
     findPoolAddedEvents,
+    findPositionChangedEvents,
     findPositionLiquidatedEvents
 } from "../helper/clearingHouseHelper"
 import { initMarket } from "../helper/marketHelper"
+import { getMaxTickRange } from "../helper/number"
 import { deposit } from "../helper/token"
 import { encodePriceSqrt } from "../shared/utilities"
 import { ClearingHouseFixture, createClearingHouseFixture } from "./fixtures"
@@ -29,6 +33,8 @@ describe("ClearingHouse liquidate trader", () => {
     let accountBalance: AccountBalance
     let insuranceFund: InsuranceFund
     let vault: Vault
+    let vPool: VPool
+    let nftOracle: NFTOracle
     let collateral: TestERC20
     let baseToken: VirtualToken
     let collateralDecimals: number
@@ -43,6 +49,8 @@ describe("ClearingHouse liquidate trader", () => {
         insuranceFund = fixture.insuranceFund as InsuranceFund
         vault = fixture.vault
         marketRegistry = fixture.marketRegistry
+        vPool = fixture.vPool as VPool
+        nftOracle = fixture.nftOracle
         collateral = fixture.WETH
         baseToken = fixture.baseToken
         collateralDecimals = await collateral.decimals()
@@ -68,46 +76,56 @@ describe("ClearingHouse liquidate trader", () => {
         }
         await marketRegistry.setNftContract(baseToken.address, nftAddress)
 
+        await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
+
+        await nftOracle.setNftPrice(nftAddress, parseUnits(initPrice, 18))
+
         // prepare collateral for trader
+
         await collateral.mint(trader1.address, parseUnits("10", collateralDecimals))
-        await deposit(trader1, vault, 10, collateral, baseToken)
+        // await deposit(trader1, vault, 10, collateral, baseToken)
 
         await collateral.mint(trader2.address, parseUnits("10000000", collateralDecimals))
-        await deposit(trader2, vault, 10000000, collateral, baseToken)
+        // await deposit(trader2, vault, 10000000, collateral, baseToken)
 
         await collateral.mint(liquidator.address, parseUnits("10000000", collateralDecimals))
-        await deposit(liquidator, vault, 10000000, collateral, baseToken)
+        // await deposit(liquidator, vault, 10000000, collateral, baseToken)
+
+        await collateral.connect(trader1).approve(vault.address, ethers.constants.MaxUint256)
+        await collateral.connect(trader2).approve(vault.address, ethers.constants.MaxUint256)
+        await collateral.connect(liquidator).approve(vault.address, ethers.constants.MaxUint256)
     })
 
     it("long liquidate", async () => {
-        await clearingHouse.connect(maker).addLiquidity({
-            baseToken: baseToken.address,
-            liquidity: parseEther('100000'),
-            deadline: ethers.constants.MaxUint256,
-        })
         {
-            await clearingHouse.connect(trader1).openPosition({
+            await clearingHouse.connect(trader1).depositAndOpenPosition({
                 baseToken: baseToken.address,
                 isBaseToQuote: true,
                 isExactInput: false,
                 oppositeAmountBound: 0,
-                amount: parseEther("48"),
+                amount: parseEther("1"),
                 sqrtPriceLimitX96: 0,
                 deadline: ethers.constants.MaxUint256,
                 referralCode: ethers.constants.HashZero,
-            })
+            },
+                collateral.address,
+                parseEther('0.2025'),
+            )
         }
         {
-            await clearingHouse.connect(trader2).openPosition({
+            await clearingHouse.connect(trader2).depositAndOpenPosition({
                 baseToken: baseToken.address,
                 isBaseToQuote: false,
                 isExactInput: true,
                 oppositeAmountBound: 0,
                 amount: ethers.constants.MaxUint256.div(1e10),
-                sqrtPriceLimitX96: encodePriceSqrt('122', '1'),
+                sqrtPriceLimitX96: encodePriceSqrt('115', '1'),
                 deadline: ethers.constants.MaxUint256,
                 referralCode: ethers.constants.HashZero,
-            })
+            },
+                collateral.address,
+                parseEther('10000000'),
+            )
         }
         {
             console.log(
@@ -118,9 +136,9 @@ describe("ClearingHouse liquidate trader", () => {
         {
             let positionSize = await accountBalance.getTakerPositionSize(trader1.address, baseToken.address)
             let r = await (
-                await clearingHouse.connect(liquidator).liquidate(trader1.address, baseToken.address, positionSize)
+                await clearingHouse.connect(liquidator).depositAndLiquidate(trader1.address, baseToken.address, positionSize, collateral.address, parseEther('1'))
             ).wait()
-            let log = await findPositionLiquidatedEvents(clearingHouse, r)[0]
+            let log = await findPositionChangedEvents(fixture, r)[0]
             console.log(
                 'realizedPnl',
                 formatEther(log.args.realizedPnl),
@@ -143,7 +161,7 @@ describe("ClearingHouse liquidate trader", () => {
                 referralCode: ethers.constants.HashZero,
             })
 
-            let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]
+            let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, ethers.constants.AddressZero))[0]
             let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
             let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address, baseToken.address))[0]
             let owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address, baseToken.address))[0]
