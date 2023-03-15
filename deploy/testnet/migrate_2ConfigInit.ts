@@ -107,7 +107,6 @@ async function deploy() {
             await clearingHouse.setDelegateApproval(limitOrderBook.address), 'await clearingHouse.setDelegateApproval(limitOrderBook.address)'
         )
     }
-
     // new update for open protocol
     if ((await nftOracle.getPriceAdmin()).toLowerCase() != priceAdmin.address.toLowerCase()) {
         await waitForTx(
@@ -147,27 +146,26 @@ async function deploy() {
         await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000')),
         'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000))'
     )
-
     await waitForTx(
         await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
         'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
     )
-
+    await waitForTx(
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1')),
+        'marketRegistry.setMinInsuranceFundPerContribution(parseEther(0.1))'
+    )
     await waitForTx(
         await vPool.setNftOracle(nftOracle.address),
         'vPool.setNftOracle(nftOracle.address)'
     )
-
     await waitForTx(
         await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
         'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
     )
-
     await waitForTx(
         await vETH.setMarketRegistry(marketRegistry.address),
         'vETH.setMarketRegistry(marketRegistry.address)'
     )
-
     await waitForTx(
         await vault.setMarketRegistry(marketRegistry.address),
         'vault.setMarketRegistry(marketRegistry.address)'
@@ -180,7 +178,6 @@ async function deploy() {
         await insuranceFund.setMarketRegistry(marketRegistry.address),
         'insuranceFund.setMarketRegistry(marketRegistry.address)'
     )
-
     var maxTickCrossedWithinBlock: number = 100
     if ((await vPool.getMaxTickCrossedWithinBlock()).toString() != maxTickCrossedWithinBlock.toString()) {
         await tryWaitForTx(
