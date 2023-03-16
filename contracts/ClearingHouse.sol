@@ -660,6 +660,10 @@ contract ClearingHouse is
     }
 
     function isAbleRepeg(address baseToken) external view override returns (bool) {
+        return _isAbleRepeg(baseToken);
+    }
+
+    function _isAbleRepeg(address baseToken) internal view returns (bool) {
         int256 indexPrice = IVPool(_vPool).getIndexPrice(baseToken).toInt256();
         int256 markPrice = IVPool(_vPool).getMarkPrice(baseToken).toInt256();
         if (indexPrice <= 0) {
@@ -689,6 +693,11 @@ contract ClearingHouse is
 
     ///REPEG
     function repeg(address baseToken) external {
+        if (_msgSender() != owner()) {
+            // check isAbleRepeg
+            // CH_NRP: not repeg
+            require(_isAbleRepeg(baseToken), "CH_NRP");
+        }
         ClearingHouseLogic.repeg(address(this), baseToken);
     }
 

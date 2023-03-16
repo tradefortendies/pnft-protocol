@@ -691,9 +691,6 @@ library ClearingHouseLogic {
     }
 
     function repeg(address clearingHouse, address baseToken) external {
-        // check isAbleRepeg
-        // CH_NRP: not repeg
-        require(IClearingHouse(clearingHouse).isAbleRepeg(baseToken), "CH_NRP");
         //settleFundingGlobal
         GenericLogic.settleFundingGlobal(address(this), baseToken);
         //variable
