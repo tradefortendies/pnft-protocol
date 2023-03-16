@@ -119,8 +119,8 @@ async function deploy() {
         'marketRegistry.setSharePlatformFeeRatioGlobal(500000)'
     )
     await waitForTx(
-        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000000')),
-        'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000000))'
+        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000')),
+        'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000))'
     )
     await waitForTx(
         await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
