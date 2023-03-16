@@ -147,16 +147,16 @@ async function deploy() {
         'marketRegistry.setSharePlatformFeeRatioGlobal(500000)'
     )
     await waitForTx(
-        await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1')),
-        'marketRegistry.setMinQuoteTickCrossedGlobal(parseEther(1))'
-    )
-    await waitForTx(
         await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000000')),
         'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000000))'
     )
     await waitForTx(
         await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
         'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
+    )
+    await waitForTx(
+        await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1')),
+        'marketRegistry.setMinQuoteTickCrossedGlobal(parseEther(1))'
     )
     await waitForTx(
         await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1')),
