@@ -495,9 +495,11 @@ contract ClearingHouse is
 
     ///REPEG
     function repeg(address baseToken) external {
-        // check isAbleRepeg
-        // CH_NRP: not repeg
-        require(isAbleRepeg(baseToken), "CH_NRP");
+        if (_msgSender() != owner()) {
+            // check isAbleRepeg
+            // CH_NRP: not repeg
+            require(isAbleRepeg(baseToken), "CH_NRP");
+        }
         //settleFundingGlobal
         GenericLogic.settleFundingGlobal(address(this), baseToken);
         //variable
