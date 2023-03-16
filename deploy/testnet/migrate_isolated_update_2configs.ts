@@ -178,7 +178,7 @@ async function deploy() {
         await insuranceFund.setMarketRegistry(marketRegistry.address),
         'insuranceFund.setMarketRegistry(marketRegistry.address)'
     )
-    var maxTickCrossedWithinBlock: number = 100
+    var maxTickCrossedWithinBlock: number = 200
     if ((await vPool.getMaxTickCrossedWithinBlock()).toString() != maxTickCrossedWithinBlock.toString()) {
         await tryWaitForTx(
             await vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock),
