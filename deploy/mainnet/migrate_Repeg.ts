@@ -45,7 +45,7 @@ async function deploy() {
     for (let i = 0; i < baseTokens.length; i++) {
         let baseTokenAddr = baseTokens[i].address
         await waitForTx(
-            await clearingHouse.connect(platformFund).repeg(baseTokenAddr),
+            await clearingHouse.connect(admin).repeg(baseTokenAddr),
             'clearingHouse.repeg(' + baseTokenAddr + ')'
         )
     }
