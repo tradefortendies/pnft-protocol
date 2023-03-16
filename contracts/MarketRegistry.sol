@@ -284,14 +284,14 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     }
 
     function setMaxQuoteTickCrossedGlobal(uint128 maxQuoteTickCrossedGlobalArg) external onlyOwner {
-        require(_defaultQuoteTickCrossedGlobal < _maxQuoteTickCrossedGlobal, "MR_IV");
-        require(_minQuoteTickCrossedGlobal < _defaultQuoteTickCrossedGlobal, "MR_IV");
+        require(_defaultQuoteTickCrossedGlobal <= _maxQuoteTickCrossedGlobal, "MR_IV");
+        require(_minQuoteTickCrossedGlobal <= _defaultQuoteTickCrossedGlobal, "MR_IV");
         _maxQuoteTickCrossedGlobal = maxQuoteTickCrossedGlobalArg;
     }
 
     function setDefaultQuoteTickCrossedGlobal(uint128 defaultQuoteTickCrossedGlobalArg) external onlyOwner {
-        require(_defaultQuoteTickCrossedGlobal < _maxQuoteTickCrossedGlobal, "MR_IV");
-        require(_minQuoteTickCrossedGlobal < _defaultQuoteTickCrossedGlobal, "MR_IV");
+        require(_defaultQuoteTickCrossedGlobal <= _maxQuoteTickCrossedGlobal, "MR_IV");
+        require(_minQuoteTickCrossedGlobal <= _defaultQuoteTickCrossedGlobal, "MR_IV");
         _defaultQuoteTickCrossedGlobal = defaultQuoteTickCrossedGlobalArg;
     }
 
