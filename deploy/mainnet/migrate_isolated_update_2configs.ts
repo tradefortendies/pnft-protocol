@@ -36,7 +36,7 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
 
-    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, hieuq] = await ethers.getSigners()
+    const [admin, maker, priceAdmin] = await ethers.getSigners()
 
     // deploy UniV3 factory
     var genericLogic = (await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address)) as GenericLogic;
