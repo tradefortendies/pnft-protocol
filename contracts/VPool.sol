@@ -280,7 +280,7 @@ contract VPool is
     function settleFundingGlobal(
         address baseToken
     ) external override returns (DataTypes.Growth memory fundingGrowthGlobal) {
-        _requireOnlyClearingHouse();
+        // _requireOnlyClearingHouse();
         // EX_BTNE: base token does not exists
         require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
@@ -314,7 +314,6 @@ contract VPool is
                 _lastUpdatedTickMap[baseToken] = _getTick(baseToken);
             }
         }
-
         return (fundingGrowthGlobal);
     }
 
@@ -620,7 +619,7 @@ contract VPool is
         markTwap = markTwapX96.formatX96ToX10_18();
         indexTwap = _getIndexPrice(baseToken);
 
-        if (timestamp == lastSettled || lastSettled == 0) {
+        if (timestamp == lastSettled || lastSettled == 0 || !_isOpen(baseToken)) {
             // if this is the latest updated timestamp, values in _globalFundingGrowthX96Map are up-to-date already
             fundingGrowthGlobal = lastFundingGrowthGlobal;
         } else {
@@ -870,5 +869,9 @@ contract VPool is
 
     function _isIsolated(address baseToken) internal view returns (bool) {
         return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
+    }
+
+    function _isOpen(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isOpen(baseToken));
     }
 }

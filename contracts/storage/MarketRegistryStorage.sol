@@ -61,6 +61,8 @@ abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
     uint256 internal _minInsuranceFundPerContribution;
     // nft address -> book
     mapping(address => bool) internal _nftCreatedMap;
-     // baseToken -> isOpen
+    // baseToken -> isOpen
     mapping(address => bool) internal _isOpenMap;
+    //
+    address internal _insuranceFund;
 }

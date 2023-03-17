@@ -40,6 +40,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         require(_msgSender() == _clearingHouse, "RF_OCH");
     }
 
+    function _requireOnlyMarketRegistry() internal view {
+        // only AccountBalance
+        require(_msgSender() == _marketRegistry, "RF_OMR");
+    }
+
     modifier onlyIsolatedMarket(address baseToken) {
         // transaction expires
         require(_isIsolated(baseToken), "IF_NIM");
@@ -198,16 +203,11 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function contributeEther(address baseToken) external payable override onlyIsolatedMarket(baseToken) {
-        address vault = _vault;
-        // IF_STNWE: settlementToken != WETH
-        require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
-        uint256 amount = msg.value;
-        require(amount > 0, "IF_ZV");
-        // IF_NMPC: not min per contribution
-        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
-        // credit fund for contributor
-        _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
-        IVault(vault).depositEther{ value: amount }(baseToken);
+        _contributeEtherFor(baseToken, msg.value, _msgSender());
+    }
+
+    function contributeEtherFor(address baseToken, address to) external payable override onlyIsolatedMarket(baseToken) {
+        _contributeEtherFor(baseToken, msg.value, to);
     }
 
     function contribute(
@@ -215,6 +215,41 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address token,
         uint256 amount
     ) external override onlyIsolatedMarket(baseToken) {
+        _contributeFor(baseToken, token, amount, _msgSender(), _msgSender());
+    }
+
+    function contributeFor(
+        address baseToken,
+        address token,
+        uint256 amount,
+        address to
+    ) external override onlyIsolatedMarket(baseToken) {
+        _contributeFor(baseToken, token, amount, _msgSender(), to);
+    }
+
+    function requestContributeFor(
+        address baseToken,
+        address token,
+        uint256 amount,
+        address to
+    ) external override onlyIsolatedMarket(baseToken) {
+        _requireOnlyMarketRegistry();
+        _contributeFor(baseToken, token, amount, to, to);
+    }
+
+    function _contributeEtherFor(address baseToken, uint256 amount, address to) internal {
+        address vault = _vault;
+        // IF_STNWE: settlementToken != WETH
+        require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
+        require(amount > 0, "IF_ZV");
+        // IF_NMPC: not min per contribution
+        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
+        // credit fund for contributor
+        _contributeFund(baseToken, to, amount.parseSettlementToken(IVault(vault).decimals()));
+        IVault(vault).depositEther{ value: amount }(baseToken);
+    }
+
+    function _contributeFor(address baseToken, address token, uint256 amount, address from, address to) internal {
         address vault = _vault;
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
@@ -222,8 +257,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_NMPC: not min per contribution
         require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         // credit fund for contributor
-        _contributeFund(baseToken, _msgSender(), amount.parseSettlementToken(IVault(vault).decimals()));
-        IVault(vault).requestDepositFromTo(_msgSender(), address(this), token, amount, baseToken);
+        _contributeFund(baseToken, to, amount.parseSettlementToken(IVault(vault).decimals()));
+        IVault(vault).requestDepositFromTo(from, address(this), token, amount, baseToken);
     }
 
     function withdrawPlatformFee(address baseToken) external override onlyIsolatedMarket(baseToken) {

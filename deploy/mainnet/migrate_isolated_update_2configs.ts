@@ -164,6 +164,10 @@ async function deploy() {
         )
     }
     await waitForTx(
+        await marketRegistry.setInsuranceFund(insuranceFund.address),
+        'marketRegistry.setInsuranceFund(insuranceFund.address)'
+    )
+    await waitForTx(
         await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
         'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
     )

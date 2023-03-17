@@ -17,6 +17,7 @@ import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IVPool } from "./interface/IVPool.sol";
+import { IInsuranceFund } from "./interface/IInsuranceFund.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
@@ -48,6 +49,12 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     modifier checkPool(address baseToken) {
         // pool not exists
         require(baseToken == address(0) || _poolMap[baseToken] != address(0), "MR_PNE");
+        _;
+    }
+
+    modifier validPool(address baseToken) {
+        // pool not exists
+        require(_poolMap[baseToken] != address(0), "MR_PNEP");
         _;
     }
 
@@ -86,8 +93,31 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     function createIsolatedPool(
         address nftContractArg,
         string memory symbolArg,
+        uint160 sqrtPriceX96,
+        address token,
+        uint256 contributedAmount
+    ) external returns (address baseToken, address uniPool) {
+        (baseToken, uniPool) = _createIsolatedPool(_msgSender(), nftContractArg, symbolArg, sqrtPriceX96);
+        // contribute
+        IInsuranceFund(_insuranceFund).requestContributeFor(baseToken, token, contributedAmount, _msgSender());
+    }
+
+    function createIsolatedPoolEther(
+        address nftContractArg,
+        string memory symbolArg,
         uint160 sqrtPriceX96
-    ) external returns (address, address) {
+    ) external payable returns (address baseToken, address uniPool) {
+        (baseToken, uniPool) = _createIsolatedPool(_msgSender(), nftContractArg, symbolArg, sqrtPriceX96);
+        // contribute
+        IInsuranceFund(_insuranceFund).contributeEtherFor{ value: msg.value }(baseToken, _msgSender());
+    }
+
+    function _createIsolatedPool(
+        address creator,
+        address nftContractArg,
+        string memory symbolArg,
+        uint160 sqrtPriceX96
+    ) internal returns (address, address) {
         // check created
         // MR_MIRE: market is ready existsed
         require(_nftCreatedMap[nftContractArg] == false, "MR_MIRE");
@@ -96,7 +126,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         // create baseToken
         address baseToken = _createBaseToken(symbolArg, sqrtPriceX96);
         // add pool
-        address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, _msgSender(), _msgSender(), true);
+        address uniPool = _addPool(baseToken, nftContractArg, uniFeeTier, creator, creator, true);
         // add liquidity
         uint256 liquidity = PerpMath.calculateLiquidity(
             _defaultQuoteTickCrossedGlobal,
@@ -224,6 +254,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         emit MaxOrdersPerMarketChanged(maxOrdersPerMarketArg);
     }
 
+    function setInsuranceFund(address insuranceFundArg) external onlyOwner {
+        _insuranceFund = insuranceFundArg;
+    }
+
     // function setOptimalDeltaTwapRatio(
     //     address baseToken,
     //     uint24 optimalDeltaTwapRatio
@@ -240,6 +274,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     }
 
     function setIsOpen(address baseToken, bool _isOpenArg) external checkPool(baseToken) onlyOwner {
+        if (!_isOpenArg) {
+            IVPool(IClearingHouse(_clearingHouse).getVPool()).settleFundingGlobal(baseToken);
+        }
         _isOpenMap[baseToken] = _isOpenArg;
     }
 
@@ -354,10 +391,6 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         return _creatorMap[baseToken];
     }
 
-    function isOpen(address baseToken) external view override checkPool(baseToken) returns (bool) {
-        return _isOpenMap[baseToken];
-    }
-
     /// @inheritdoc IMarketRegistry
     function getMarketInfo(address baseToken) external view override checkPool(baseToken) returns (MarketInfo memory) {
         return
@@ -380,6 +413,11 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     /// @inheritdoc IMarketRegistry
     function isIsolated(address baseToken) external view override checkPool(baseToken) returns (bool) {
         return baseToken == address(0) ? false : _isolatedMap[baseToken];
+    }
+
+    /// @inheritdoc IMarketRegistry
+    function isOpen(address baseToken) external view override validPool(baseToken) returns (bool) {
+        return _isOpenMap[baseToken];
     }
 
     function getInsuranceFundFeeRatioGlobal() external view override returns (uint24) {

@@ -67,9 +67,11 @@ describe("ClearingHouse openProtocol", () => {
 
         // open baseToken
         {
+            await collateral.mint(creator.address, parseUnits("1000000", collateralDecimals))
+            await collateral.connect(creator).approve(vault.address, parseUnits("1000000", collateralDecimals))
 
             let r = await (
-                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"))
+                await marketRegistry.connect(creator).createIsolatedPool(nftAddress, 'TEST', encodePriceSqrt(initPrice, "1"), collateral.address, parseEther('0.01'))
             ).wait()
 
             let log = await findPoolAddedEvents(marketRegistry, r)[0]
