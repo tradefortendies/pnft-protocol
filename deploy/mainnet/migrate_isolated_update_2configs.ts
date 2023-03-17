@@ -92,6 +92,12 @@ async function deploy() {
                 'marketRegistry.setNftContract(' + baseTokenAddress + ', ' + nftContractAddress + ')'
             )
         }
+        if ((await marketRegistry.isOpen(baseTokenAddress)) != true) {
+            await waitForTx(
+                await marketRegistry.setIsOpen(baseTokenAddress, true),
+                'marketRegistry.setIsOpen(' + baseTokenAddress + ', true)'
+            )
+        }
     }
     // new update for open protocol
     await waitForTx(
