@@ -3,7 +3,7 @@ import fs from "fs";
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, InsuranceFund, MarketRegistry, NftPriceFeed, QuoteToken, RewardMiner, UniswapV3Pool, Vault, LimitOrderBook, NFTOracle } from "../../typechain";
 import { getMaxTickRange } from "../../test/helper/number";
 import helpers from "../helpers";
 import { parseEther } from "ethers/lib/utils";
@@ -33,22 +33,8 @@ async function deploy() {
     var vault = (await hre.ethers.getContractAt('Vault', deployData.vault.address)) as Vault;
     var clearingHouse = (await hre.ethers.getContractAt('ClearingHouse', deployData.clearingHouse.address)) as ClearingHouse;
     var rewardMiner = (await hre.ethers.getContractAt('RewardMiner', deployData.rewardMiner.address)) as RewardMiner;
-
-    var uniFeeTier = '3000' // 0.3%
-
-    // deploy vault
-    // await collateralManager.addCollateral(deployData.wETH.address, {
-    //     priceFeed: deployData.priceFeedETH.address,
-    //     collateralRatio: (0.8e6).toString(),
-    //     discountRatio: (0.5e6).toString(),
-    //     depositCap: parseUnits("1000", deployData.wETH.decimals),
-    // })
-    // await collateralManager.addCollateral(deployData.wBTC.address, {
-    //     priceFeed: deployData.priceFeedBTC.address,
-    //     collateralRatio: (0.8e6).toString(),
-    //     discountRatio: (0.5e6).toString(),
-    //     depositCap: parseUnits("1000", deployData.wBTC.decimals),
-    // })
+    var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+    var nftOracle = (await hre.ethers.getContractAt('NFTOracle', deployData.nftOracle.address)) as NFTOracle;
 
     const vETH = (await ethers.getContractAt('QuoteToken', deployData.vETH.address)) as QuoteToken;
 
@@ -73,7 +59,7 @@ async function deploy() {
     if ((await vault.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(await vault.setClearingHouse(clearingHouse.address), 'vault.setClearingHouse(clearingHouse.address)')
     }
-    if (network == 'arbitrum' || network == 'arbitrumGoerli' || network == 'local') {
+    if (network == 'arbitrum' || network == 'arbitrumGoerli' || network == 'arbitrumDev' || network == 'local') {
         if ((await vault.getWETH9()).toLowerCase() != deployData.wETH.address.toLowerCase()) {
             await waitForTx(await vault.setWETH9(deployData.wETH.address), 'vault.setWETH9(deployData.wETH.address)')
         }
@@ -114,6 +100,89 @@ async function deploy() {
     if ((await insuranceFund.getClearingHouse()).toLowerCase() != clearingHouse.address.toLowerCase()) {
         await waitForTx(
             await insuranceFund.setClearingHouse(clearingHouse.address), 'insuranceFund.setClearingHouse(clearingHouse.address)'
+        )
+    }
+    if ((await clearingHouse.getDelegateApproval()).toLowerCase() != limitOrderBook.address.toLowerCase()) {
+        await waitForTx(
+            await clearingHouse.setDelegateApproval(limitOrderBook.address), 'await clearingHouse.setDelegateApproval(limitOrderBook.address)'
+        )
+    }
+    // new update for open protocol
+    if ((await nftOracle.getPriceAdmin()).toLowerCase() != priceAdmin.address.toLowerCase()) {
+        await waitForTx(
+            await nftOracle.setPriceAdmin(priceAdmin.address),
+            'nftOracle.setPriceAdmin(' + priceAdmin.address + ')'
+        )
+    }
+    await waitForTx(
+        await marketRegistry.setInsuranceFundFeeRatioGlobal(500),
+        'marketRegistry.setInsuranceFundFeeRatioGlobal(500)'
+    )
+    await waitForTx(
+        await marketRegistry.setPlatformFundFeeRatioGlobal(2000),
+        'marketRegistry.setPlatformFundFeeRatioGlobal(2000)'
+    )
+    await waitForTx(
+        await marketRegistry.setOptimalDeltaTwapRatioGlobal(30000),
+        'marketRegistry.setOptimalDeltaTwapRatioGlobal(30000)'
+    )
+    await waitForTx(
+        await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000),
+        'marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)'
+    )
+    await waitForTx(
+        await marketRegistry.setOptimalFundingRatioGlobal(250000),
+        'marketRegistry.setOptimalFundingRatioGlobal(250000)'
+    )
+    await waitForTx(
+        await marketRegistry.setSharePlatformFeeRatioGlobal(500000),
+        'marketRegistry.setSharePlatformFeeRatioGlobal(500000)'
+    )
+    await waitForTx(
+        await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1')),
+        'marketRegistry.setMinQuoteTickCrossedGlobal(parseEther(1))'
+    )
+    await waitForTx(
+        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('1000')),
+        'marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther(1000))'
+    )
+    await waitForTx(
+        await marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther('5')),
+        'marketRegistry.setDefaultQuoteTickCrossedGlobal(parseEther(5))'
+    )
+    await waitForTx(
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1')),
+        'marketRegistry.setMinInsuranceFundPerContribution(parseEther(0.1))'
+    )
+    await waitForTx(
+        await vPool.setNftOracle(nftOracle.address),
+        'vPool.setNftOracle(nftOracle.address)'
+    )
+    await waitForTx(
+        await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
+        'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'
+    )
+    await waitForTx(
+        await vETH.setMarketRegistry(marketRegistry.address),
+        'vETH.setMarketRegistry(marketRegistry.address)'
+    )
+    await waitForTx(
+        await vault.setMarketRegistry(marketRegistry.address),
+        'vault.setMarketRegistry(marketRegistry.address)'
+    )
+    await waitForTx(
+        await accountBalance.setMarketRegistry(marketRegistry.address),
+        'accountBalance.setMarketRegistry(marketRegistry.address)'
+    )
+    await waitForTx(
+        await insuranceFund.setMarketRegistry(marketRegistry.address),
+        'insuranceFund.setMarketRegistry(marketRegistry.address)'
+    )
+    var maxTickCrossedWithinBlock: number = 100
+    if ((await vPool.getMaxTickCrossedWithinBlock()).toString() != maxTickCrossedWithinBlock.toString()) {
+        await tryWaitForTx(
+            await vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock),
+            'vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)'
         )
     }
 }

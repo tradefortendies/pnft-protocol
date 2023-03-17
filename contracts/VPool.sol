@@ -18,13 +18,12 @@ import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
 import { IClearingHouse } from "./interface/IClearingHouse.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
 import { VPoolStorageV2 } from "./storage/VPoolStorage.sol";
 import { IVPool } from "./interface/IVPool.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 import { GenericLogic } from "./lib/GenericLogic.sol";
 import { ClearingHouseLogic } from "./lib/ClearingHouseLogic.sol";
+import { INFTOracle } from "./interface/INFTOracle.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
 contract VPool is
@@ -111,23 +110,25 @@ contract VPool is
         emit AccountBalanceChanged(accountBalanceArg);
     }
 
+    function setNftOracle(address nftOracleArg) external onlyOwner {
+        require(nftOracleArg != address(0), "E_NO0");
+        _nftOracle = nftOracleArg;
+    }
+
     /// @dev Restrict the price impact by setting the ticks can be crossed within a block when
     /// trader reducing liquidity. It is used to prevent the malicious behavior of the malicious traders.
     /// The restriction is applied in _isOverPriceLimitWithTick()
-    /// @param baseToken The base token address
     /// @param maxTickCrossedWithinBlock The maximum ticks can be crossed within a block
-    function setMaxTickCrossedWithinBlock(address baseToken, uint24 maxTickCrossedWithinBlock) external onlyOwner {
-        // EX_BNC: baseToken is not contract
-        require(baseToken.isContract(), "EX_BNC");
-        // EX_BTNE: base token does not exists
-        require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
+    function setMaxTickCrossedWithinBlock(uint24 maxTickCrossedWithinBlock) external {
+        // EX_NOM: not owner marketRegistry
+        require(_msgSender() == owner() || _msgSender() == _marketRegistry, "EX_NOM");
 
         // tick range is [MIN_TICK, MAX_TICK], maxTickCrossedWithinBlock should be in [0, MAX_TICK - MIN_TICK]
         // EX_MTCLOOR: max tick crossed limit out of range
         require(maxTickCrossedWithinBlock <= _getMaxTickCrossedWithinBlockCap(), "EX_MTCLOOR");
 
-        _maxTickCrossedWithinBlockMap[baseToken] = maxTickCrossedWithinBlock;
-        emit MaxTickCrossedWithinBlockChanged(baseToken, maxTickCrossedWithinBlock);
+        _maxTickCrossedWithinBlock = maxTickCrossedWithinBlock;
+        emit MaxTickCrossedWithinBlockChanged(maxTickCrossedWithinBlock);
     }
 
     /// @inheritdoc IUniswapV3SwapCallback
@@ -167,7 +168,7 @@ contract VPool is
         _requireOnlyClearingHouse();
 
         // EX_MIP: market is paused
-        require(_maxTickCrossedWithinBlockMap[params.baseToken] > 0, "EX_MIP");
+        require(_maxTickCrossedWithinBlock > 0, "EX_MIP");
 
         int256 takerPositionSize = IAccountBalance(_accountBalance).getTakerPositionSize(
             params.trader,
@@ -279,23 +280,19 @@ contract VPool is
     function settleFundingGlobal(
         address baseToken
     ) external override returns (DataTypes.Growth memory fundingGrowthGlobal) {
-        _requireOnlyClearingHouse();
+        // _requireOnlyClearingHouse();
         // EX_BTNE: base token does not exists
         require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
-        // if updating TWAP fails, this call will be reverted and thus using try-catch
-        try IBaseToken(baseToken).cacheTwap(IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()) {} catch {}
         uint256 markTwap;
         uint256 indexTwap;
         (fundingGrowthGlobal, markTwap, indexTwap) = _getFundingGrowthGlobalAndTwaps(baseToken);
 
         // funding will be stopped once the market is being paused
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
 
         // update states before further actions in this block; once per block
-        if (timestamp != _lastSettledTimestampMap[baseToken]) {
+        if (_blockTimestamp() != _lastSettledTimestampMap[baseToken]) {
             // update fundingGrowthGlobal and _lastSettledTimestamp
             DataTypes.Growth storage lastFundingGrowthGlobal = _globalFundingGrowthX96Map[baseToken];
             (
@@ -317,7 +314,6 @@ contract VPool is
                 _lastUpdatedTickMap[baseToken] = _getTick(baseToken);
             }
         }
-
         return (fundingGrowthGlobal);
     }
 
@@ -355,7 +351,6 @@ contract VPool is
         require(IMarketRegistry(_marketRegistry).hasPool(baseToken), "EX_BTNE");
 
         // if updating TWAP fails, this call will be reverted and thus using try-catch
-        try IBaseToken(baseToken).cacheTwap(IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()) {} catch {}
         uint256 markTwap;
         uint256 indexTwap;
         (fundingGrowthGlobal, markTwap, indexTwap) = _getFundingGrowthGlobalAndTwaps(baseToken);
@@ -368,9 +363,7 @@ contract VPool is
         );
 
         // funding will be stopped once the market is being paused
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
 
         // update states before further actions in this block; once per block
         if (timestamp != _lastSettledTimestampMap[baseToken]) {
@@ -409,8 +402,8 @@ contract VPool is
     }
 
     /// @inheritdoc IVPool
-    function getMaxTickCrossedWithinBlock(address baseToken) external view override returns (uint24) {
-        return _maxTickCrossedWithinBlockMap[baseToken];
+    function getMaxTickCrossedWithinBlock() external view override returns (uint24) {
+        return _maxTickCrossedWithinBlock;
     }
 
     /// @inheritdoc IVPool
@@ -441,14 +434,37 @@ contract VPool is
     }
 
     /// @inheritdoc IVPool
-    function getAllPendingFundingPayment(address trader) external view override returns (int256 pendingFundingPayment) {
-        address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
-        uint256 baseTokenLength = baseTokens.length;
-
-        for (uint256 i = 0; i < baseTokenLength; i++) {
-            pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseTokens[i]));
+    function getAllPendingFundingPayment(
+        address trader,
+        address baseToken
+    ) external view override returns (int256 pendingFundingPayment) {
+        if (_isIsolated(baseToken)) {
+            pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseToken));
+            // revert("TODO");
+        } else {
+            address[] memory baseTokens = IAccountBalance(_accountBalance).getBaseTokens(trader);
+            uint256 baseTokenLength = baseTokens.length;
+            for (uint256 i = 0; i < baseTokenLength; i++) {
+                pendingFundingPayment = pendingFundingPayment.add(getPendingFundingPayment(trader, baseTokens[i]));
+            }
         }
         return pendingFundingPayment;
+    }
+
+    function getIndexPrice(address baseToken) external view override returns (uint256) {
+        return _getIndexPrice(baseToken);
+    }
+
+    function getMarkPrice(address baseToken) external view override returns (uint256) {
+        return _getMarkPrice(baseToken);
+    }
+
+    function _getIndexPrice(address baseToken) internal view returns (uint256) {
+        return INFTOracle(_nftOracle).getNftPrice(IMarketRegistry(_marketRegistry).getNftContract(baseToken));
+    }
+
+    function _getMarkPrice(address baseToken) internal view returns (uint256) {
+        return getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
     }
 
     /// @inheritdoc IVPool
@@ -457,10 +473,8 @@ contract VPool is
     }
 
     function _isOverPriceSpread(address baseToken) internal view returns (bool) {
-        uint256 markPrice = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        uint256 indexTwap = IIndexPrice(baseToken).getIndexPrice(
-            IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()
-        );
+        uint256 markPrice = _getMarkPrice(baseToken);
+        uint256 indexTwap = _getIndexPrice(baseToken);
         uint256 spread = markPrice > indexTwap ? markPrice.sub(indexTwap) : indexTwap.sub(markPrice);
         // get market info
         IMarketRegistry.MarketInfo memory marketInfo = IMarketRegistry(_marketRegistry).getMarketInfo(baseToken);
@@ -561,7 +575,7 @@ contract VPool is
     }
 
     function _isOverPriceLimitWithTick(address baseToken, int24 tick) internal view returns (bool) {
-        uint24 maxDeltaTick = _maxTickCrossedWithinBlockMap[baseToken];
+        uint24 maxDeltaTick = _maxTickCrossedWithinBlock;
         int24 lastUpdatedTick = _lastUpdatedTickMap[baseToken];
         // no overflow/underflow issue because there are range limits for tick and maxDeltaTick
         int24 upperTickBound = lastUpdatedTick.add(maxDeltaTick).toInt24();
@@ -582,13 +596,10 @@ contract VPool is
     function _getFundingGrowthGlobalAndTwaps(
         address baseToken
     ) internal view returns (DataTypes.Growth memory fundingGrowthGlobal, uint256 markTwap, uint256 indexTwap) {
-        uint256 timestamp = IBaseToken(baseToken).isOpen()
-            ? _blockTimestamp()
-            : IBaseToken(baseToken).getPausedTimestamp();
+        uint256 timestamp = _blockTimestamp();
         return
             _getFundingGrowthGlobalAndTwaps(
                 baseToken,
-                _firstTradedTimestampMap[baseToken],
                 _lastSettledTimestampMap[baseToken],
                 timestamp,
                 _globalFundingGrowthX96Map[baseToken]
@@ -597,44 +608,18 @@ contract VPool is
 
     function _getFundingGrowthGlobalAndTwaps(
         address baseToken,
-        uint256 firstTrade,
         uint256 lastSettled,
         uint256 timestamp,
         DataTypes.Growth memory lastFundingGrowthGlobal
     ) internal view returns (DataTypes.Growth memory fundingGrowthGlobal, uint256 markTwap, uint256 indexTwap) {
         // shorten twapInterval if prior observations are not enough
-        uint32 twapInterval;
-        if (firstTrade != 0) {
-            twapInterval = IClearingHouseConfig(_clearingHouseConfig).getTwapInterval();
-            // overflow inspection:
-            // 2 ^ 32 = 4,294,967,296 > 100 years = 60 * 60 * 24 * 365 * 100 = 3,153,600,000
-            uint32 deltaTimestamp = timestamp.sub(firstTrade).toUint32();
-            twapInterval = twapInterval > deltaTimestamp ? deltaTimestamp : twapInterval;
-        }
-        // uint256 markTwapX96;
-        // if (marketOpen) {
-        //     markTwapX96 = getSqrtMarkTwapX96(baseToken, twapInterval).formatSqrtPriceX96ToPriceX96();
-        //     indexTwap = IIndexPrice(baseToken).getIndexPrice(twapInterval);
-        // } else {
-        //     // if a market is paused/closed, we use the last known index price which is getPausedIndexPrice
-        //     //
-        //     // -----+--- twap interval ---+--- secondsAgo ---+
-        //     //                        pausedTime            now
 
-        //     // timestamp is pausedTime when the market is not open
-        //     uint32 secondsAgo = _blockTimestamp().sub(timestamp).toUint32();
-        //     markTwapX96 = UniswapV3Broker
-        //         .getSqrtMarkTwapX96From(IMarketRegistry(_marketRegistry).getPool(baseToken), secondsAgo, twapInterval)
-        //         .formatSqrtPriceX96ToPriceX96();
-        //     indexTwap = IBaseToken(baseToken).getPausedIndexPrice();
-        // }
-
-        uint256 markTwapX96 = getSqrtMarkTwapX96(baseToken, twapInterval).formatSqrtPriceX96ToPriceX96();
+        uint256 markTwapX96 = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96();
 
         markTwap = markTwapX96.formatX96ToX10_18();
-        indexTwap = IIndexPrice(baseToken).getIndexPrice(twapInterval);
+        indexTwap = _getIndexPrice(baseToken);
 
-        if (timestamp == lastSettled || lastSettled == 0) {
+        if (timestamp == lastSettled || lastSettled == 0 || !_isOpen(baseToken)) {
             // if this is the latest updated timestamp, values in _globalFundingGrowthX96Map are up-to-date already
             fundingGrowthGlobal = lastFundingGrowthGlobal;
         } else {
@@ -799,8 +784,8 @@ contract VPool is
     function _getSqrtPriceLimitForReplaySwap(address baseToken, bool isLong) internal view returns (uint160) {
         // price limit = max tick + 1 or min tick - 1, depending on which direction
         int24 tickBoundary = isLong
-            ? _lastUpdatedTickMap[baseToken] + int24(_maxTickCrossedWithinBlockMap[baseToken]) + 1
-            : _lastUpdatedTickMap[baseToken] - int24(_maxTickCrossedWithinBlockMap[baseToken]) - 1;
+            ? _lastUpdatedTickMap[baseToken] + int24(_maxTickCrossedWithinBlock) + 1
+            : _lastUpdatedTickMap[baseToken] - int24(_maxTickCrossedWithinBlock) - 1;
 
         // tickBoundary should be in [MIN_TICK, MAX_TICK]
         tickBoundary = tickBoundary > TickMath.MAX_TICK ? TickMath.MAX_TICK : tickBoundary;
@@ -865,10 +850,8 @@ contract VPool is
     function getOverPriceSpreadInfo(
         address baseToken
     ) external view returns (uint256 spreadRatio, uint256 lastOverPriceSpreadTimestamp, uint256 repegTimestamp) {
-        uint256 markPrice = getSqrtMarkTwapX96(baseToken, 0).formatSqrtPriceX96ToPriceX96().formatX96ToX10_18();
-        uint256 indexTwap = IIndexPrice(baseToken).getIndexPrice(
-            IClearingHouseConfig(_clearingHouseConfig).getTwapInterval()
-        );
+        uint256 markPrice = _getMarkPrice(baseToken);
+        uint256 indexTwap = _getIndexPrice(baseToken);
         spreadRatio = (markPrice > indexTwap ? markPrice.sub(indexTwap) : indexTwap.sub(markPrice)).mul(1e6).div(
             indexTwap
         );
@@ -882,5 +865,13 @@ contract VPool is
         DataTypes.OpenPositionParams memory params
     ) external view override returns (UniswapV3Broker.ReplaySwapResponse memory) {
         return ClearingHouseLogic.estimateSwap(_clearingHouse, params);
+    }
+
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
+    }
+
+    function _isOpen(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isOpen(baseToken));
     }
 }

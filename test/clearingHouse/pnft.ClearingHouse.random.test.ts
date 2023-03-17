@@ -2,16 +2,15 @@ import { MockContract } from "@eth-optimism/smock"
 import { formatEther, parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
-    BaseToken,
     ClearingHouseConfig, InsuranceFund,
     MarketRegistry,
-    QuoteToken,
+    NFTOracle,
     TestAccountBalance,
     TestClearingHouse,
     TestERC20,
     TestRewardMiner,
     UniswapV3Pool,
-    Vault, VPool
+    Vault, VirtualToken, VPool
 } from "../../typechain"
 import { initMarket } from "../helper/marketHelper"
 import { deposit } from "../helper/token"
@@ -31,10 +30,10 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
     let insuranceFund: InsuranceFund
     let vPool: VPool
     let collateral: TestERC20
-    let baseToken: BaseToken
-    let quoteToken: QuoteToken
+    let baseToken: VirtualToken
+    let quoteToken: VirtualToken
     let pool: UniswapV3Pool
-    let mockedNFTPriceFeed: MockContract
+    let nftOracle: NFTOracle
     let collateralDecimals: number
     let rewardMiner: TestRewardMiner
     const initPrice = "1"
@@ -52,24 +51,23 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         collateral = fixture.WETH
         baseToken = fixture.baseToken
         quoteToken = fixture.quoteToken
-        mockedNFTPriceFeed = fixture.mockedNFTPriceFeed
+        nftOracle = fixture.nftOracle
         collateralDecimals = await collateral.decimals()
         rewardMiner = fixture.rewardMiner as TestRewardMiner
 
         await initMarket(fixture, initPrice, undefined, 0)
-        mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
-            return parseUnits(initPrice, 18)
-        })
+
+        await nftOracle.setNftPrice((await marketRegistry.getNftContract(baseToken.address)), parseUnits(initPrice, 18))
 
         // prepare collateral for trader
         await collateral.mint(trader1.address, parseUnits("1000000", collateralDecimals))
-        await deposit(trader1, vault, 1000000, collateral)
+        await deposit(trader1, vault, 1000000, collateral, baseToken)
 
         await collateral.mint(trader2.address, parseUnits("1000000", collateralDecimals))
-        await deposit(trader2, vault, 1000000, collateral)
+        await deposit(trader2, vault, 1000000, collateral, baseToken)
 
         await collateral.mint(liquidator.address, parseUnits("1000000", collateralDecimals))
-        await deposit(liquidator, vault, 1000000, collateral)
+        await deposit(liquidator, vault, 1000000, collateral, baseToken)
     })
 
     it("random check", async () => {
@@ -147,9 +145,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
                     liquidity: parseEther(rndInt.toString()),
                     deadline: ethers.constants.MaxUint256,
                 })
-                mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
-                    return parseUnits("1.25", 18)
-                })
+                await nftOracle.setNftPrice((await marketRegistry.getNftContract(baseToken.address)), parseUnits("1.25", 18))
             } else {
                 rndInt = (Math.floor(Math.random() * 1000000) % 20) + 1;
                 await clearingHouse.connect(maker).removeLiquidity({
@@ -157,9 +153,7 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
                     liquidity: parseEther(rndInt.toString()),
                     deadline: ethers.constants.MaxUint256,
                 })
-                mockedNFTPriceFeed.smocked.getPrice.will.return.with(async () => {
-                    return parseUnits("0.8", 18)
-                })
+                await nftOracle.setNftPrice((await marketRegistry.getNftContract(baseToken.address)), parseUnits("0.8", 18))
             }
 
             let minerInfo = await rewardMiner.getCurrentPeriodInfo()
@@ -232,11 +226,11 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
         await rewardMiner.connect(trader1).claim();
         await rewardMiner.connect(trader2).claim();
 
-        let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address))[0]
-        let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address))[0]
-        let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address))[0]
-        let owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address))[0]
-        let owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address))[0]
+        let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]
+        let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
+        let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address, baseToken.address))[0]
+        let owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address, baseToken.address))[0]
+        let owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address, baseToken.address))[0]
 
         console.log(
             'owedRealizedPnl',
@@ -246,8 +240,8 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
             formatEther(owedRealizedPnlTrade2),
             formatEther(owedRealizedPnlAdmin),
             formatEther(owedRealizedPnlPlatformFund.add(owedRealizedPnlInsuranceFund).add(owedRealizedPnlTrade1).add(owedRealizedPnlTrade2).add(owedRealizedPnlAdmin)),
-            formatEther(await insuranceFund.getRepegAccumulatedFund()),
-            formatEther(await insuranceFund.getRepegDistributedFund()),
+            formatEther(await insuranceFund.getRepegAccumulatedFund(baseToken.address)),
+            formatEther(await insuranceFund.getRepegDistributedFund(baseToken.address)),
         )
 
         console.log(
@@ -259,15 +253,15 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
             formatEther((await collateral.balanceOf(trader2.address))),
         )
 
-        await vault.connect(trader1).withdrawAll(collateral.address)
-        await vault.connect(trader2).withdrawAll(collateral.address)
-        await vault.connect(platformFund).withdrawAll(collateral.address)
+        await vault.connect(trader1).withdrawAll(collateral.address, baseToken.address)
+        await vault.connect(trader2).withdrawAll(collateral.address, baseToken.address)
+        await vault.connect(platformFund).withdrawAll(collateral.address, baseToken.address)
 
-        owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address))[0]
-        owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address))[0]
-        owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address))[0]
-        owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address))[0]
-        owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address))[0]
+        owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]
+        owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
+        owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address, baseToken.address))[0]
+        owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address, baseToken.address))[0]
+        owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address, baseToken.address))[0]
 
         console.log(
             'owedRealizedPnl',
@@ -277,8 +271,8 @@ describe("ClearingHouse random trade liquidity repeg close", () => {
             formatEther(owedRealizedPnlTrade2),
             formatEther(owedRealizedPnlAdmin),
             formatEther(owedRealizedPnlPlatformFund.add(owedRealizedPnlInsuranceFund).add(owedRealizedPnlTrade1).add(owedRealizedPnlTrade2).add(owedRealizedPnlAdmin)),
-            formatEther(await insuranceFund.getRepegAccumulatedFund()),
-            formatEther(await insuranceFund.getRepegDistributedFund()),
+            formatEther(await insuranceFund.getRepegAccumulatedFund(baseToken.address)),
+            formatEther(await insuranceFund.getRepegDistributedFund(baseToken.address)),
         )
     })
 

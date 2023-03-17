@@ -2,8 +2,6 @@
 pragma solidity 0.7.6;
 pragma abicoder v2;
 import { IAccountBalance } from "../interface/IAccountBalance.sol";
-import { IBaseToken } from "../interface/IBaseToken.sol";
-import { IIndexPrice } from "../interface/IIndexPrice.sol";
 import { IClearingHouse } from "../interface/IClearingHouse.sol";
 import { IClearingHouseConfig } from "../interface/IClearingHouseConfig.sol";
 import { IVPool } from "../interface/IVPool.sol";
@@ -23,6 +21,7 @@ library GenericLogic {
     using SignedSafeMathUpgradeable for int256;
     using PerpSafeCast for uint256;
     using PerpSafeCast for uint128;
+    using PerpSafeCast for uint24;
     using PerpSafeCast for int256;
     using PerpMath for uint256;
     using PerpMath for uint160;
@@ -108,52 +107,57 @@ library GenericLogic {
 
     //====================== END Event
 
-    function requireNotMaker(address chAddress, address maker) internal view {
+    function requireNotMaker(address clearingHouse, address maker) public view {
         // not Maker
-        require(maker != IClearingHouse(chAddress).getMaker(), "CHD_NM");
+        require(maker != IClearingHouse(clearingHouse).getMaker(), "CHD_NM");
     }
 
-    function isLiquidatable(address chAddress, address trader) internal view returns (bool) {
+    function isLiquidatable(address clearingHouse, address trader, address baseToken) public view returns (bool) {
         return
-            getAccountValue(chAddress, trader) <
-            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getMarginRequirementForLiquidation(trader);
+            getAccountValue(clearingHouse, trader, baseToken) <
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).getMarginRequirementForLiquidation(
+                trader,
+                baseToken
+            );
     }
 
-    function checkMarketOpen(address baseToken) public view {
+    function checkMarketOpen(address clearingHouse, address baseToken) public view {
         // CH_MNO: Market not opened
-        require(IBaseToken(baseToken).isOpen(), "CH_MNO");
+        require(IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(baseToken) > 0, "CH_MNO");
+        require(IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).isOpen(baseToken), "CH_MNO");
     }
 
-    function registerBaseToken(address chAddress, address trader, address baseToken) public {
-        IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).registerBaseToken(trader, baseToken);
+    function registerBaseToken(address clearingHouse, address trader, address baseToken) public {
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).registerBaseToken(trader, baseToken);
     }
 
     function settleFundingGlobal(
-        address chAddress,
+        address clearingHouse,
         address baseToken
     ) public returns (DataTypes.Growth memory fundingGrowthGlobal) {
-        (fundingGrowthGlobal) = IVPool(IClearingHouse(chAddress).getVPool()).settleFundingGlobal(baseToken);
+        (fundingGrowthGlobal) = IVPool(IClearingHouse(clearingHouse).getVPool()).settleFundingGlobal(baseToken);
         return fundingGrowthGlobal;
     }
 
     function settleFunding(
-        address chAddress,
+        address clearingHouse,
         address trader,
         address baseToken
     ) public returns (DataTypes.Growth memory fundingGrowthGlobal, int256 fundingPayment) {
-        (fundingPayment, fundingGrowthGlobal) = IVPool(IClearingHouse(chAddress).getVPool()).settleFunding(
+        (fundingPayment, fundingGrowthGlobal) = IVPool(IClearingHouse(clearingHouse).getVPool()).settleFunding(
             trader,
             baseToken
         );
         if (fundingPayment != 0) {
-            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).modifyOwedRealizedPnl(
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnl(
                 trader,
+                baseToken,
                 fundingPayment.neg256()
             );
             emit FundingPaymentSettled(trader, baseToken, fundingPayment);
         }
 
-        IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).updateTwPremiumGrowthGlobal(
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).updateTwPremiumGrowthGlobal(
             trader,
             baseToken,
             fundingGrowthGlobal.twLongPremiumX96,
@@ -162,8 +166,13 @@ library GenericLogic {
         return (fundingGrowthGlobal, fundingPayment);
     }
 
-    function getFreeCollateralByRatio(address chAddress, address trader, uint24 ratio) public view returns (int256) {
-        return IVault(IClearingHouse(chAddress).getVault()).getFreeCollateralByRatio(trader, ratio);
+    function getFreeCollateralByRatio(
+        address clearingHouse,
+        address trader,
+        uint24 ratio,
+        address baseToken
+    ) internal view returns (int256) {
+        return IVault(IClearingHouse(clearingHouse).getVault()).getFreeCollateralByRatio(trader, ratio, baseToken);
     }
 
     function checkSlippageAfterLiquidityChange(
@@ -171,49 +180,83 @@ library GenericLogic {
         uint256 minBase,
         uint256 quote,
         uint256 minQuote
-    ) public pure {
+    ) internal pure {
         // CH_PSCF: price slippage check fails
         require(base >= minBase && quote >= minQuote, "CH_PSCF");
     }
 
-    function getSqrtMarkX96(address chAddress, address baseToken) public view returns (uint160) {
-        return IVPool(IClearingHouse(chAddress).getVPool()).getSqrtMarkTwapX96(baseToken, 0);
+    function getSqrtMarkX96(address clearingHouse, address baseToken) public view returns (uint160) {
+        return IVPool(IClearingHouse(clearingHouse).getVPool()).getSqrtMarkTwapX96(baseToken, 0);
     }
 
-    function requireEnoughFreeCollateral(address chAddress, address trader) public view {
-        if (trader == IClearingHouse(chAddress).getMaker()) return;
+    function requireEnoughFreeCollateral(address clearingHouse, address trader, address baseToken) public view {
+        if (trader == IClearingHouse(clearingHouse).getMaker()) return;
         // CH_NEFCI: not enough free collateral by imRatio
-        require(
-            getFreeCollateralByRatio(
-                chAddress,
-                trader,
-                IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getImRatio()
-            ) >= 0,
-            "CH_NEFCI"
-        );
+        if (isIsolated(clearingHouse, baseToken)) {
+            require(
+                getFreeCollateralByRatio(
+                    clearingHouse,
+                    trader,
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getMmRatio(),
+                    baseToken
+                ) >= 0,
+                "CH_NEFCI"
+            );
+        } else {
+            require(
+                getFreeCollateralByRatio(
+                    clearingHouse,
+                    trader,
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio(),
+                    baseToken
+                ) >= 0,
+                "CH_NEFCI"
+            );
+        }
     }
 
-    function requireEnoughFreeCollateralForClose(address chAddress, address trader) public view {
-        if (trader == IClearingHouse(chAddress).getMaker()) return;
+    function requireEnoughFreeCollateralForClose(address clearingHouse, address trader, address baseToken) public view {
+        if (trader == IClearingHouse(clearingHouse).getMaker()) return;
         // CH_NEFCM: not enough free collateral by mmRatio
         require(
             getFreeCollateralByRatio(
-                chAddress,
+                clearingHouse,
                 trader,
-                IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getMmRatio()
+                IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getMmRatio(),
+                baseToken
             ) >= 0,
             "CH_NEFCM"
         );
     }
 
-    function getTakerOpenNotional(address chAddress, address trader, address baseToken) public view returns (int256) {
-        return IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getTakerOpenNotional(trader, baseToken);
+    function requireEnoughCollateralForOrder(
+        address clearingHouse,
+        uint256 quote,
+        uint256 fee,
+        uint256 freeCollateralX10_18
+    ) public view {
+        require(
+            freeCollateralX10_18 >=
+                quote
+                    .mulRatio(IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio())
+                    .add(fee),
+            "CH_NEFCO"
+        );
     }
 
-    function getAccountValue(address chAddress, address trader) public view returns (int256) {
+    function getTakerOpenNotional(
+        address clearingHouse,
+        address trader,
+        address baseToken
+    ) public view returns (int256) {
         return
-            IVault(IClearingHouse(chAddress).getVault()).getAccountValue(trader).parseSettlementToken(
-                IVault(IClearingHouse(chAddress).getVault()).decimals()
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).getTakerOpenNotional(trader, baseToken);
+    }
+
+    function getAccountValue(address clearingHouse, address trader, address baseToken) public view returns (int256) {
+        return
+            IVault(IClearingHouse(clearingHouse).getVault()).getAccountValue(trader, baseToken).parseSettlementToken(
+                IVault(IClearingHouse(clearingHouse).getVault()).decimals()
             );
     }
 
@@ -246,38 +289,38 @@ library GenericLogic {
         }
     }
 
-    function getTakerPositionSafe(address chAddress, address trader, address baseToken) public view returns (int256) {
-        int256 takerPositionSize = IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).getTakerPositionSize(
-            trader,
-            baseToken
-        );
+    function getTakerPositionSafe(
+        address clearingHouse,
+        address trader,
+        address baseToken
+    ) public view returns (int256) {
+        int256 takerPositionSize = IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance())
+            .getTakerPositionSize(trader, baseToken);
         // CH_PSZ: position size is zero
         require(takerPositionSize != 0, "CH_PSZ");
         return takerPositionSize;
     }
 
     function getOppositeAmount(
-        address chAddress,
+        address clearingHouse,
         uint256 oppositeAmountBound,
         bool isPartialClose
-    ) internal view returns (uint256) {
+    ) public view returns (uint256) {
         return
             isPartialClose
                 ? oppositeAmountBound.mulRatio(
-                    IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getPartialCloseRatio()
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getPartialCloseRatio()
                 )
                 : oppositeAmountBound;
     }
 
-    function getLiquidationPenaltyRatio(address chAddress) internal view returns (uint24) {
-        return IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getLiquidationPenaltyRatio();
+    function getLiquidationPenaltyRatio(address clearingHouse) public view returns (uint24) {
+        return
+            IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getLiquidationPenaltyRatio();
     }
 
-    function getIndexPrice(address chAddress, address baseToken) internal view returns (uint256) {
-        return
-            IIndexPrice(baseToken).getIndexPrice(
-                IClearingHouseConfig(IClearingHouse(chAddress).getClearingHouseConfig()).getTwapInterval()
-            );
+    function getIndexPrice(address clearingHouse, address baseToken) internal view returns (uint256) {
+        return IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(baseToken);
     }
 
     function getInsuranceFundFeeRatio(
@@ -395,15 +438,15 @@ library GenericLogic {
     }
 
     function getInfoMultiplier(
-        address chAddress,
+        address clearingHouse,
         address baseToken
-    ) internal view returns (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 deltaQuote) {
-        (oldLongPositionSize, oldShortPositionSize) = IAccountBalance(IClearingHouse(chAddress).getAccountBalance())
+    ) public view returns (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 deltaQuote) {
+        (oldLongPositionSize, oldShortPositionSize) = IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance())
             .getMarketPositionSize(baseToken);
         int256 oldDeltaBase = oldLongPositionSize.toInt256().sub(oldShortPositionSize.toInt256());
         if (oldDeltaBase != 0) {
             bool isBaseToQuote = oldDeltaBase > 0 ? true : false;
-            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(clearingHouse).getVPool())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -421,7 +464,7 @@ library GenericLogic {
     }
 
     function updateInfoMultiplier(
-        address chAddress,
+        address clearingHouse,
         address baseToken,
         uint256 longPositionSize,
         uint256 shortPositionSize,
@@ -429,7 +472,7 @@ library GenericLogic {
         uint256 oldMarkPrice,
         uint256 newMarkPrice,
         bool isFixedPositionSize
-    ) internal {
+    ) public {
         InternalUpdateInfoMultiplierVars memory vars;
 
         vars.deltaBase = longPositionSize.toInt256().sub(shortPositionSize.toInt256());
@@ -437,27 +480,26 @@ library GenericLogic {
 
         // update new size by price
         {
-            (vars.newLongPositionSizeRate, vars.newShortPositionSizeRate) = GenericLogic
-                .getNewPositionSizeForMultiplierRate(
-                    longPositionSize,
-                    shortPositionSize,
-                    oldMarkPrice,
-                    newMarkPrice,
-                    0
-                );
-            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).modifyMarketMultiplier(
+            (vars.newLongPositionSizeRate, vars.newShortPositionSizeRate) = getNewPositionSizeForMultiplierRate(
+                longPositionSize,
+                shortPositionSize,
+                oldMarkPrice,
+                newMarkPrice,
+                0
+            );
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyMarketMultiplier(
                 baseToken,
                 vars.newLongPositionSizeRate,
                 vars.newShortPositionSizeRate
             );
         }
 
-        (longPositionSize, shortPositionSize) = IAccountBalance(IClearingHouse(chAddress).getAccountBalance())
+        (longPositionSize, shortPositionSize) = IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance())
             .getMarketPositionSize(baseToken);
 
         vars.deltaBase = longPositionSize.toInt256().sub(shortPositionSize.toInt256());
         if (vars.deltaBase != 0) {
-            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
+            UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(clearingHouse).getVPool())
                 .estimateSwap(
                     DataTypes.OpenPositionParams({
                         baseToken: baseToken,
@@ -483,17 +525,17 @@ library GenericLogic {
             // estimate for check cost and fund
             vars.isEnoughFund = false;
             if (vars.costDeltaQuote > 0) {
-                int256 remainDistributedFund = IInsuranceFund(IClearingHouse(chAddress).getInsuranceFund())
-                    .getRepegAccumulatedFund()
-                    .sub(IInsuranceFund(IClearingHouse(chAddress).getInsuranceFund()).getRepegDistributedFund());
-                int256 freeCollateral = IVault(IClearingHouse(chAddress).getVault())
-                    .getFreeCollateralByToken(
-                        IClearingHouse(chAddress).getInsuranceFund(),
-                        IInsuranceFund(IClearingHouse(chAddress).getInsuranceFund()).getToken()
-                    )
-                    .toInt256();
+                int256 remainDistributedFund = IInsuranceFund(IClearingHouse(clearingHouse).getInsuranceFund())
+                    .getRepegAccumulatedFund(baseToken)
+                    .sub(
+                        IInsuranceFund(IClearingHouse(clearingHouse).getInsuranceFund()).getRepegDistributedFund(
+                            baseToken
+                        )
+                    );
+                int256 insuranceFundCapacity = IInsuranceFund(IClearingHouse(clearingHouse).getInsuranceFund())
+                    .getInsuranceFundCapacity(baseToken);
                 if (remainDistributedFund >= vars.costDeltaQuote) {
-                    if (freeCollateral >= vars.costDeltaQuote) {
+                    if (insuranceFundCapacity >= vars.costDeltaQuote) {
                         vars.isEnoughFund = true;
                     }
                 }
@@ -503,7 +545,7 @@ library GenericLogic {
                         vars.costDeltaQuote,
                         PerpMath.min(
                             remainDistributedFund > 0 ? remainDistributedFund : 0,
-                            freeCollateral > 0 ? freeCollateral : 0
+                            insuranceFundCapacity > 0 ? insuranceFundCapacity : 0
                         )
                     );
                 }
@@ -512,7 +554,7 @@ library GenericLogic {
             }
             if (!vars.isEnoughFund) {
                 // estimate cost to base
-                UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(chAddress).getVPool())
+                UniswapV3Broker.ReplaySwapResponse memory estimate = IVPool(IClearingHouse(clearingHouse).getVPool())
                     .estimateSwap(
                         DataTypes.OpenPositionParams({
                             baseToken: baseToken,
@@ -530,15 +572,14 @@ library GenericLogic {
                         })
                     );
                 vars.newDeltaBase = vars.isBaseToQuote ? estimate.amountIn : estimate.amountOut;
-                (vars.newLongPositionSizeRate, vars.newShortPositionSizeRate) = GenericLogic
-                    .getNewPositionSizeForMultiplierRate(
-                        longPositionSize,
-                        shortPositionSize,
-                        newMarkPrice,
-                        newMarkPrice,
-                        vars.newDeltaBase
-                    );
-                IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).modifyMarketMultiplier(
+                (vars.newLongPositionSizeRate, vars.newShortPositionSizeRate) = getNewPositionSizeForMultiplierRate(
+                    longPositionSize,
+                    shortPositionSize,
+                    newMarkPrice,
+                    newMarkPrice,
+                    vars.newDeltaBase
+                );
+                IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyMarketMultiplier(
                     baseToken,
                     vars.newLongPositionSizeRate,
                     vars.newShortPositionSizeRate
@@ -547,28 +588,25 @@ library GenericLogic {
         }
         if (vars.costDeltaQuote != 0) {
             // update repeg fund
-            IInsuranceFund(IClearingHouse(chAddress).getInsuranceFund()).repegFund(vars.costDeltaQuote);
+            IInsuranceFund(IClearingHouse(clearingHouse).getInsuranceFund()).repegFund(vars.costDeltaQuote, baseToken);
             // update RealizedPnl for InsuranceFund
-            IAccountBalance(IClearingHouse(chAddress).getAccountBalance()).modifyOwedRealizedPnl(
-                IClearingHouse(chAddress).getInsuranceFund(),
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnl(
+                IClearingHouse(clearingHouse).getInsuranceFund(),
+                baseToken,
                 vars.costDeltaQuote.neg256()
             );
             // check RealizedPnl for InsuranceFund after repeg
-            int256 freeCollateral = IVault(IClearingHouse(chAddress).getVault())
-                .getFreeCollateralByToken(
-                    IClearingHouse(chAddress).getInsuranceFund(),
-                    IInsuranceFund(IClearingHouse(chAddress).getInsuranceFund()).getToken()
-                )
-                .toInt256();
+            int256 insuranceFundCapacity = IInsuranceFund(IClearingHouse(clearingHouse).getInsuranceFund())
+                .getInsuranceFundCapacity(baseToken);
             // GL_INE: InsuranceFund not fee fund
-            require(freeCollateral >= 0, "GL_INFF");
+            require(insuranceFundCapacity >= 0, "GL_INFF");
             // emit event
             emit MultiplierCostSpend(baseToken, vars.costDeltaQuote);
         }
     }
 
     function addLiquidity(
-        address chAddress,
+        address clearingHouse,
         DataTypes.AddLiquidityParams calldata params
     )
         public
@@ -583,28 +621,41 @@ library GenericLogic {
         //   lowerTick & upperTick: in UniswapV3Pool._modifyPosition()
         //   minBase, minQuote & deadline: here
 
-        checkMarketOpen(params.baseToken);
+        // checkMarketOpen(clearingHouse, params.baseToken);
 
         // This condition is to prevent the intentional bad debt attack through price manipulation.
         // CH_OMPS: Over the maximum price spread
-        // require(!IVPool(IClearingHouse(chAddress).getVPool()).isOverPriceSpread(params.baseToken), "CH_OMPS");
+        // require(!IVPool(IClearingHouse(clearingHouse).getVPool()).isOverPriceSpread(params.baseToken), "CH_OMPS");
 
-        settleFundingGlobal(chAddress, params.baseToken);
+        settleFundingGlobal(clearingHouse, params.baseToken);
 
         // for multiplier
-        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = GenericLogic
-            .getInfoMultiplier(chAddress, params.baseToken);
+        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = getInfoMultiplier(
+            clearingHouse,
+            params.baseToken
+        );
         // for multiplier
 
         // note that we no longer check available tokens here because CH will always auto-mint in UniswapV3MintCallback
         UniswapV3Broker.AddLiquidityResponse memory response = UniswapV3Broker.addLiquidity(
-            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
+            IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getPool(params.baseToken),
             UniswapV3Broker.AddLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
+        );
+
+        // CHL_MAL: max liq
+        require(
+            IClearingHouse(clearingHouse).getLiquidity(params.baseToken) <=
+                PerpMath.calculateLiquidity(
+                    IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getMaxQuoteTickCrossedGlobal(),
+                    10000,
+                    IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
+                ),
+            "CHL_MAL"
         );
 
         // for multiplier
         updateInfoMultiplier(
-            chAddress,
+            clearingHouse,
             params.baseToken,
             oldLongPositionSize,
             oldShortPositionSize,
@@ -617,7 +668,7 @@ library GenericLogic {
 
         emit LiquidityChanged(
             params.baseToken,
-            IClearingHouse(chAddress).getQuoteToken(),
+            IClearingHouse(clearingHouse).getQuoteToken(),
             response.base.toInt256(),
             response.quote.toInt256(),
             response.liquidity.toInt128()
@@ -632,7 +683,7 @@ library GenericLogic {
     }
 
     function removeLiquidity(
-        address chAddress,
+        address clearingHouse,
         DataTypes.RemoveLiquidityParams memory params
     ) public returns (DataTypes.RemoveLiquidityResponse memory) {
         // input requirement checks:
@@ -641,27 +692,37 @@ library GenericLogic {
         //   liquidity: in LiquidityMath.addDelta()
         //   minBase, minQuote & deadline: here
 
-        // CH_MP: Market paused
-        require(!IBaseToken(params.baseToken).isPaused(), "CH_MP");
-
-        settleFundingGlobal(chAddress, params.baseToken);
+        settleFundingGlobal(clearingHouse, params.baseToken);
 
         // for multiplier
-        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = GenericLogic
-            .getInfoMultiplier(chAddress, params.baseToken);
+        (uint256 oldLongPositionSize, uint256 oldShortPositionSize, uint256 oldDeltaQuote) = getInfoMultiplier(
+            clearingHouse,
+            params.baseToken
+        );
         // for multiplier
 
         // must settle funding first
 
         UniswapV3Broker.RemoveLiquidityResponse memory response = UniswapV3Broker.removeLiquidity(
-            IMarketRegistry(IClearingHouse(chAddress).getMarketRegistry()).getPool(params.baseToken),
-            chAddress,
+            IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getPool(params.baseToken),
+            clearingHouse,
             UniswapV3Broker.RemoveLiquidityParams({ baseToken: params.baseToken, liquidity: params.liquidity })
+        );
+
+        // CHL_MIL: min liq
+        require(
+            IClearingHouse(clearingHouse).getLiquidity(params.baseToken) >=
+                PerpMath.calculateLiquidity(
+                    IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).getMinQuoteTickCrossedGlobal(),
+                    10000,
+                    IVPool(IClearingHouse(clearingHouse).getVPool()).getMarkPrice(params.baseToken)
+                ),
+            "CHL_MIL"
         );
 
         // for multiplier
         updateInfoMultiplier(
-            chAddress,
+            clearingHouse,
             params.baseToken,
             oldLongPositionSize,
             oldShortPositionSize,
@@ -674,12 +735,60 @@ library GenericLogic {
 
         emit LiquidityChanged(
             params.baseToken,
-            IClearingHouse(chAddress).getQuoteToken(),
+            IClearingHouse(clearingHouse).getQuoteToken(),
             response.base.neg256(),
             response.quote.neg256(),
             params.liquidity.neg128()
         );
 
         return DataTypes.RemoveLiquidityResponse({ quote: response.quote, base: response.base });
+    }
+
+    function modifyOwedRealizedPnlForPlatformFee(address clearingHouse, address baseToken, uint256 amount) external {
+        address platformFund = IClearingHouse(clearingHouse).getPlatformFund();
+        int256 platformFundFee;
+        if (isIsolated(clearingHouse, baseToken)) {
+            address insuranceFund = IClearingHouse(clearingHouse).getInsuranceFund();
+            uint24 shareFeeRatio = IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry())
+                .getSharePlatformFeeRatioGlobal();
+            // for isolated platform fee
+            int256 insurancePlatformFee = amount.toInt256().mulRatio(shareFeeRatio);
+            IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance())
+                .modifyOwedRealizedPnlForInsurancePlatformFee(insuranceFund, baseToken, insurancePlatformFee);
+            IInsuranceFund(insuranceFund).modifyPlatformFee(baseToken, insurancePlatformFee);
+            // for platform
+            platformFundFee = amount.toInt256().sub(insurancePlatformFee);
+            // revert("TODO");
+        } else {
+            platformFundFee = amount.toInt256();
+        }
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnlForPlatformFee(
+            platformFund,
+            baseToken,
+            platformFundFee
+        );
+    }
+
+    function modifyOwedRealizedPnlForInsuranceFundFee(
+        address clearingHouse,
+        address baseToken,
+        uint256 amount
+    ) external {
+        address insuranceFund = IClearingHouse(clearingHouse).getInsuranceFund();
+        // update repeg fund
+        if (isIsolated(clearingHouse, baseToken)) {
+            IInsuranceFund(insuranceFund).addContributionFund(baseToken, insuranceFund, amount);
+        } else {
+            IInsuranceFund(insuranceFund).addRepegFund(amount.div(2), baseToken);
+        }
+        IAccountBalance(IClearingHouse(clearingHouse).getAccountBalance()).modifyOwedRealizedPnl(
+            insuranceFund,
+            baseToken,
+            amount.toInt256()
+        );
+    }
+
+    function isIsolated(address clearingHouse, address baseToken) public view returns (bool) {
+        return (IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).isIsolated(baseToken));
     }
 }

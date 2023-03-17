@@ -5,10 +5,10 @@ import bn from "bignumber.js"
 import hre, { ethers } from "hardhat";
 
 import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault, ReferralPayment } from "../../typechain";
+import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault, LimitOrderBook, ReferralPayment } from "../../typechain";
 import { getMaxTickRange, priceToTick } from "../../test/helper/number";
 import helpers from "../helpers";
-import { formatEther, parseEther } from "ethers/lib/utils";
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 const { waitForTx, tryWaitForTx, loadDB, saveDB } = helpers;
 
 import migrateAdmin from "./1_migrate_Admin";
@@ -28,8 +28,18 @@ import migrateClearingHouse from "./15_migrate_ClearingHouse";
 import migratePNFTToken from "./20_migrate_PNFTToken";
 import migrateRewardMiner from "./21_migrate_RewardMiner";
 import migrate_ReferralPayment from "./22_migrate_ReferralPayment";
+import migrate_LimitOrderBook from "./23_migrate_LimitOrderBook";
 import { } from "../../test/helper/clearingHouseHelper";
 import { BigNumber, providers } from "ethers";
+import {
+    signTypedData, SignTypedDataVersion, TypedMessage,
+} from "@metamask/eth-sig-util";
+
+
+const TRADER1_KEY = process.env.TRADER1_KEY ?? '';
+const TRADER2_KEY = process.env.TRADER2_KEY ?? '';
+const TRADER3_KEY = process.env.TRADER3_KEY ?? '';
+const TRADER4_KEY = process.env.TRADER4_KEY ?? '';
 
 
 async function main() {
@@ -163,6 +173,14 @@ async function deploy() {
     //     console.log('migrate_ReferralPayment -- END --')
     // }
 
+    // await delay(0)
+    // // import migrate_LimitOrderBook from "./23_migrate_LimitOrderBook";
+    // {
+    //     console.log('migrate_LimitOrderBook -- START --')
+    //     await migrate_LimitOrderBook();
+    //     console.log('migrate_LimitOrderBook -- END --')
+    // }
+
     // return
 
 
@@ -174,7 +192,7 @@ async function deploy() {
         priceData = JSON.parse(dataText.toString())
     }
 
-    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, hieuq] = await ethers.getSigners()
+    const [admin, maker, priceAdmin, platformFund, trader1, trader2, trader3, trader4, miner] = await ethers.getSigners()
 
     // deploy UniV3 factory
     var genericLogic = (await hre.ethers.getContractAt('GenericLogic', deployData.genericLogic.address)) as GenericLogic;
@@ -189,15 +207,135 @@ async function deploy() {
     var pNFTToken = (await hre.ethers.getContractAt('MockPNFTToken', deployData.pNFTToken.address)) as MockPNFTToken;
     var testFaucet = (await hre.ethers.getContractAt('TestFaucet', deployData.testFaucet.address)) as TestFaucet;
     var wETH = (await hre.ethers.getContractAt('TestERC20', deployData.wETH.address)) as TestERC20;
+    var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+    const vETH = (await hre.ethers.getContractAt('QuoteToken', deployData.vETH.address)) as BaseToken;
 
-    var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
+    // console.log(
+    //     '',
+    //     (await vETH.)
+    // )
+
+    // await waitForTx(
+    //     await marketRegistry.connect(miner).createIsolatedPool('0x59Ad67e9c6a84e602BC73B3A606F731CC6dF210d', 'HOLO', encodePriceSqrt('0.32', "1"), parseEther('1772.18'))
+    // )
+
+    // // await waitForTx(
+    // //     await clearingHouse.setDelegateApproval(limitOrderBook.address)
+    // // )
+
+    // // console.log(
+    // //     await clearingHouse.getDelegateApproval()
+    // // )
+
+    // var limitOrderBook = (await hre.ethers.getContractAt('LimitOrderBook', deployData.limitOrderBook.address)) as LimitOrderBook;
+
+    // // console.log(
+    // //     (await limitOrderBook.getClearingHouse()),
+    // //     (await limitOrderBook.getAccountBalance()),
+    // //     formatEther(await limitOrderBook.getMinOrderValue()),
+    // //     formatEther(await limitOrderBook.getFeeOrderValue()),
+    // // )
+
+    // // console.log(
+    // //     formatEther(await accountBalance.getReferencePrice(deployData.vBAYC.address))
+    // // )
+
+    // // return
+
+    // {
+    //     let multiplier = await accountBalance.getMarketMultiplier(deployData.vBAYC.address)
+    //     let fillOrderParams = {
+    //         multiplier: multiplier.longMultiplier.add(multiplier.shortMultiplier).toString(),
+    //         orderType: '0',
+    //         nonce: '0',
+    //         trader: trader1.address,
+    //         baseToken: deployData.vBAYC.address,
+    //         isBaseToQuote: false,
+    //         isExactInput: false,
+    //         amount: parseEther('0.1').toString(),
+    //         oppositeAmountBound: parseUnits('0', 0).toString(),
+    //         deadline: ethers.constants.MaxUint256.toString(),
+    //         triggerPrice: parseUnits('70', 18).toString(),
+    //         takeProfitPrice: parseUnits("0", 18).toString(),
+    //         stopLossPrice: parseUnits("0", 18).toString(),
+    //     }
+
+    //     const { chainId } = await ethers.provider.getNetwork()
+
+    //     const typedData: TypedMessage<any> = {
+    //         types: {
+    //             EIP712Domain: [
+    //                 { name: "name", type: "string" },
+    //                 { name: "version", type: "string" },
+    //                 { name: "chainId", type: "uint256" },
+    //                 { name: "verifyingContract", type: "address" },
+    //             ],
+    //             LimitOrderParams: [
+    //                 { name: "multiplier", type: "uint256" },
+    //                 { name: "orderType", type: "uint8" },
+    //                 { name: "nonce", type: "uint256" },
+    //                 { name: "trader", type: "address" },
+    //                 { name: "baseToken", type: "address" },
+    //                 { name: "isBaseToQuote", type: "bool" },
+    //                 { name: "isExactInput", type: "bool" },
+    //                 { name: "amount", type: "uint256" },
+    //                 { name: "oppositeAmountBound", type: "uint256" },
+    //                 { name: "deadline", type: "uint256" },
+    //                 { name: "triggerPrice", type: "uint256" },
+    //                 { name: "takeProfitPrice", type: "uint256" },
+    //                 { name: "stopLossPrice", type: "uint256" },
+    //             ]
+    //         },
+    //         primaryType: "LimitOrderParams",
+    //         domain: {
+    //             name: "pNFT LimitOrderBook",
+    //             version: "1.0",
+    //             chainId: chainId,
+    //             verifyingContract: limitOrderBook.address,
+    //         },
+    //         message: fillOrderParams
+    //     };
+
+    //     const privateKey = Buffer.from(
+    //         TRADER1_KEY.substring(2),
+    //         "hex"
+    //     );
+
+    //     const signature = signTypedData({
+    //         privateKey,
+    //         data: typedData,
+    //         version: SignTypedDataVersion.V4,
+    //     });
+    //     console.log("Metamask sig utils generated signature", signature);
+
+    //     // // const signature = await ethers.provider.send("eth_signTypedData_v4", [
+    //     // //     trader1.address,
+    //     // //     JSON.stringify(typedData)
+    //     // // ]);
+
+    //     // let orderHash = await limitOrderBook.getOrderHash(fillOrderParams)
+
+    //     // // eth_sign
+    //     // const signature = await ethers.provider.send("eth_sign", [
+    //     //     trader1.address,
+    //     //     ethers.utils.arrayify(orderHash),
+    //     // ]);
+
+    //     // trader1._signTypedData
+
+    //     await waitForTx(
+    //         await limitOrderBook.connect(platformFund).fillLimitOrder(fillOrderParams, ethers.utils.arrayify(signature))
+    //     )
+    // }
+
+    // var referralPayment = (await hre.ethers.getContractAt('ReferralPayment', deployData.referralPayment.address)) as ReferralPayment;
 
     // await waitForTx(
     //     await clearingHouse.setRewardMiner(ethers.constants.AddressZero)
     // )
 
-    // await waitForTx(
-    //     await pNFTToken.mint(referralPayment.address, parseEther('10000000'))
+    // console.log(
+    //     await clearingHouse.getRewardMiner()
     // )
 
     // console.log(formatSqrtPriceX96ToPrice(BigNumber.from((new bn('8dd3e0fd20a8974258e3cae12', 16)).toString()), 18))

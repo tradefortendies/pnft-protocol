@@ -55,20 +55,10 @@ async function deploy() {
         deployData.vCLONEX,
         deployData.vDOODLE,
     ];
-    let nftPriceFeeds = [
-        deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedMAYC,
-        deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedMOONBIRD,
-        deployData.nftPriceFeedAZUKI,
-        deployData.nftPriceFeedCLONEX,
-        deployData.nftPriceFeedDOODLE,
-    ];
     for (let i = 0; i < baseTokens.length; i++) {
         var baseVToken = baseTokens[i]
-        var nftPriceFeed = nftPriceFeeds[i]
         if (baseVToken.address == undefined || baseVToken.address == '') {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol, nftPriceFeed.address]);
+            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol]);
             var transparentUpgradeableProxy: BaseContract
             do {
                 transparentUpgradeableProxy = await waitForDeploy(
@@ -88,16 +78,6 @@ async function deploy() {
         {
             await upgradeContract(proxyAdmin as ProxyAdmin, baseVToken.address, deployData.baseToken.implAddress)
         }
-        // upgrade NftPriceFeed
-        {
-            {
-                const vBaseToken = (await hre.ethers.getContractAt('BaseToken', baseVToken.address)) as BaseToken;
-                if ((await vBaseToken.getPriceFeed()) != nftPriceFeed.address) {
-                    waitForTx(await vBaseToken.setPriceFeed(nftPriceFeed.address))
-                    console.log('vBaseToken setPriceFeed is deployed', vBaseToken.address)
-                }
-            }
-        }
         {
             await verifyContract(
                 deployData,
@@ -109,7 +89,7 @@ async function deploy() {
             )
         }
         {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol, nftPriceFeed.address]);
+            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol]);
             await verifyContract(
                 deployData,
                 network,

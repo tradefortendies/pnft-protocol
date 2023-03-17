@@ -12,10 +12,17 @@ contract TestLimitOrderBook {
         _clearingHouse = clearingHouseArg;
     }
 
-    function openPositionFor(address trader, IClearingHouse.OpenPositionParams memory params) external {
+    function openPositionFor(
+        address executor,
+        uint256 executorFee,
+        address trader,
+        IClearingHouse.OpenPositionParams memory params
+    ) external {
         // NOTE: here we only care about whether a contract can call `ClearingHouse.openPositionFor()` for a trader
         // for the actual `fillLimitOrder()` logic, see `perp-curie-limit-order-contract` repo
         IClearingHouse(_clearingHouse).openPositionFor(
+            executor,
+            executorFee,
             trader,
             DataTypes.OpenPositionParams({
                 baseToken: params.baseToken,

@@ -6,7 +6,7 @@ import helpers from "../helpers";
 import { ProxyAdmin } from "../../typechain/openzeppelin/ProxyAdmin";
 import { isAscendingTokenOrder } from "../../test/shared/utilities";
 
-const {  waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
+const { waitForDeploy, verifyContract, loadDB, saveDB, upgradeContract } = helpers;
 
 async function main() {
     await deploy();
@@ -35,7 +35,7 @@ async function deploy() {
     if (deployData.vETH.address == undefined || deployData.vETH.address == '' || !(deployData.vETH.address.toLowerCase().startsWith("0xf"))) {
         var quoteToken = await hre.ethers.getContractAt('QuoteToken', deployData.vETH.implAddress);
         var initializeData = quoteToken.interface.encodeFunctionData('initialize', [deployData.vETH.name, deployData.vETH.symbol]);
-        for (let i = 0; i < 32; i++) {
+        while (true) {
             var transparentUpgradeableProxy = await waitForDeploy(
                 await TransparentUpgradeableProxy.deploy(
                     deployData.vETH.implAddress,

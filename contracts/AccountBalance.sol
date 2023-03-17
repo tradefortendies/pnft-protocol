@@ -11,16 +11,15 @@ import { PerpSafeCast } from "./lib/PerpSafeCast.sol";
 import { PerpMath } from "./lib/PerpMath.sol";
 import { IVault } from "./interface/IVault.sol";
 import { IVPool } from "./interface/IVPool.sol";
-import { IBaseToken } from "./interface/IBaseToken.sol";
-import { IIndexPrice } from "./interface/IIndexPrice.sol";
 import { IClearingHouseConfig } from "./interface/IClearingHouseConfig.sol";
-import { AccountBalanceStorageV1 } from "./storage/AccountBalanceStorage.sol";
+import { AccountBalanceStorageV2 } from "./storage/AccountBalanceStorage.sol";
 import { BlockContext } from "./base/BlockContext.sol";
 import { IAccountBalance } from "./interface/IAccountBalance.sol";
+import { IMarketRegistry } from "./interface/IMarketRegistry.sol";
 import { DataTypes } from "./types/DataTypes.sol";
 
 // never inherit any new stateful contract. never change the orders of parent stateful contracts
-contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, AccountBalanceStorageV1 {
+contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, AccountBalanceStorageV2 {
     using AddressUpgradeable for address;
     using SafeMathUpgradeable for uint256;
     using SignedSafeMathUpgradeable for int256;
@@ -57,6 +56,11 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         emit VaultChanged(vaultArg);
     }
 
+    function setMarketRegistry(address marketRegistryArg) external onlyOwner {
+        require(marketRegistryArg.isContract(), "AB_MRNC");
+        _marketRegistry = marketRegistryArg;
+    }
+
     function modifyMarketMultiplier(address baseToken, uint256 longRate, uint256 shortRate) external override {
         _requireOnlyClearingHouse();
         if (_marketMap[baseToken].longMultiplierX10_18 == 0) {
@@ -91,9 +95,21 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     }
 
     /// @inheritdoc IAccountBalance
-    function modifyOwedRealizedPnl(address trader, int256 amount) external override {
+    function modifyOwedRealizedPnl(address trader, address baseToken, int256 amount) external override {
         _requireOnlyClearingHouse();
-        _modifyOwedRealizedPnl(trader, amount);
+        _modifyOwedRealizedPnl(trader, amount, baseToken);
+    }
+
+    /// @inheritdoc IAccountBalance
+    function modifyOwedRealizedPnlForPlatformFee(address trader, address baseToken, int256 amount) external override {
+        _requireOnlyClearingHouse();
+        _modifyOwedRealizedPnlPlatformFee(trader, amount, baseToken);
+    }
+
+    /// @inheritdoc IAccountBalance
+    function modifyOwedRealizedPnlForInsurancePlatformFee(address trader, address baseToken, int256 amount) external override {
+        _requireOnlyClearingHouse();
+        _modifyOwedRealizedPnlForInsurancePlatformFee(trader, amount, baseToken);
     }
 
     /// @inheritdoc IAccountBalance
@@ -103,12 +119,20 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     }
 
     /// @inheritdoc IAccountBalance
-    function settleOwedRealizedPnl(address trader) external override returns (int256) {
+    function settleOwedRealizedPnl(
+        address trader,
+        address baseToken
+    ) external override returns (int256 owedRealizedPnl) {
         // only vault
         require(_msgSender() == _vault, "AB_OV");
-        int256 owedRealizedPnl = _owedRealizedPnlMap[trader];
-        _owedRealizedPnlMap[trader] = 0;
-
+        if (_isIsolated(baseToken)) {
+            owedRealizedPnl = _isolatedOwedRealizedPnlMap[baseToken][trader];
+            _isolatedOwedRealizedPnlMap[baseToken][trader] = 0;
+            // revert("TODO");
+        } else {
+            owedRealizedPnl = _owedRealizedPnlMap[trader];
+            _owedRealizedPnlMap[trader] = 0;
+        }
         return owedRealizedPnl;
     }
 
@@ -123,7 +147,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     ) external override {
         _requireOnlyClearingHouse();
         _modifyTakerBalance(trader, baseToken, takerBase, takerQuote);
-        _modifyOwedRealizedPnl(trader, makerFee);
+        _modifyOwedRealizedPnl(trader, makerFee, baseToken);
 
         // @audit should merge _addOwedRealizedPnl and settleQuoteToOwedRealizedPnl in some way.
         // PnlRealized will be emitted three times when removing trader's liquidity
@@ -134,14 +158,20 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     /// @inheritdoc IAccountBalance
     function registerBaseToken(address trader, address baseToken) external override {
         _requireOnlyClearingHouse();
-        address[] storage tokensStorage = _baseTokensMap[trader];
-        if (_hasBaseToken(tokensStorage, baseToken)) {
-            return;
+        if (_isIsolated(baseToken)) {
+            // revert("TODO");
+        } else {
+            address[] storage tokensStorage = _baseTokensMap[trader];
+            if (_hasBaseToken(tokensStorage, baseToken)) {
+                return;
+            }
+            tokensStorage.push(baseToken);
+            // AB_MNE: markets number exceeds
+            require(
+                tokensStorage.length <= IClearingHouseConfig(_clearingHouseConfig).getMaxMarketsPerAccount(),
+                "AB_MNE"
+            );
         }
-
-        tokensStorage.push(baseToken);
-        // AB_MNE: markets number exceeds
-        require(tokensStorage.length <= IClearingHouseConfig(_clearingHouseConfig).getMaxMarketsPerAccount(), "AB_MNE");
     }
 
     /// @inheritdoc IAccountBalance
@@ -160,32 +190,6 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         _requireOnlyClearingHouse();
         _accountMarketMap[trader][baseToken].lastLongTwPremiumGrowthGlobalX96 = lastLongTwPremiumGrowthGlobalX96;
         _accountMarketMap[trader][baseToken].lastShortTwPremiumGrowthGlobalX96 = lastShortTwPremiumGrowthGlobalX96;
-    }
-
-    /// @inheritdoc IAccountBalance
-    /// @dev we don't do swap to get position notional here.
-    ///      we define the position notional in a closed market is `closed price * position size`
-    function settlePositionInClosedMarket(
-        address trader,
-        address baseToken
-    )
-        external
-        override
-        returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice)
-    {
-        _requireOnlyClearingHouse();
-
-        int256 positionSize = getTakerPositionSize(trader, baseToken);
-
-        closedPrice = IBaseToken(baseToken).getClosedPrice();
-        positionNotional = positionSize.mulDiv(closedPrice.toInt256(), 1e18);
-        openNotional = _accountMarketMap[trader][baseToken].takerOpenNotional;
-        realizedPnl = positionNotional.add(openNotional);
-
-        _deleteBaseToken(trader, baseToken);
-        _modifyOwedRealizedPnl(trader, realizedPnl);
-
-        return (positionNotional, openNotional, realizedPnl, closedPrice);
     }
 
     //
@@ -251,17 +255,28 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     // }
 
     /// @inheritdoc IAccountBalance
-    function getPnlAndPendingFee(address trader) external view override returns (int256, int256, uint256) {
-        int256 totalPositionValue;
-        uint256 tokenLen = _baseTokensMap[trader].length;
-        for (uint256 i = 0; i < tokenLen; i++) {
-            address baseToken = _baseTokensMap[trader][i];
-            totalPositionValue = totalPositionValue.add(getTotalPositionValue(trader, baseToken));
+    function getPnlAndPendingFee(
+        address trader,
+        address baseToken
+    ) external view override returns (int256 _owedRealizedPnl, int256 unrealizedPnl) {
+        if (_isIsolated(baseToken)) {
+            int256 totalPositionValue = getTotalPositionValue(trader, baseToken);
+            int256 netQuoteBalance = _getNetQuoteBalanceAndPendingFee(trader, baseToken);
+            unrealizedPnl = totalPositionValue.add(netQuoteBalance);
+            _owedRealizedPnl = _isolatedOwedRealizedPnlMap[baseToken][trader];
+            // revert("TODO");
+        } else {
+            int256 totalPositionValue;
+            uint256 tokenLen = _baseTokensMap[trader].length;
+            for (uint256 i = 0; i < tokenLen; i++) {
+                baseToken = _baseTokensMap[trader][i];
+                totalPositionValue = totalPositionValue.add(getTotalPositionValue(trader, baseToken));
+            }
+            int256 netQuoteBalance = _getNetQuoteBalanceAndPendingFee(trader, baseToken);
+            unrealizedPnl = totalPositionValue.add(netQuoteBalance);
+            _owedRealizedPnl = _owedRealizedPnlMap[trader];
         }
-        (int256 netQuoteBalance, uint256 pendingFee) = _getNetQuoteBalanceAndPendingFee(trader);
-        int256 unrealizedPnl = totalPositionValue.add(netQuoteBalance);
-
-        return (_owedRealizedPnlMap[trader], unrealizedPnl, pendingFee);
+        return (_owedRealizedPnl, unrealizedPnl);
     }
 
     /// @inheritdoc IAccountBalance
@@ -270,7 +285,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         address baseToken,
         int256 accountValue
     ) external view override returns (int256) {
-        int256 marginRequirement = getMarginRequirementForLiquidation(trader);
+        int256 marginRequirement = getMarginRequirementForLiquidation(trader, baseToken);
         int256 positionSize = getTotalPositionSize(trader, baseToken);
 
         // No liquidatable position
@@ -298,7 +313,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         if (accountValue >= marginRequirement.div(2)) {
             // maxLiquidateRatio = getTotalAbsPositionValue / ( getTotalPositionValueInMarket.abs * 2 )
             maxLiquidateRatio = FullMath
-                .mulDiv(getTotalAbsPositionValue(trader), 1e6, positionValueAbs.mul(2))
+                .mulDiv(getTotalAbsPositionValue(trader, baseToken), 1e6, positionValueAbs.mul(2))
                 .toUint24();
             if (maxLiquidateRatio > 1e6) {
                 maxLiquidateRatio = 1e6;
@@ -367,23 +382,32 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
     }
 
     /// @inheritdoc IAccountBalance
-    function getTotalAbsPositionValue(address trader) public view override returns (uint256) {
-        address[] memory tokens = _baseTokensMap[trader];
+    function getTotalAbsPositionValue(address trader, address baseToken) public view override returns (uint256) {
         uint256 totalPositionValue;
-        uint256 tokenLen = tokens.length;
-        for (uint256 i = 0; i < tokenLen; i++) {
-            address baseToken = tokens[i];
-            // will not use negative value in this case
+        if (_isIsolated(baseToken)) {
             uint256 positionValue = getTotalPositionValue(trader, baseToken).abs();
             totalPositionValue = totalPositionValue.add(positionValue);
+            // revert("TODO");
+        } else {
+            address[] memory tokens = _baseTokensMap[trader];
+            uint256 tokenLen = tokens.length;
+            for (uint256 i = 0; i < tokenLen; i++) {
+                baseToken = tokens[i];
+                // will not use negative value in this case
+                uint256 positionValue = getTotalPositionValue(trader, baseToken).abs();
+                totalPositionValue = totalPositionValue.add(positionValue);
+            }
         }
         return totalPositionValue;
     }
 
     /// @inheritdoc IAccountBalance
-    function getMarginRequirementForLiquidation(address trader) public view override returns (int256) {
+    function getMarginRequirementForLiquidation(
+        address trader,
+        address baseToken
+    ) public view override returns (int256) {
         return
-            getTotalAbsPositionValue(trader)
+            getTotalAbsPositionValue(trader, baseToken)
                 .mulRatio(IClearingHouseConfig(_clearingHouseConfig).getMmRatio())
                 .toInt256();
     }
@@ -532,26 +556,41 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
             }
         }
 
-        // _resetMultiplier(baseToken);
-
         return (accountInfo.takerPositionSize, accountInfo.takerOpenNotional);
     }
 
-    // function _resetMultiplier(address baseToken) internal {
-    //     if (_marketMap[baseToken].shortPositionSize == 0 && _marketMap[baseToken].longPositionSize == 0) {
-    //         _marketMap[baseToken].longMultiplierX10_18 = 1e18;
-    //         _marketMap[baseToken].shortMultiplierX10_18 = 1e18;
-    //         emit MultiplierChanged(
-    //             _marketMap[baseToken].longMultiplierX10_18,
-    //             _marketMap[baseToken].shortMultiplierX10_18
-    //         );
-    //     }
-    // }
+    function _modifyOwedRealizedPnl(address trader, int256 amount, address baseToken) internal {
+        if (amount != 0) {
+            if (_isIsolated(baseToken)) {
+                _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
+                    amount
+                );
+                // revert("TODO");
+            } else {
+                _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
+            }
+            emit PnlRealized(trader, baseToken, amount);
+        }
+    }
 
-    function _modifyOwedRealizedPnl(address trader, int256 amount) internal {
+    function _modifyOwedRealizedPnlPlatformFee(address trader, int256 amount, address baseToken) internal {
         if (amount != 0) {
             _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
-            emit PnlRealized(trader, amount);
+            emit PnlRealizedForPlatformFee(trader, baseToken, amount);
+        }
+    }
+
+    function _modifyOwedRealizedPnlForInsurancePlatformFee(address trader, int256 amount, address baseToken) internal {
+        if (amount != 0) {
+            if (_isIsolated(baseToken)) {
+                _isolatedOwedRealizedPnlMap[baseToken][trader] = _isolatedOwedRealizedPnlMap[baseToken][trader].add(
+                    amount
+                );
+                // revert("TODO");
+            } else {
+                _owedRealizedPnlMap[trader] = _owedRealizedPnlMap[trader].add(amount);
+            }
+            emit PnlRealizedForInsurancePlatformFee(trader, baseToken, amount);
         }
     }
 
@@ -559,7 +598,7 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         if (amount != 0) {
             DataTypes.AccountMarketInfo storage accountInfo = _accountMarketMap[trader][baseToken];
             accountInfo.takerOpenNotional = accountInfo.takerOpenNotional.sub(amount);
-            _modifyOwedRealizedPnl(trader, amount);
+            _modifyOwedRealizedPnl(trader, amount, baseToken);
         }
     }
 
@@ -592,17 +631,22 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         }
         delete _accountMarketMap[trader][baseToken];
 
-        address[] storage tokensStorage = _baseTokensMap[trader];
-        uint256 tokenLen = tokensStorage.length;
-        for (uint256 i; i < tokenLen; i++) {
-            if (tokensStorage[i] == baseToken) {
-                // if the target to be removed is the last one, pop it directly;
-                // else, replace it with the last one and pop the last one instead
-                if (i != tokenLen - 1) {
-                    tokensStorage[i] = tokensStorage[tokenLen - 1];
+        if (_isIsolated(baseToken)) {
+            // update isolated balance -> cross balance
+            // revert("TODO");
+        } else {
+            address[] storage tokensStorage = _baseTokensMap[trader];
+            uint256 tokenLen = tokensStorage.length;
+            for (uint256 i; i < tokenLen; i++) {
+                if (tokensStorage[i] == baseToken) {
+                    // if the target to be removed is the last one, pop it directly;
+                    // else, replace it with the last one and pop the last one instead
+                    if (i != tokenLen - 1) {
+                        tokensStorage[i] = tokensStorage[tokenLen - 1];
+                    }
+                    tokensStorage.pop();
+                    break;
                 }
-                tokensStorage.pop();
-                break;
             }
         }
     }
@@ -622,35 +666,35 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
         return positionSize.mulDiv(markTwap.toInt256(), 1e18);
     }
 
-    // function _getReferencePrice(address baseToken) internal view returns (uint256) {
-    //     return
-    //         IBaseToken(baseToken).isClosed()
-    //             ? IBaseToken(baseToken).getClosedPrice()
-    //             : IIndexPrice(baseToken).getIndexPrice(IClearingHouseConfig(_clearingHouseConfig).getTwapInterval());
-    // }
-
     function _getReferencePrice(address baseToken) internal view returns (uint256) {
-        return
-            IVPool(IVault(_vault).getVPool())
-                .getSqrtMarkTwapX96(baseToken, IClearingHouseConfig(_clearingHouseConfig).getTwapInterval())
-                .formatSqrtPriceX96ToPriceX96()
-                .formatX96ToX10_18();
+        return IVPool(IVault(_vault).getVPool()).getMarkPrice(baseToken);
+    }
+
+    function getReferencePrice(address baseToken) external view override returns (uint256) {
+        return _getReferencePrice(baseToken);
     }
 
     /// @return netQuoteBalance = quote.balance + totalQuoteInPools
     function _getNetQuoteBalanceAndPendingFee(
-        address trader
-    ) internal view returns (int256 netQuoteBalance, uint256 pendingFee) {
-        int256 totalTakerQuoteBalance;
-        uint256 tokenLen = _baseTokensMap[trader].length;
-        for (uint256 i = 0; i < tokenLen; i++) {
-            address baseToken = _baseTokensMap[trader][i];
-            totalTakerQuoteBalance = totalTakerQuoteBalance.add(_accountMarketMap[trader][baseToken].takerOpenNotional);
+        address trader,
+        address baseToken
+    ) internal view returns (int256 netQuoteBalance) {
+        if (_isIsolated(baseToken)) {
+            int256 totalTakerQuoteBalance = _accountMarketMap[trader][baseToken].takerOpenNotional;
+            netQuoteBalance = totalTakerQuoteBalance;
+            // revert("TODO");
+        } else {
+            int256 totalTakerQuoteBalance;
+            uint256 tokenLen = _baseTokensMap[trader].length;
+            for (uint256 i = 0; i < tokenLen; i++) {
+                baseToken = _baseTokensMap[trader][i];
+                totalTakerQuoteBalance = totalTakerQuoteBalance.add(
+                    _accountMarketMap[trader][baseToken].takerOpenNotional
+                );
+            }
+            netQuoteBalance = totalTakerQuoteBalance;
         }
-        // pendingFee is included
-        int256 totalMakerQuoteBalance;
-        netQuoteBalance = totalTakerQuoteBalance.add(totalMakerQuoteBalance);
-        return (netQuoteBalance, pendingFee);
+        return netQuoteBalance;
     }
 
     function _hasBaseToken(address[] memory baseTokens, address baseToken) internal pure returns (bool) {
@@ -660,5 +704,9 @@ contract AccountBalance is IAccountBalance, BlockContext, ClearingHouseCallee, A
             }
         }
         return false;
+    }
+
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
     }
 }

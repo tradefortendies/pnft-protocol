@@ -170,6 +170,8 @@ interface IClearingHouse {
 
     event Repeg(address indexed baseToken, uint256 oldMarkPrice, uint256 newMarkPrice);
 
+    event RealizedPnlTransfer(address indexed from, address indexed to, uint256 amount);
+
     /// @notice Maker can call `addLiquidity` to provide liquidity on Uniswap V3 pool
     /// @dev Tx will fail if adding `base == 0 && quote == 0` / `liquidity == 0`
     /// @dev - `AddLiquidityParams.useTakerBalance` is only accept `false` now
@@ -191,7 +193,17 @@ interface IClearingHouse {
 
     /// @notice Settle all markets fundingPayment to owedRealized Pnl
     /// @param trader The address of trader
-    function settleAllFunding(address trader) external;
+    function settleAllFunding(address trader, address baseToken) external;
+
+    function depositEtherAndOpenPosition(
+        DataTypes.OpenPositionParams memory params
+    ) external payable returns (uint256 base, uint256 quote, uint256 fee);
+
+    function depositAndOpenPosition(
+        DataTypes.OpenPositionParams memory params,
+        address token,
+        uint256 amount
+    ) external returns (uint256 base, uint256 quote, uint256 fee);
 
     /// @notice Trader can call `openPosition` to long/short on baseToken market
     /// @dev - `OpenPositionParams.oppositeAmountBound`
@@ -218,6 +230,8 @@ interface IClearingHouse {
     /// @return quote The amount of quoteToken the taker got or spent
     /// @return fee The trading fee
     function openPositionFor(
+        address keeper,
+        uint256 keeperFee,
         address trader,
         DataTypes.OpenPositionParams memory params
     ) external returns (uint256 base, uint256 quote, uint256 fee);
@@ -228,6 +242,14 @@ interface IClearingHouse {
     /// @return quote The amount of quoteToken the taker got or spent
     function closePosition(
         DataTypes.ClosePositionParams calldata params
+    ) external returns (uint256 base, uint256 quote, uint256 fee);
+
+    function closePositionAndWithdrawAllEther(
+        DataTypes.ClosePositionParams memory params
+    ) external returns (uint256 base, uint256 quote, uint256 fee);
+
+    function closePositionAndWithdrawAll(
+        DataTypes.ClosePositionParams memory params
     ) external returns (uint256 base, uint256 quote, uint256 fee);
 
     /// @notice liquidate trader's position and will liquidate the max possible position size
@@ -242,6 +264,20 @@ interface IClearingHouse {
         address baseToken,
         int256 positionSize
     ) external returns (uint256 base, uint256 quote, uint256 fee);
+
+    function depositAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize,
+        address token,
+        uint256 amount
+    ) external payable returns (uint256 base, uint256 quote, uint256 fee);
+
+    function depositEtherAndLiquidate(
+        address trader,
+        address baseToken,
+        int256 positionSize
+    ) external payable returns (uint256 base, uint256 quote, uint256 fee);
 
     // /// @notice Cancel excess order of a maker
     // /// @dev Order id can get from `OrderBook.getOpenOrderIds`
@@ -305,4 +341,8 @@ interface IClearingHouse {
     function getPlatformFund() external view returns (address platformFund);
 
     function getMarketRegistry() external view returns (address marketRegistry);
+
+    function isAbleRepeg(address baseToken) external view returns (bool);
+
+    function getLiquidity(address baseToken) external view returns (uint128);
 }

@@ -1,8 +1,3 @@
-type PriceFeedData = {
-    address: string,
-    aggregatorAddress: string,
-}
-
 type TokenData = {
     address: string,
     symbol: string,
@@ -17,6 +12,7 @@ type TokenData = {
     treasuryAddress: string,
     rewardAddress: string,
     communityAddress: string,
+    nftContract: string,
 }
 
 type ContractData = {
@@ -31,13 +27,6 @@ type DeployData = {
     priceAdminAddress: string,
     wETH: TokenData,
     vETH: TokenData,
-    nftPriceFeedBAYC: TokenData,
-    nftPriceFeedMAYC: TokenData,
-    nftPriceFeedCRYPTOPUNKS: TokenData,
-    nftPriceFeedMOONBIRD: TokenData,
-    nftPriceFeedAZUKI: TokenData,
-    nftPriceFeedCLONEX: TokenData,
-    nftPriceFeedDOODLE: TokenData,
     baseToken: ContractData,
     vBAYC: TokenData,
     vMAYC: TokenData,
@@ -62,6 +51,9 @@ type DeployData = {
     rewardMiner: ContractData,
     referralAdminAddress: string,
     referralPayment: ContractData,
+    limitOrderBook: ContractData,
+    nftOracle: ContractData,
+    vBaseToken: ContractData,
     testFaucet: ContractData,
     testCheck: {
         addLiquidity: boolean,

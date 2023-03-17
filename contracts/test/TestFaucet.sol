@@ -38,11 +38,11 @@ contract TestFaucet is OwnerPausable {
         return _faucetMap[to];
     }
 
-    function depositFor(address to) external {
+    function depositFor(address to, address baseToken) external {
         // TF_EF: existed faucet
         require(!_faucetMap[to], "TF_EF");
         _faucetMap[to] = true;
-        IVault(_vault).depositFor(to, _token, _amount);
+        IVault(_vault).depositFor(to, _token, _amount, baseToken);
     }
 
     function faucet(address to) external {

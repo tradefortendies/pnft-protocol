@@ -25,8 +25,8 @@ abstract contract VaultStorageV1 {
     address[10] private __gap1;
     uint256[10] private __gap2;
 
-    // key: trader, token address
-    mapping(address => mapping(address => int256)) internal _balance;
+    // key: trader, token address -> cross balance
+    mapping(address => mapping(address => int256)) internal _crossBalance;
 }
 
 abstract contract VaultStorageV2 is VaultStorageV1 {
@@ -35,5 +35,12 @@ abstract contract VaultStorageV2 is VaultStorageV1 {
 
     // trader => collateral token
     // collateral token registry of each trader
-    mapping(address => address[]) internal _collateralTokensMap;
+    mapping(address => address[]) internal __collateralTokensMap;
+}
+
+abstract contract VaultStorageV3 is VaultStorageV2 {
+    //
+    address internal _marketRegistry;
+    // key: baseToken, trader, token address -> isolated balance
+    mapping(address => mapping(address => mapping(address => int256))) internal _isolatedBalance;
 }

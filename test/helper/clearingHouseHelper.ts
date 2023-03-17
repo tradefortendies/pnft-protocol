@@ -3,7 +3,7 @@ import { LogDescription } from "@ethersproject/abi"
 import { TransactionReceipt } from "@ethersproject/abstract-provider"
 import { BigNumberish, ContractTransaction, ethers, Wallet } from "ethers"
 import { parseEther, parseUnits } from "ethers/lib/utils"
-import { ClearingHouse,  UniswapV3Pool } from "../../typechain"
+import { ClearingHouse, MarketRegistry, UniswapV3Pool } from "../../typechain"
 import { ClearingHouseFixture } from "../clearingHouse/fixtures"
 import { formatSqrtPriceX96ToPrice } from "../shared/utilities"
 
@@ -229,4 +229,12 @@ export async function syncIndexToMarketPrice(aggregator: MockContract, pool: Uni
     aggregator.smocked.latestRoundData.will.return.with(async () => {
         return [0, parseUnits(price, oracleDecimals), 0, 0, 0]
     })
+}
+
+export function findPoolAddedEvents(
+    marketRegistry: MarketRegistry,
+    receipt: TransactionReceipt,
+): LogDescription[] {
+    const topic = marketRegistry.interface.getEventTopic("PoolAdded")
+    return receipt.logs.filter(log => log.topics[0] === topic).map(log => marketRegistry.interface.parseLog(log))
 }

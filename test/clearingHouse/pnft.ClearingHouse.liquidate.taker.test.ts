@@ -8,7 +8,8 @@ import {
     MarketRegistry,
     TestClearingHouse,
     TestERC20,
-    Vault
+    Vault,
+    VirtualToken
 } from "../../typechain"
 import {
     findPositionLiquidatedEvents
@@ -28,7 +29,7 @@ describe("ClearingHouse liquidate trader", () => {
     let insuranceFund: InsuranceFund
     let vault: Vault
     let collateral: TestERC20
-    let baseToken: BaseToken
+    let baseToken: VirtualToken
     let mockedNFTPriceFeed: MockContract
     let collateralDecimals: number
     const lowerTick: number = 45780
@@ -45,7 +46,6 @@ describe("ClearingHouse liquidate trader", () => {
         marketRegistry = fixture.marketRegistry
         collateral = fixture.WETH
         baseToken = fixture.baseToken
-        mockedNFTPriceFeed = fixture.mockedNFTPriceFeed
         collateralDecimals = await collateral.decimals()
 
         await initMarket(fixture, initPrice, undefined, 0)
@@ -55,13 +55,13 @@ describe("ClearingHouse liquidate trader", () => {
 
         // prepare collateral for trader
         await collateral.mint(trader1.address, parseUnits("10", collateralDecimals))
-        await deposit(trader1, vault, 10, collateral)
+        await deposit(trader1, vault, 10, collateral, baseToken)
 
         await collateral.mint(trader2.address, parseUnits("10000000", collateralDecimals))
-        await deposit(trader2, vault, 10000000, collateral)
+        await deposit(trader2, vault, 10000000, collateral, baseToken)
 
         await collateral.mint(liquidator.address, parseUnits("10000000", collateralDecimals))
-        await deposit(liquidator, vault, 10000000, collateral)
+        await deposit(liquidator, vault, 10000000, collateral, baseToken)
     })
 
     it("long liquidate", async () => {
@@ -96,8 +96,8 @@ describe("ClearingHouse liquidate trader", () => {
         }
         {
             console.log(
-                '',
-                (await clearingHouse.isLiquidatable(trader1.address))
+                'clearingHouse.isLiquidatable',
+                (await clearingHouse.isLiquidatable(trader1.address, baseToken.address))
             )
         }
         {
@@ -128,12 +128,12 @@ describe("ClearingHouse liquidate trader", () => {
                 referralCode: ethers.constants.HashZero,
             })
 
-            let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address))[0]
-            let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address))[0]
-            let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address))[0]
-            let owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address))[0]
-            let owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address))[0]
-            let owedRealizedPnlLiquidator = (await accountBalance.getPnlAndPendingFee(liquidator.address))[0]
+            let owedRealizedPnlPlatformFund = (await accountBalance.getPnlAndPendingFee(platformFund.address, baseToken.address))[0]
+            let owedRealizedPnlInsuranceFund = (await accountBalance.getPnlAndPendingFee(insuranceFund.address, baseToken.address))[0]
+            let owedRealizedPnlTrade1 = (await accountBalance.getPnlAndPendingFee(trader1.address, baseToken.address))[0]
+            let owedRealizedPnlTrade2 = (await accountBalance.getPnlAndPendingFee(trader2.address, baseToken.address))[0]
+            let owedRealizedPnlAdmin = (await accountBalance.getPnlAndPendingFee(admin.address, baseToken.address))[0]
+            let owedRealizedPnlLiquidator = (await accountBalance.getPnlAndPendingFee(liquidator.address, baseToken.address))[0]
 
             console.log(
                 'owedRealizedPnl',

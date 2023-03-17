@@ -1,9 +1,8 @@
 import { MockContract, smockit } from "@eth-optimism/smock"
-import { parseEther, parseUnits } from "ethers/lib/utils"
+import { formatEther, parseEther, parseUnits } from "ethers/lib/utils"
 import { ethers, waffle } from "hardhat"
 import {
     AccountBalance,
-    BaseToken,
     ClearingHouse,
     ClearingHouseConfig,
     VPool,
@@ -13,18 +12,20 @@ import {
     TestClearingHouse,
     TestERC20,
     TestVPool,
-    TestLimitOrderBook,
+    LimitOrderBook,
     TestUniswapV3Broker,
     UniswapV3Factory,
     UniswapV3Pool,
     Vault,
+    NFTOracle,
+    VirtualToken,
 } from "../../typechain"
 import { ChainlinkPriceFeedV2 } from "../../typechain"
 import { MockPNFTToken } from "../../typechain/MockPNFTToken"
-import { QuoteToken } from "../../typechain/QuoteToken"
 import { TestAccountBalance } from "../../typechain/TestAccountBalance"
 import { TestPNFTToken } from "../../typechain/TestPNFTToken"
 import { TestRewardMiner } from "../../typechain/TestRewardMiner"
+import { getMaxTickRange } from "../helper/number"
 import { createQuoteTokenFixture, token0Fixture, tokensFixture, uniswapV3FactoryFixture } from "../shared/fixtures"
 
 export interface ClearingHouseFixture {
@@ -42,14 +43,14 @@ export interface ClearingHouseFixture {
     WBTC: TestERC20
     mockedWethPriceFeed: MockContract
     mockedWbtcPriceFeed: MockContract
-    quoteToken: QuoteToken
-    baseToken: BaseToken
-    mockedNFTPriceFeed: MockContract
-    baseToken2: BaseToken
-    mockedNFTPriceFeed2: MockContract
+    quoteToken: VirtualToken
+    baseToken: VirtualToken
+    baseToken2: VirtualToken
     pool2: UniswapV3Pool
     rewardMiner: RewardMiner | TestRewardMiner
     testPNFTToken: TestPNFTToken
+    limitOrderBook: LimitOrderBook
+    nftOracle: NFTOracle
 }
 
 export interface ClearingHouseWithDelegateApprovalFixture extends ClearingHouseFixture {
@@ -58,8 +59,6 @@ export interface ClearingHouseWithDelegateApprovalFixture extends ClearingHouseF
     clearingHouseRemoveLiquidityAction: number
     notExistedAction: number
     notExistedAction2: number
-    limitOrderBook: TestLimitOrderBook
-    limitOrderBook2: TestLimitOrderBook
 }
 
 interface UniswapV3BrokerFixture {
@@ -105,8 +104,8 @@ export function createClearingHouseFixture(
 
         const wethDecimals = await WETH.decimals()
 
-        let baseToken: BaseToken, quoteToken: QuoteToken, mockedNFTPriceFeed: MockContract
-        const { token0, mockedNFTPriceFeed0, token1 } = await tokensFixture()
+        let baseToken: VirtualToken, quoteToken: VirtualToken
+        const { token0, token1 } = await tokensFixture()
 
         // price feed for weth and wbtc
         const aggregatorFactory = await ethers.getContractFactory("TestAggregatorV3")
@@ -122,7 +121,6 @@ export function createClearingHouseFixture(
         // we assume (base, quote) == (token0, token1)
         baseToken = token0
         quoteToken = token1
-        mockedNFTPriceFeed = mockedNFTPriceFeed0
 
         // deploy UniV3 factory
         const factoryFactory = await ethers.getContractFactory("UniswapV3Factory")
@@ -206,8 +204,7 @@ export function createClearingHouseFixture(
 
         // deploy another pool
         const _token0Fixture = await token0Fixture(quoteToken.address)
-        const baseToken2 = _token0Fixture.baseToken
-        const mockedNFTPriceFeed2 = _token0Fixture.mockedNFTPriceFeed
+        const baseToken2 = _token0Fixture.virtualToken
         await uniV3Factory.createPool(baseToken2.address, quoteToken.address, uniFeeTier)
         const pool2Addr = await uniV3Factory.getPool(baseToken2.address, quoteToken.address, uniFeeTier)
         const pool2 = poolFactory.attach(pool2Addr) as UniswapV3Pool
@@ -287,6 +284,48 @@ export function createClearingHouseFixture(
         const testPNFTToken = (await TestPNFTToken.deploy()) as TestPNFTToken
         await testPNFTToken.initialize('PNFT', 'PNFT')
 
+        const limitOrderBookFactory = await ethers.getContractFactory("LimitOrderBook")
+        const limitOrderBook = await limitOrderBookFactory.deploy()
+        await limitOrderBook.initialize("lo", "1.0", clearingHouse.address, 1, 0)
+
+        await clearingHouse.setDelegateApproval(limitOrderBook.address)
+
+        // new update for open protocol
+        await marketRegistry.setInsuranceFundFeeRatioGlobal(500);
+        await marketRegistry.setPlatformFundFeeRatioGlobal(2000)
+        await marketRegistry.setOptimalDeltaTwapRatioGlobal(30000)
+        await marketRegistry.setUnhealthyDeltaTwapRatioGlobal(50000)
+        await marketRegistry.setOptimalFundingRatioGlobal(250000)
+        await marketRegistry.setSharePlatformFeeRatioGlobal(500000)
+        await marketRegistry.setMinQuoteTickCrossedGlobal(parseEther('1'))
+        await marketRegistry.setMaxQuoteTickCrossedGlobal(parseEther('10000000000'))
+
+        await vPool.setMaxTickCrossedWithinBlock(getMaxTickRange())
+        // max liquidity TODO
+
+        const NFTOracle = await ethers.getContractFactory("NFTOracle")
+        const nftOracle = (await NFTOracle.deploy()) as NFTOracle
+        await nftOracle.initialize()
+        await vPool.setNftOracle(nftOracle.address)
+
+        // update nft address old baseToken
+        // 
+
+        await quoteToken.setMarketRegistry(marketRegistry.address)
+
+        const VirtualToken = await ethers.getContractFactory("VirtualToken")
+        const vBaseToken = (await VirtualToken.deploy()) as VirtualToken
+
+        await marketRegistry.setVBaseToken(vBaseToken.address)
+
+        await vault.setMarketRegistry(marketRegistry.address)
+        await accountBalance.setMarketRegistry(marketRegistry.address)
+        await insuranceFund.setMarketRegistry(marketRegistry.address)
+
+        await marketRegistry.setInsuranceFund(insuranceFund.address)
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1'));
+        await marketRegistry.setMinInsuranceFundPerCreated(parseEther('0.01'));
+
         return {
             clearingHouse,
             accountBalance,
@@ -304,12 +343,12 @@ export function createClearingHouseFixture(
             mockedWbtcPriceFeed,
             quoteToken,
             baseToken,
-            mockedNFTPriceFeed,
             baseToken2,
-            mockedNFTPriceFeed2,
             pool2,
             rewardMiner,
             testPNFTToken,
+            limitOrderBook,
+            nftOracle,
         }
     }
 }
@@ -355,20 +394,9 @@ export async function mockedBaseTokenTo(longerThan: boolean, targetAddr: string)
             ? mockedToken.address.toLowerCase() <= targetAddr.toLowerCase()
             : mockedToken.address.toLowerCase() >= targetAddr.toLowerCase())
     ) {
-        const aggregatorFactory = await ethers.getContractFactory("TestAggregatorV3")
-        const aggregator = await aggregatorFactory.deploy()
-        const mockedAggregator = await smockit(aggregator)
-
-        const chainlinkPriceFeedFactory = await ethers.getContractFactory("ChainlinkPriceFeedV2")
-        const cacheTwapInterval = 15 * 60
-        const chainlinkPriceFeed = (await chainlinkPriceFeedFactory.deploy(
-            mockedAggregator.address,
-            cacheTwapInterval,
-        )) as ChainlinkPriceFeedV2
-
-        const baseTokenFactory = await ethers.getContractFactory("BaseToken")
-        const token = (await baseTokenFactory.deploy()) as BaseToken
-        await token.initialize("Test", "Test", chainlinkPriceFeed.address)
+        const baseTokenFactory = await ethers.getContractFactory("VirtualToken")
+        const token = (await baseTokenFactory.deploy()) as VirtualToken
+        await token.__VirtualToken_initialize("Test", "Test")
         mockedToken = await smockit(token)
         mockedToken.smocked.decimals.will.return.with(async () => {
             return 18
@@ -493,8 +521,6 @@ export function createClearingHouseWithDelegateApprovalFixture(): () => Promise<
             clearingHouseRemoveLiquidityAction: await delegateApproval.getClearingHouseRemoveLiquidityAction(),
             notExistedAction: 64,
             notExistedAction2: 128,
-            limitOrderBook: testLimitOrderBook,
-            limitOrderBook2: testLimitOrderBook2,
         }
     }
 }

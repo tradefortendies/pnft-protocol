@@ -32,13 +32,14 @@ contract TestAccountBalance is AccountBalance {
     }
 
     function getNetQuoteBalanceAndPendingFee(
-        address trader
-    ) external view returns (int256 netQuoteBalance, uint256 pendingFee) {
-        return _getNetQuoteBalanceAndPendingFee(trader);
+        address trader,
+        address baseToken
+    ) external view returns (int256 netQuoteBalance) {
+        return _getNetQuoteBalanceAndPendingFee(trader, baseToken);
     }
 
-    function testModifyOwedRealizedPnl(address trader, int256 owedRealizedPnlDelta) external {
-        _modifyOwedRealizedPnl(trader, owedRealizedPnlDelta);
+    function testModifyOwedRealizedPnl(address trader, int256 owedRealizedPnlDelta, address baseToken) external {
+        _modifyOwedRealizedPnl(trader, owedRealizedPnlDelta, baseToken);
     }
 
     function testMarketMultiplier(

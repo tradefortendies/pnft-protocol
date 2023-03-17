@@ -1,34 +1,36 @@
 import { MockContract, smockit } from "@eth-optimism/smock"
 import { ethers } from "hardhat"
-import { BaseToken, QuoteToken, UniswapV3Factory, UniswapV3Pool, VirtualToken } from "../../typechain"
+import { UniswapV3Factory, UniswapV3Pool, VirtualToken } from "../../typechain"
 import { ChainlinkPriceFeedV2 } from "../../typechain"
 import { NftPriceFeed } from "../../typechain"
 import { isAscendingTokenOrder } from "./utilities"
 
 interface TokensFixture {
-    token0: BaseToken
-    token1: QuoteToken
-    mockedNFTPriceFeed0: MockContract
-    mockedNFTPriceFeed1: MockContract
+    token0: VirtualToken
+    token1: VirtualToken
 }
 
 interface PoolFixture {
     factory: UniswapV3Factory
     pool: UniswapV3Pool
-    baseToken: BaseToken
-    quoteToken: QuoteToken
+    baseToken: VirtualToken
+    quoteToken: VirtualToken
 }
 
 interface BaseTokenFixture {
-    baseToken: BaseToken
+    baseToken: VirtualToken
     mockedNFTPriceFeed: MockContract
 }
 
-export function createQuoteTokenFixture(name: string, symbol: string): () => Promise<QuoteToken> {
-    return async (): Promise<QuoteToken> => {
-        const quoteTokenFactory = await ethers.getContractFactory("QuoteToken")
-        const quoteToken = (await quoteTokenFactory.deploy()) as QuoteToken
-        await quoteToken.initialize(name, symbol)
+interface VitrualTokenFixture {
+    virtualToken: VirtualToken
+}
+
+export function createQuoteTokenFixture(name: string, symbol: string): () => Promise<VirtualToken> {
+    return async (): Promise<VirtualToken> => {
+        const quoteTokenFactory = await ethers.getContractFactory("VirtualToken")
+        const quoteToken = (await quoteTokenFactory.deploy()) as VirtualToken
+        await quoteToken.__VirtualToken_initialize(name, symbol)
         return quoteToken
     }
 }
@@ -58,23 +60,12 @@ export function createQuoteTokenFixture(name: string, symbol: string): () => Pro
 //     }
 // }
 
-export function createBaseTokenFixture(name: string, symbol: string): () => Promise<BaseTokenFixture> {
-    return async (): Promise<BaseTokenFixture> => {
-        const NftPriceFeed = await ethers.getContractFactory("NftPriceFeed")
-        const nftPriceFeed = (await NftPriceFeed.deploy(
-            'XXX_ZZZ',
-        )) as NftPriceFeed
-        const mockedNFTPriceFeed = await smockit(nftPriceFeed)
-
-        mockedNFTPriceFeed.smocked.decimals.will.return.with(async () => {
-            return 18
-        })
-
-        const baseTokenFactory = await ethers.getContractFactory("BaseToken")
-        const baseToken = (await baseTokenFactory.deploy()) as BaseToken
-        await baseToken.initialize(name, symbol, mockedNFTPriceFeed.address)
-
-        return { baseToken, mockedNFTPriceFeed }
+export function createVitrualTokenFixture(name: string, symbol: string): () => Promise<VitrualTokenFixture> {
+    return async (): Promise<VitrualTokenFixture> => {
+        const VirtualToken = await ethers.getContractFactory("VirtualToken")
+        const virtualToken = (await VirtualToken.deploy()) as VirtualToken
+        await virtualToken.__VirtualToken_initialize(name, symbol)
+        return { virtualToken }
     }
 }
 
@@ -85,42 +76,38 @@ export async function uniswapV3FactoryFixture(): Promise<UniswapV3Factory> {
 
 // assume isAscendingTokensOrder() == true/ token0 < token1
 export async function tokensFixture(): Promise<TokensFixture> {
-    const { baseToken: randomToken0, mockedNFTPriceFeed: randomMockedNFTPriceFeed0 } = await createBaseTokenFixture(
-        "BAYC",
-        "USD",
-    )()
-    const { baseToken: randomToken1, mockedNFTPriceFeed: randomMockedNFTPriceFeed1 } = await createBaseTokenFixture(
-        "MAYC",
-        "USD",
-    )()
-
-    let token0: BaseToken
-    let token1: QuoteToken
-    let mockedNFTPriceFeed0: MockContract
-    let mockedNFTPriceFeed1: MockContract
-    if (isAscendingTokenOrder(randomToken0.address, randomToken1.address)) {
-        token0 = randomToken0
-        mockedNFTPriceFeed0 = randomMockedNFTPriceFeed0
-        token1 = randomToken1 as VirtualToken as QuoteToken
-        mockedNFTPriceFeed1 = randomMockedNFTPriceFeed1
-    } else {
-        token0 = randomToken1
-        mockedNFTPriceFeed0 = randomMockedNFTPriceFeed1
-        token1 = randomToken0 as VirtualToken as QuoteToken
-        mockedNFTPriceFeed1 = randomMockedNFTPriceFeed0
+    let token0: VirtualToken
+    let token1: VirtualToken
+    while (true) {
+        const { virtualToken } = await createVitrualTokenFixture(
+            "vBAYC",
+            "vBAYC",
+        )()
+        if (!virtualToken.address.toLowerCase().startsWith('0xf')) {
+            token0 = virtualToken
+            break
+        }
+    }
+    while (true) {
+        const { virtualToken } = await createVitrualTokenFixture(
+            "vETH",
+            "vETH",
+        )()
+        if (virtualToken.address.toLowerCase().startsWith('0xf')) {
+            token1 = virtualToken
+            break
+        }
     }
     return {
         token0,
-        mockedNFTPriceFeed0,
         token1,
-        mockedNFTPriceFeed1,
     }
 }
 
-export async function token0Fixture(token1Addr: string): Promise<BaseTokenFixture> {
-    let token0Fixture: BaseTokenFixture
-    while (!token0Fixture || !isAscendingTokenOrder(token0Fixture.baseToken.address, token1Addr)) {
-        token0Fixture = await createBaseTokenFixture("RandomTestToken0", "randomToken0")()
+export async function token0Fixture(token1Addr: string): Promise<VitrualTokenFixture> {
+    let token0Fixture: VitrualTokenFixture
+    while (!token0Fixture || !isAscendingTokenOrder(token0Fixture.virtualToken.address, token1Addr)) {
+        token0Fixture = await createVitrualTokenFixture("RandomTestToken0", "randomToken0")()
     }
     return token0Fixture
 }

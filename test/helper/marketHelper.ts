@@ -26,12 +26,12 @@ export async function initMarket(
 
     // update config
     const marketRegistry = fixture.marketRegistry
-    await marketRegistry.addPool(baseToken, uniFeeRatio)
+    await marketRegistry.addPool(baseToken, ethers.Wallet.createRandom().address, uniFeeRatio)
     // await marketRegistry.setFeeRatio(baseToken, exFeeRatio)
     // await marketRegistry.setInsuranceFundFeeRatio(baseToken, ifFeeRatio)
 
     if (maxTickCrossedWithinBlock != 0) {
-        await fixture.vPool.setMaxTickCrossedWithinBlock(baseToken, maxTickCrossedWithinBlock)
+        await fixture.vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)
     }
 
     const tickSpacing = await uniPool.tickSpacing()

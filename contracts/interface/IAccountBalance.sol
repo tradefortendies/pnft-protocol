@@ -18,7 +18,10 @@ interface IAccountBalance {
     /// @dev Emit whenever a trader's `owedRealizedPnl` is updated
     /// @param trader The address of the trader
     /// @param amount The amount changed
-    event PnlRealized(address indexed trader, int256 amount);
+    event PnlRealized(address indexed trader, address indexed baseToken, int256 amount);
+
+    event PnlRealizedForInsurancePlatformFee(address indexed trader, address indexed baseToken, int256 amount);
+    event PnlRealizedForPlatformFee(address indexed trader, address indexed baseToken, int256 amount);
 
     event MultiplierChanged(uint256 longMultiplier, uint256 shortMultiplier);
 
@@ -41,13 +44,17 @@ interface IAccountBalance {
     /// @dev Only used by `ClearingHouse` contract
     /// @param trader The address of the trader
     /// @param amount Modified amount of owedRealizedPnl
-    function modifyOwedRealizedPnl(address trader, int256 amount) external;
+    function modifyOwedRealizedPnl(address trader, address baseToken, int256 amount) external;
+
+    function modifyOwedRealizedPnlForPlatformFee(address trader, address baseToken, int256 amount) external;
+
+    function modifyOwedRealizedPnlForInsurancePlatformFee(address trader, address baseToken, int256 amount) external;
 
     /// @notice Settle owedRealizedPnl
     /// @dev Only used by `Vault.withdraw()`
     /// @param trader The address of the trader
     /// @return pnl Settled owedRealizedPnl
-    function settleOwedRealizedPnl(address trader) external returns (int256 pnl);
+    function settleOwedRealizedPnl(address trader, address baseToken) external returns (int256 pnl);
 
     /// @notice Modify trader owedRealizedPnl
     /// @dev Only used by `ClearingHouse` contract
@@ -107,10 +114,10 @@ interface IAccountBalance {
     /// @return openNotional Taker's open notional
     /// @return realizedPnl Settled realized pnl
     /// @return closedPrice The closed price of the closed market
-    function settlePositionInClosedMarket(
-        address trader,
-        address baseToken
-    ) external returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice);
+    // function settlePositionInClosedMarket(
+    //     address trader,
+    //     address baseToken
+    // ) external returns (int256 positionNotional, int256 openNotional, int256 realizedPnl, uint256 closedPrice);
 
     /// @notice Get `ClearingHouseConfig` address
     /// @return clearingHouseConfig The address of ClearingHouseConfig
@@ -157,17 +164,18 @@ interface IAccountBalance {
     /// @param trader The address of trader
     /// @return marginRequirementForLiquidation It is compared with `ClearingHouse.getAccountValue` which is also an int
     function getMarginRequirementForLiquidation(
-        address trader
+        address trader,
+        address baseToken
     ) external view returns (int256 marginRequirementForLiquidation);
 
     /// @notice Get owedRealizedPnl, unrealizedPnl and pending fee
     /// @param trader The address of trader
     /// @return owedRealizedPnl the pnl realized already but stored temporarily in AccountBalance
     /// @return unrealizedPnl the pnl not yet realized
-    /// @return pendingFee the pending fee of maker earned
     function getPnlAndPendingFee(
-        address trader
-    ) external view returns (int256 owedRealizedPnl, int256 unrealizedPnl, uint256 pendingFee);
+        address trader,
+        address baseToken
+    ) external view returns (int256 owedRealizedPnl, int256 unrealizedPnl);
 
     function getOriginBase(address trader, address baseToken) external view returns (int256 baseAmount);
 
@@ -210,7 +218,10 @@ interface IAccountBalance {
     /// @notice Get all market position abs value of trader
     /// @param trader The address of trader
     /// @return totalAbsPositionValue Sum up positions value of every market
-    function getTotalAbsPositionValue(address trader) external view returns (uint256 totalAbsPositionValue);
+    function getTotalAbsPositionValue(
+        address trader,
+        address baseToken
+    ) external view returns (uint256 totalAbsPositionValue);
 
     /// @notice Get liquidatable position size of trader's baseToken market
     /// @param trader The address of trader
@@ -228,4 +239,6 @@ interface IAccountBalance {
     function getMarketMultiplier(address baseToken) external view returns (uint256, uint256);
 
     function modifyMarketMultiplier(address baseToken, uint256 longDeltaRate, uint256 shortDeltaRate) external;
+
+    function getReferencePrice(address baseToken) external view returns (uint256);
 }
