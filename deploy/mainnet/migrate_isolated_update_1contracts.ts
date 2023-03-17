@@ -11,8 +11,6 @@ import helpers from "../helpers";
 import { formatEther, parseEther, parseUnits } from "ethers/lib/utils";
 const { waitForTx, tryWaitForTx, loadDB, saveDB } = helpers;
 
-import migrateAdmin from "./1_migrate_Admin";
-import migratePriceFeedAll from "./2_migrate_PriceFeed_All";
 import migrateQuoteToken from "./4_migrate_QuoteToken";
 import migrateBaseTokenAll from "./5_migrate_BaseToken_All";
 import migrateLibrary from "./6_migrate_Library";
@@ -23,8 +21,6 @@ import migrateVPool from "./10_migrate_VPool";
 import migrateInsuranceFund from "./11_migrate_InsuranceFund";
 import migrateVault from "./12_migrate_Vault";
 import migrateClearingHouse from "./13_migrate_ClearingHouse";
-import migratePNFTToken from "./14_migrate_PNFTToken";
-import migrateRewardMiner from "./15_migrate_RewardMiner";
 import migrate_NFTOracle from "./24_migrate_NFTOracle";
 import migrate_VBaseToken from "./25_migrate_VBaseToken";
 import { } from "../../test/helper/clearingHouseHelper";
