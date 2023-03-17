@@ -83,7 +83,7 @@
     },
     "marketRegistry": {
         "address": "0x3BD6d15c820a1bff279E8753452C3291fC312e73",
-        "implAddress": ""
+        "implAddress": "0x2BDf24bF024CDB1aD96B70C878b71244012D5b80"
     },
     "accountBalance": {
         "address": "0x5c5013d440F10BFDe25d6a1f4e8C99b14171e064",
