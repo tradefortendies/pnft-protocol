@@ -41,16 +41,10 @@ async function deploy() {
         deployData.vCRYPTOPUNKS,
         deployData.vAZUKI,
     ];
-    let nftPriceFeeds = [
-        deployData.nftPriceFeedBAYC,
-        deployData.nftPriceFeedCRYPTOPUNKS,
-        deployData.nftPriceFeedAZUKI,
-    ];
     for (let i = 0; i < baseTokens.length; i++) {
         var baseVToken = baseTokens[i]
-        var nftPriceFeed = nftPriceFeeds[i]
         if (baseVToken.address == undefined || baseVToken.address == '') {
-            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol, nftPriceFeed.address]);
+            var initializeData = baseToken.interface.encodeFunctionData('initialize', [baseVToken.name, baseVToken.symbol]);
             var transparentUpgradeableProxy: BaseContract
             do {
                 transparentUpgradeableProxy = await waitForDeploy(
