@@ -55,8 +55,12 @@ const res = {
                     console.log('Already verified contract address on Etherscan.')
                     console.log('https://testnet.arbiscan.io//address/' + address + '#code')
                 }
+                let env = 'testnet'
+                if (network == 'arbitrum') {
+                    env = 'mainnet'
+                }
                 deployData.verifiedContracts[address] = true
-                let fileName = process.cwd() + '/deploy/testnet/address/deployed_' + network + '.json';
+                let fileName = process.cwd() + '/deploy/' + env + '/address/deployed_' + network + '.json';
                 await fs.writeFileSync(fileName, JSON.stringify(deployData, null, 4))
             }
         }
