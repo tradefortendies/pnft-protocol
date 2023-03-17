@@ -124,6 +124,7 @@ library GenericLogic {
     function checkMarketOpen(address clearingHouse, address baseToken) public view {
         // CH_MNO: Market not opened
         require(IVPool(IClearingHouse(clearingHouse).getVPool()).getIndexPrice(baseToken) > 0, "CH_MNO");
+        require(IMarketRegistry(IClearingHouse(clearingHouse).getMarketRegistry()).isOpen(baseToken), "CH_MNO");
     }
 
     function registerBaseToken(address clearingHouse, address trader, address baseToken) public {

@@ -195,7 +195,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _feeReceiverMap[baseToken] = feeReceiverArg;
         _creatorMap[baseToken] = creatorArg;
         _isolatedMap[baseToken] = isIsolatedArg;
-
+        // active pair
+        _isOpenMap[baseToken] = true;
+        //
         emit PoolAdded(baseToken, nftContractArg, creatorArg, isIsolatedArg, uniPool);
 
         return uniPool;
@@ -235,6 +237,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function setCreator(address baseToken, address creatorArg) external checkPool(baseToken) onlyOwner {
         _creatorMap[baseToken] = creatorArg;
+    }
+
+    function setIsOpen(address baseToken, bool _isOpenArg) external checkPool(baseToken) onlyOwner {
+        _isOpenMap[baseToken] = _isOpenArg;
     }
 
     function setVBaseToken(address vBaseTokenArg) external onlyOwner {
@@ -346,6 +352,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function getCreator(address baseToken) external view override checkPool(baseToken) returns (address) {
         return _creatorMap[baseToken];
+    }
+
+    function isOpen(address baseToken) external view override checkPool(baseToken) returns (bool) {
+        return _isOpenMap[baseToken];
     }
 
     /// @inheritdoc IMarketRegistry

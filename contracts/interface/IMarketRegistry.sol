@@ -114,4 +114,6 @@ interface IMarketRegistry {
     function getDefaultQuoteTickCrossedGlobal() external view returns (uint256);
 
     function getMinInsuranceFundPerContribution() external view returns (uint256);
+
+    function isOpen(address baseToken) external view returns (bool);
 }
