@@ -157,7 +157,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
             symbolArg,
             symbolArg
         );
-        address baseToken = ClonesUpgradeable.clone(_vBaseToken);
+        address baseToken = ClonesUpgradeable.cloneDeterministic(_vBaseToken, bytes32(block.timestamp));
         AddressUpgradeable.functionCall(baseToken, _initializationCalldata);
         // whitelist
         IVirtualToken(baseToken).addWhitelist(_clearingHouse);
