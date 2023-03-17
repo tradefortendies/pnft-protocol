@@ -65,4 +65,6 @@ abstract contract MarketRegistryStorage2 is MarketRegistryStorageV1 {
     mapping(address => bool) internal _isOpenMap;
     //
     address internal _insuranceFund;
+    //
+    uint256 internal _minInsuranceFundPerCreated;
 }

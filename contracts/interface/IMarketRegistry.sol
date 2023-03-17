@@ -115,5 +115,7 @@ interface IMarketRegistry {
 
     function getMinInsuranceFundPerContribution() external view returns (uint256);
 
+    function getMinInsuranceFundPerCreated() external view returns (uint256);
+
     function isOpen(address baseToken) external view returns (bool);
 }

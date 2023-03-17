@@ -323,7 +323,8 @@ export function createClearingHouseFixture(
         await insuranceFund.setMarketRegistry(marketRegistry.address)
 
         await marketRegistry.setInsuranceFund(insuranceFund.address)
-        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.01'))
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1'));
+        await marketRegistry.setMinInsuranceFundPerCreated(parseEther('0.01'));
 
         return {
             clearingHouse,

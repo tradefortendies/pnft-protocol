@@ -159,8 +159,16 @@ async function deploy() {
         'marketRegistry.setMinQuoteTickCrossedGlobal(parseEther(1))'
     )
     await waitForTx(
-        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.01')),
-        'marketRegistry.setMinInsuranceFundPerContribution(parseEther(0.01))'
+        await marketRegistry.setMinInsuranceFundPerContribution(parseEther('0.1')),
+        'marketRegistry.setMinInsuranceFundPerContribution(parseEther(0.1))'
+    )
+    await waitForTx(
+        await marketRegistry.setMinInsuranceFundPerCreated(parseEther('0.01')),
+        'marketRegistry.setMinInsuranceFundPerCreated(parseEther(0.01))'
+    )
+    await waitForTx(
+        await marketRegistry.setInsuranceFund(insuranceFund.address),
+        'marketRegistry.setInsuranceFund(insuranceFund.address)'
     )
     await waitForTx(
         await vETH.setMarketRegistry(marketRegistry.address),
@@ -185,10 +193,6 @@ async function deploy() {
             'vPool.setMaxTickCrossedWithinBlock(maxTickCrossedWithinBlock)'
         )
     }
-    await waitForTx(
-        await marketRegistry.setInsuranceFund(insuranceFund.address),
-        'marketRegistry.setInsuranceFund(insuranceFund.address)'
-    )
     await waitForTx(
         await marketRegistry.setVBaseToken(deployData.vBaseToken.address),
         'marketRegistry.setVBaseToken(deployData.vBaseToken.address)'

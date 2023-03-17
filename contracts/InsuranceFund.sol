@@ -203,10 +203,14 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     }
 
     function contributeEther(address baseToken) external payable override onlyIsolatedMarket(baseToken) {
+        // IF_NMPC: not min per contribution
+        require(msg.value >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         _contributeEtherFor(baseToken, msg.value, _msgSender());
     }
 
     function contributeEtherFor(address baseToken, address to) external payable override onlyIsolatedMarket(baseToken) {
+        // IF_NMPC: not min per contribution
+        require(msg.value >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         _contributeEtherFor(baseToken, msg.value, to);
     }
 
@@ -215,6 +219,8 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         address token,
         uint256 amount
     ) external override onlyIsolatedMarket(baseToken) {
+        // IF_NMPC: not min per contribution
+        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         _contributeFor(baseToken, token, amount, _msgSender(), _msgSender());
     }
 
@@ -224,16 +230,30 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         uint256 amount,
         address to
     ) external override onlyIsolatedMarket(baseToken) {
+        // IF_NMPC: not min per contribution
+        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         _contributeFor(baseToken, token, amount, _msgSender(), to);
     }
 
-    function requestContributeFor(
+    function requestContributeEtherForCreated(
+        address baseToken,
+        address to
+    ) external payable override onlyIsolatedMarket(baseToken) {
+        _requireOnlyMarketRegistry();
+        // IF_NMPC: not min per created
+        require(msg.value >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerCreated(), "IF_NMFC");
+        _contributeEtherFor(baseToken, msg.value, to);
+    }
+
+    function requestContributeForCreated(
         address baseToken,
         address token,
         uint256 amount,
         address to
     ) external override onlyIsolatedMarket(baseToken) {
         _requireOnlyMarketRegistry();
+        // IF_NMPC: not min per created
+        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerCreated(), "IF_NMFC");
         _contributeFor(baseToken, token, amount, to, to);
     }
 
@@ -242,8 +262,6 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == IVault(vault).getWETH9(), "IF_STNWE");
         require(amount > 0, "IF_ZV");
-        // IF_NMPC: not min per contribution
-        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         // credit fund for contributor
         _contributeFund(baseToken, to, amount.parseSettlementToken(IVault(vault).decimals()));
         IVault(vault).depositEther{ value: amount }(baseToken);
@@ -254,8 +272,6 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
         // IF_STNWE: settlementToken != WETH
         require(IVault(vault).getSettlementToken() == token, "IF_STNWE");
         require(amount > 0, "IF_ZV");
-        // IF_NMPC: not min per contribution
-        require(amount >= IMarketRegistry(_marketRegistry).getMinInsuranceFundPerContribution(), "IF_NMPC");
         // credit fund for contributor
         _contributeFund(baseToken, to, amount.parseSettlementToken(IVault(vault).decimals()));
         IVault(vault).requestDepositFromTo(from, address(this), token, amount, baseToken);

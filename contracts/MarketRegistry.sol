@@ -99,7 +99,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     ) external returns (address baseToken, address uniPool) {
         (baseToken, uniPool) = _createIsolatedPool(_msgSender(), nftContractArg, symbolArg, sqrtPriceX96);
         // contribute
-        IInsuranceFund(_insuranceFund).requestContributeFor(baseToken, token, contributedAmount, _msgSender());
+        IInsuranceFund(_insuranceFund).requestContributeForCreated(baseToken, token, contributedAmount, _msgSender());
     }
 
     function createIsolatedPoolEther(
@@ -109,7 +109,7 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
     ) external payable returns (address baseToken, address uniPool) {
         (baseToken, uniPool) = _createIsolatedPool(_msgSender(), nftContractArg, symbolArg, sqrtPriceX96);
         // contribute
-        IInsuranceFund(_insuranceFund).contributeEtherFor{ value: msg.value }(baseToken, _msgSender());
+        IInsuranceFund(_insuranceFund).requestContributeEtherForCreated{ value: msg.value }(baseToken, _msgSender());
     }
 
     function _createIsolatedPool(
@@ -342,6 +342,10 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _minInsuranceFundPerContribution = minInsuranceFundPerContributionArg;
     }
 
+    function setMinInsuranceFundPerCreated(uint256 minInsuranceFundPerCreatedArg) external onlyOwner {
+        _minInsuranceFundPerCreated = minInsuranceFundPerCreatedArg;
+    }
+
     //
     // EXTERNAL VIEW
     //
@@ -458,5 +462,9 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
 
     function getMinInsuranceFundPerContribution() external view override returns (uint256) {
         return _minInsuranceFundPerContribution;
+    }
+
+    function getMinInsuranceFundPerCreated() external view override returns (uint256) {
+        return _minInsuranceFundPerCreated;
     }
 }
