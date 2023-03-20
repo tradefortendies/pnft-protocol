@@ -83,7 +83,7 @@
     },
     "marketRegistry": {
         "address": "0x3BD6d15c820a1bff279E8753452C3291fC312e73",
-        "implAddress": ""
+        "implAddress": "0x8A109af7F0F7576aa047C00Bc96Cddc34DdEf52c"
     },
     "accountBalance": {
         "address": "0x5c5013d440F10BFDe25d6a1f4e8C99b14171e064",
@@ -103,7 +103,7 @@
     },
     "clearingHouse": {
         "address": "0xE9adFDCAfE3D5edB2053dEa84B5CA16C4Ac4ef0C",
-        "implAddress": ""
+        "implAddress": "0x14e9A9B421A9021Be8487CeCd21d6705Bca82ce5"
     },
     "nftOracle": {
         "address": "0xc9074976c27Eeb58Df86135AEB9FC78061aFF3f7",
