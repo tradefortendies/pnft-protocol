@@ -101,7 +101,7 @@ contract ClearingHouse is
     modifier checkAllowableForLiquidity(address baseToken) {
         if (_isIsolated(baseToken)) {
             // CH_OMCOMR: only market creator or marketRegistry
-            require(_msgSender() == _marketRegistry, "CH_OMR");
+            require(_msgSender() == _marketRegistry || _msgSender() == _maker, "CH_OMR");
             // require(
             //     _msgSender() == _marketRegistry ||
             //         _msgSender() == IMarketRegistry(_marketRegistry).getCreator(baseToken),

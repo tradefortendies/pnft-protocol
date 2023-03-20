@@ -349,6 +349,34 @@ contract MarketRegistry is IMarketRegistry, ClearingHouseCallee, MarketRegistryS
         _minInsuranceFundPerCreated = minInsuranceFundPerCreatedArg;
     }
 
+    // function modifyLiquidityByQuote(address baseToken, uint256 quoteAmount) external onlyOwner {
+    //     // MR_BINI: base token is not isolated
+    //     require(_isolatedMap[baseToken], "MR_BINI");
+    //     uint256 liquidity = PerpMath.calculateLiquidity(
+    //         quoteAmount,
+    //         10000,
+    //         IVPool(IClearingHouse(_clearingHouse).getVPool()).getMarkPrice(baseToken)
+    //     );
+    //     uint128 currentLiquidity = IClearingHouse(_clearingHouse).getLiquidity(baseToken);
+    //     if (liquidity > currentLiquidity) {
+    //         IClearingHouse(_clearingHouse).addLiquidity(
+    //             DataTypes.AddLiquidityParams({
+    //                 baseToken: baseToken,
+    //                 liquidity: liquidity.sub(currentLiquidity.toUint256()).toUint128(),
+    //                 deadline: type(uint256).max
+    //             })
+    //         );
+    //     } else if (liquidity < currentLiquidity) {
+    //         IClearingHouse(_clearingHouse).removeLiquidity(
+    //             DataTypes.RemoveLiquidityParams({
+    //                 baseToken: baseToken,
+    //                 liquidity: currentLiquidity.toUint256().sub(liquidity).toUint128(),
+    //                 deadline: type(uint256).max
+    //             })
+    //         );
+    //     }
+    // }
+
     //
     // EXTERNAL VIEW
     //
