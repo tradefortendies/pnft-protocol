@@ -1,33 +1,10 @@
 import fs from "fs";
 
-import bn from "bignumber.js"
-
-import hre, { ethers } from "hardhat";
-
-import { encodePriceSqrt, formatSqrtPriceX96ToPrice } from "../../test/shared/utilities";
-import { AccountBalance, BaseToken, ClearingHouse, ClearingHouseConfig, VPool, GenericLogic, InsuranceFund, MarketRegistry, MockPNFTToken, NftPriceFeed, QuoteToken, RewardMiner, TestERC20, TestFaucet, UniswapV3Pool, Vault } from "../../typechain";
-import { getMaxTickRange, priceToTick } from "../../test/helper/number";
+import hre from "hardhat";
 import helpers from "../helpers";
-import { formatEther, parseEther } from "ethers/lib/utils";
-const { waitForTx, tryWaitForTx, loadDB } = helpers;
-
-import migrateAdmin from "./1_migrate_Admin";
-import migrateQuoteToken from "./4_migrate_QuoteToken";
-import migrateBaseTokenAll from "./5_migrate_BaseToken_All";
-import migrateLibrary from "./6_migrate_Library";
-import migrateClearingHouseConfig from "./7_migrate_ClearingHouseConfig";
-import migrateMarketRegistry from "./8_migrate_MarketRegistry";
-import migrateAccountBalance from "./9_migrate_AccountBalance";
-import migrateVPool from "./10_migrate_VPool";
-import migrateInsuranceFund from "./11_migrate_InsuranceFund";
-import migrateVault from "./12_migrate_Vault";
-import migrateClearingHouse from "./13_migrate_ClearingHouse";
-import migratePNFTToken from "./14_migrate_PNFTToken";
-import migrateRewardMiner from "./15_migrate_RewardMiner";
+const { loadDB } = helpers;
 import { } from "../../test/helper/clearingHouseHelper";
-import { providers } from "ethers";
 const { verifyContract } = helpers;
-
 
 async function main() {
     await deploy();
@@ -46,62 +23,57 @@ async function deploy() {
     }
     console.log('START')
     {
-    //     {
-    //         await verifyContract(
-    //             deployData,
-    //             network,
-    //             deployData.vETH.implAddress,
-    //             [],
-    //             {},
-    //             "contracts/QuoteToken.sol:QuoteToken",
-    //         )
-    //     }
-    // }
-    // {
-    //     {
-    //         await verifyContract(
-    //             deployData,
-    //             network,
-    //             deployData.baseToken.implAddress,
-    //             [],
-    //             {},
-    //             "contracts/BaseToken.sol:BaseToken",
-    //         )
-    //     }
-    // }
-    // {
-    //     {
-    //         await verifyContract(
-    //             deployData,
-    //             network,
-    //             deployData.uniswapV3Broker.address,
-    //             [],
-    //             {},
-    //             "contracts/lib/UniswapV3Broker.sol:UniswapV3Broker",
-    //         )
-    //     }
-    //     {
-    //         await verifyContract(
-    //             deployData,
-    //             network,
-    //             deployData.genericLogic.address,
-    //             [],
-    //             {
-    //                 UniswapV3Broker: deployData.uniswapV3Broker.address,
-    //             },
-    //             "contracts/lib/GenericLogic.sol:GenericLogic",
-    //         )
-    //     }
+        {
+            await verifyContract(
+                deployData,
+                network,
+                deployData.vETH.implAddress,
+                [],
+                {},
+                "contracts/QuoteToken.sol:QuoteToken",
+            )
+        }
+    }
+    {
+        {
+            await verifyContract(
+                deployData,
+                network,
+                deployData.baseToken.implAddress,
+                [],
+                {},
+                "contracts/BaseToken.sol:BaseToken",
+            )
+        }
+    }
+    {
+        {
+            await verifyContract(
+                deployData,
+                network,
+                deployData.uniswapV3Broker.address,
+                [],
+                {},
+                "contracts/lib/UniswapV3Broker.sol:UniswapV3Broker",
+            )
+        }
+        {
+            await verifyContract(
+                deployData,
+                network,
+                deployData.genericLogic.address,
+                [],
+                {},
+                "contracts/lib/GenericLogic.sol:GenericLogic",
+            )
+        }
         {
             await verifyContract(
                 deployData,
                 network,
                 deployData.clearingHouseLogic.address,
                 [],
-                {
-                    // UniswapV3Broker: deployData.uniswapV3Broker.address,
-                    // GenericLogic: deployData.genericLogic.address,
-                },
+                {},
                 "contracts/lib/ClearingHouseLogic.sol:ClearingHouseLogic",
             )
         }
@@ -125,9 +97,7 @@ async function deploy() {
                 network,
                 deployData.marketRegistry.implAddress,
                 [],
-                {
-                    UniswapV3Broker: deployData.uniswapV3Broker.address,
-                },
+                {},
                 "contracts/MarketRegistry.sol:MarketRegistry",
             )
         }
@@ -151,11 +121,7 @@ async function deploy() {
                 network,
                 deployData.vPool.implAddress,
                 [],
-                {
-                    UniswapV3Broker: deployData.uniswapV3Broker.address,
-                    GenericLogic: deployData.genericLogic.address,
-                    ClearingHouseLogic: deployData.clearingHouseLogic.address,
-                },
+                {},
                 "contracts/VPool.sol:VPool",
             )
         }
@@ -191,11 +157,7 @@ async function deploy() {
                 network,
                 deployData.clearingHouse.implAddress,
                 [],
-                {
-                    UniswapV3Broker: deployData.uniswapV3Broker.address,
-                    GenericLogic: deployData.genericLogic.address,
-                    ClearingHouseLogic: deployData.clearingHouseLogic.address,
-                },
+                {},
                 "contracts/ClearingHouse.sol:ClearingHouse",
             )
         }
