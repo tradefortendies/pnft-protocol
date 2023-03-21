@@ -579,6 +579,10 @@ contract ClearingHouse is
         return _marketRegistry;
     }
 
+    function _isIsolated(address baseToken) internal view returns (bool) {
+        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
+    }
+
     // /// @inheritdoc IClearingHouse
     // function getAccountValue(address trader) public view override returns (int256) {
     //     return IVault(_vault).getAccountValue(trader).parseSettlementToken(_settlementTokenDecimals);
@@ -701,7 +705,15 @@ contract ClearingHouse is
         ClearingHouseLogic.repeg(address(this), baseToken);
     }
 
-    function _isIsolated(address baseToken) internal view returns (bool) {
-        return (IMarketRegistry(_marketRegistry).isIsolated(baseToken));
+    function repegMultiple(address[] calldata baseTokens) external {
+        for (uint256 i = 0; i < baseTokens.length; i++) {
+            bool isRepeg = true;
+            if (_msgSender() != owner()) {
+                isRepeg = _isAbleRepeg(baseTokens[i]);
+            }
+            if (isRepeg) {
+                ClearingHouseLogic.repeg(address(this), baseTokens[i]);
+            }
+        }
     }
 }

@@ -18,11 +18,32 @@ export function encodePriceSqrt(reserve1: BigNumberish, reserve0: BigNumberish):
             .toString(),
     )
 }
+
 export function formatPriceToPriceSqrt(price: string): BigNumber {
     return BigNumber.from(
         new bn(price.toString())
             .sqrt()
             .multipliedBy(new bn(2).pow(96))
+            .integerValue(3)
+            .toString(),
+    )
+}
+
+export function encodeAmountPriceSlippedToLiquidity(amount: BigNumberish, price: BigNumberish, slipped: number): BigNumber {
+    let deltaPrice = encodePriceSqrt(
+        (new bn(price.toString())
+            .multipliedBy(100 + slipped)
+            .dividedBy(100)
+        ).toString(),
+        '1',
+    )
+        .sub(
+            encodePriceSqrt(price, '1')
+        )
+    return BigNumber.from(
+        new bn(amount.toString())
+            .multipliedBy(new bn(2).pow(96))
+            .dividedBy(new bn(deltaPrice.toString()))
             .integerValue(3)
             .toString(),
     )
