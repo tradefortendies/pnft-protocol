@@ -21,7 +21,7 @@ async function deploy() {
     let deployData = (await loadDB(network))
     // deploy UniV3 factory
     var clearingHouseConfig = await hre.ethers.getContractAt('ClearingHouseConfig', deployData.clearingHouseConfig.address);
-    var durationRepegOverPriceSpread = '3600';
+    var durationRepegOverPriceSpread = '14400';
     if ((await clearingHouseConfig.getDurationRepegOverPriceSpread()).toString() != durationRepegOverPriceSpread) {
         await waitForTx(
             await clearingHouseConfig.setDurationRepegOverPriceSpread(durationRepegOverPriceSpread),
