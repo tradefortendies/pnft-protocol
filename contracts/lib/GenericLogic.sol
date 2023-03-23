@@ -207,7 +207,7 @@ library GenericLogic {
                 getFreeCollateralByRatio(
                     clearingHouse,
                     trader,
-                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImIsolatedRatio(),
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImCrossRatio(),
                     baseToken
                 ) >= 0,
                 "CH_NEFCI"
