@@ -207,7 +207,7 @@ library GenericLogic {
                 getFreeCollateralByRatio(
                     clearingHouse,
                     trader,
-                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio(),
+                    IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImIsolatedRatio(),
                     baseToken
                 ) >= 0,
                 "CH_NEFCI"
@@ -231,6 +231,7 @@ library GenericLogic {
 
     function requireEnoughCollateralForOrder(
         address clearingHouse,
+        address baseToken,
         uint256 quote,
         uint256 fee,
         uint256 freeCollateralX10_18
@@ -238,7 +239,13 @@ library GenericLogic {
         require(
             freeCollateralX10_18 >=
                 quote
-                    .mulRatio(IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig()).getImRatio())
+                    .mulRatio(
+                        isIsolated(clearingHouse, baseToken)
+                            ? IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig())
+                                .getImIsolatedRatio()
+                            : IClearingHouseConfig(IClearingHouse(clearingHouse).getClearingHouseConfig())
+                                .getImCrossRatio()
+                    )
                     .add(fee),
             "CH_NEFCO"
         );

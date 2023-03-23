@@ -308,6 +308,7 @@ contract ClearingHouse is
         // check free collateral order
         GenericLogic.requireEnoughCollateralForOrder(
             address(this),
+            params.baseToken,
             quote,
             fee,
             amount.parseSettlementToken(IVault(_vault).decimals())
@@ -336,6 +337,7 @@ contract ClearingHouse is
         // check free collateral order
         GenericLogic.requireEnoughCollateralForOrder(
             address(this),
+            params.baseToken,
             quote,
             fee,
             amount.parseSettlementToken(IVault(_vault).decimals())

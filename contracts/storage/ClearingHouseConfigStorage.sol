@@ -6,7 +6,7 @@ pragma solidity 0.7.6;
 /// ClearingHouseConfigStorageVX.
 abstract contract ClearingHouseConfigStorageV1 {
     uint8 internal _maxMarketsPerAccount;
-    uint24 internal _imRatio;
+    uint24 internal _imCrossRatio;
     uint24 internal _mmRatio;
     uint24 internal _liquidationPenaltyRatio;
     uint24 internal _partialCloseRatio;
@@ -21,4 +21,6 @@ abstract contract ClearingHouseConfigStorageV1 {
 
 abstract contract ClearingHouseConfigStorageV2 is ClearingHouseConfigStorageV1 {
     mapping(address => bool) internal _backstopLiquidityProviderMap;
+    // 
+    uint24 internal _imIsolatedRatio;
 }

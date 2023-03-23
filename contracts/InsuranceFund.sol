@@ -103,10 +103,12 @@ contract InsuranceFund is IInsuranceFund, ReentrancyGuardUpgradeable, OwnerPausa
     /// @inheritdoc IInsuranceFund
     function getInsuranceFundCapacity(address baseToken) public view override returns (int256) {
         int256 insuranceFundSettlementTokenValueX10_S = _getInsuranceFundCapacityFull(baseToken);
-        if (insuranceFundSettlementTokenValueX10_S > 1e14) {
-            insuranceFundSettlementTokenValueX10_S = insuranceFundSettlementTokenValueX10_S.sub(1e14);
-        } else {
-            insuranceFundSettlementTokenValueX10_S = 0;
+        if (_isIsolated(baseToken)) {
+            if (insuranceFundSettlementTokenValueX10_S > 1e14) {
+                insuranceFundSettlementTokenValueX10_S = insuranceFundSettlementTokenValueX10_S.sub(1e14);
+            } else {
+                insuranceFundSettlementTokenValueX10_S = 0;
+            }
         }
         return insuranceFundSettlementTokenValueX10_S;
     }
