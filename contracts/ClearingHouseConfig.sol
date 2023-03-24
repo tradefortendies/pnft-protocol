@@ -38,7 +38,7 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
         __SafeOwnable_init();
 
         _maxMarketsPerAccount = type(uint8).max;
-        _imRatio = 0.2e6; // initial-margin ratio, 20% in decimal 6
+        _imCrossRatio = 0.2e6; // initial-margin ratio, 20% in decimal 6
         _mmRatio = 0.0625e6; // minimum-margin ratio, 6.25% in decimal 6
         _liquidationPenaltyRatio = 0.025e6; // initial penalty ratio, 2.5% in decimal 6
         _partialCloseRatio = 0.25e6; // partial close ratio, 25% in decimal 6
@@ -48,10 +48,16 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
         _settlementTokenBalanceCap = type(uint256).max;
         _durationRepegOverPriceSpread = 8 hours;
         //
+        _imIsolatedRatio = 0.2e6; // initial-margin ratio, 20% in decimal 6
     }
 
-    function setImRatio(uint24 imRatioArg) external checkRatio(imRatioArg) onlyOwner {
-        _imRatio = imRatioArg;
+    function setImCrossRatio(uint24 imRatioArg) external checkRatio(imRatioArg) onlyOwner {
+        _imCrossRatio = imRatioArg;
+        emit ImRatioChanged(imRatioArg);
+    }
+
+    function setImIsolatedRatio(uint24 imRatioArg) external checkRatio(imRatioArg) onlyOwner {
+        _imIsolatedRatio = imRatioArg;
         emit ImRatioChanged(imRatioArg);
     }
 
@@ -113,8 +119,13 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
     }
 
     /// @inheritdoc IClearingHouseConfig
-    function getImRatio() external view override returns (uint24) {
-        return _imRatio;
+    function getImCrossRatio() external view override returns (uint24) {
+        return _imCrossRatio;
+    }
+
+    /// @inheritdoc IClearingHouseConfig
+    function getImIsolatedRatio() external view override returns (uint24) {
+        return _imIsolatedRatio;
     }
 
     /// @inheritdoc IClearingHouseConfig
@@ -155,5 +166,4 @@ contract ClearingHouseConfig is IClearingHouseConfig, SafeOwnable, ClearingHouse
     function getDurationRepegOverPriceSpread() external view override returns (uint256 duration) {
         return _durationRepegOverPriceSpread;
     }
-
 }

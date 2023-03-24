@@ -72,14 +72,14 @@
         "address": "0xbDC081a01C98d2EE83e863f7fc46a21caAbBa370"
     },
     "genericLogic": {
-        "address": "0x4048aD2e0e2f7916a9382418a986a364cB2AC098"
+        "address": ""
     },
     "clearingHouseLogic": {
-        "address": "0x7AEe14E441Ab067a3C061bCD9d4797CD7caE24B8"
+        "address": ""
     },
     "clearingHouseConfig": {
         "address": "0xA179F91B04a70F7C712EF3f55143Fcc70c37073D",
-        "implAddress": "0xBA2997dEFE6bf7e0B2E09D27EE7CbDD3743C74d1"
+        "implAddress": ""
     },
     "marketRegistry": {
         "address": "0x3BD6d15c820a1bff279E8753452C3291fC312e73",
@@ -91,19 +91,19 @@
     },
     "vPool": {
         "address": "0x6A7C8b0a9e6525630Af3Ef1a6054bE5d1C2ad1E8",
-        "implAddress": "0xFf56df93845737e2cdca940c5DB07262007CD573"
+        "implAddress": ""
     },
     "insuranceFund": {
         "address": "0x940183a411B6C5F399B8cFa441a1cB47E176F589",
-        "implAddress": "0x5916e181cc397Beb9C8B4E30B97c44682138888f"
+        "implAddress": ""
     },
     "vault": {
         "address": "0xBb7aBf614B09409187BB79bCA3c14Bb0014b5534",
-        "implAddress": "0xB530a3441B5AbF1c17017CA4fe05A736F416C4FB"
+        "implAddress": ""
     },
     "clearingHouse": {
         "address": "0xE9adFDCAfE3D5edB2053dEa84B5CA16C4Ac4ef0C",
-        "implAddress": "0x14e9A9B421A9021Be8487CeCd21d6705Bca82ce5"
+        "implAddress": ""
     },
     "nftOracle": {
         "address": "0xc9074976c27Eeb58Df86135AEB9FC78061aFF3f7",

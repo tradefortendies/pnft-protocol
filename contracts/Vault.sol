@@ -610,7 +610,9 @@ contract Vault is IVault, ReentrancyGuardUpgradeable, OwnerPausable, BaseRelayRe
                 .max(
                     _getFreeCollateralByRatio(
                         trader,
-                        IClearingHouseConfig(_clearingHouseConfig).getImRatio(),
+                        _isIsolated(baseToken)
+                            ? IClearingHouseConfig(_clearingHouseConfig).getImIsolatedRatio()
+                            : IClearingHouseConfig(_clearingHouseConfig).getImCrossRatio(),
                         baseToken
                     ),
                     0

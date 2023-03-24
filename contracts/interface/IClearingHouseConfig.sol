@@ -6,7 +6,9 @@ interface IClearingHouseConfig {
     function getMaxMarketsPerAccount() external view returns (uint8 maxMarketsPerAccount);
 
     /// @return imRatio Initial margin ratio
-    function getImRatio() external view returns (uint24 imRatio);
+    function getImCrossRatio() external view returns (uint24 imRatio);
+
+    function getImIsolatedRatio() external view returns (uint24 imRatio);
 
     /// @return mmRatio Maintenance margin requirement ratio
     function getMmRatio() external view returns (uint24 mmRatio);
@@ -30,5 +32,4 @@ interface IClearingHouseConfig {
 
     /// @return isBackstopLiquidityProvider is backstop liquidity provider
     function isBackstopLiquidityProvider(address account) external view returns (bool isBackstopLiquidityProvider);
-
 }
