@@ -49,6 +49,47 @@ export function encodeAmountPriceSlippedToLiquidity(amount: BigNumberish, price:
     )
 }
 
+export function encodeLiquidityPriceSlippedToQuote(liquidity: BigNumberish, price: BigNumberish, slipped: number): BigNumber {
+    let deltaPrice = encodePriceSqrt(
+        (new bn(price.toString())
+            .multipliedBy(100 + slipped)
+            .dividedBy(100)
+        ).toString(),
+        '1',
+    )
+        .sub(
+            encodePriceSqrt(price, '1')
+        )
+    return BigNumber.from(
+        new bn(liquidity.toString())
+            .multipliedBy(new bn(deltaPrice.toString()))
+            .dividedBy(new bn(2).pow(96))
+            .integerValue(3)
+            .toString(),
+    )
+}
+
+export function encodeLiquidityPriceSlippedToBase(liquidity: BigNumberish, price: BigNumberish, slipped: number): BigNumber {
+    let baseToQuotePrice = new bn('1.0').div(new bn(price.toString()))
+    let deltaPrice = encodePriceSqrt(
+        (new bn(baseToQuotePrice.toString())
+            .multipliedBy(100 + slipped)
+            .dividedBy(100)
+        ).toString(),
+        '1',
+    )
+        .sub(
+            encodePriceSqrt(baseToQuotePrice.toString(), '1')
+        )
+    return BigNumber.from(
+        new bn(liquidity.toString())
+            .multipliedBy(new bn(deltaPrice.toString()))
+            .dividedBy(new bn(2).pow(96))
+            .integerValue(3)
+            .toString(),
+    )
+}
+
 function bigNumberToBig(val: BigNumber, decimals: number = 18): bn {
     return new bn(val.toString()).div(new bn(10).pow(decimals))
 }
