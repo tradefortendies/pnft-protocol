@@ -16,11 +16,6 @@ async function deploy() {
 
     const network = hre.network.name;
     let deployData = (await loadDB(network))
-    let priceData: PriceData;
-    {
-        let dataText = await fs.readFileSync(process.cwd() + '/deploy/mainnet/address/prices.json')
-        priceData = JSON.parse(dataText.toString())
-    }
     console.log('START')
     {
         {
@@ -47,36 +42,34 @@ async function deploy() {
         }
     }
     {
-        {
-            await verifyContract(
-                deployData,
-                network,
-                deployData.uniswapV3Broker.address,
-                [],
-                {},
-                "contracts/lib/UniswapV3Broker.sol:UniswapV3Broker",
-            )
-        }
-        {
-            await verifyContract(
-                deployData,
-                network,
-                deployData.genericLogic.address,
-                [],
-                {},
-                "contracts/lib/GenericLogic.sol:GenericLogic",
-            )
-        }
-        {
-            await verifyContract(
-                deployData,
-                network,
-                deployData.clearingHouseLogic.address,
-                [],
-                {},
-                "contracts/lib/ClearingHouseLogic.sol:ClearingHouseLogic",
-            )
-        }
+        await verifyContract(
+            deployData,
+            network,
+            deployData.uniswapV3Broker.address,
+            [],
+            {},
+            "contracts/lib/UniswapV3Broker.sol:UniswapV3Broker",
+        )
+    }
+    {
+        await verifyContract(
+            deployData,
+            network,
+            deployData.genericLogic.address,
+            [],
+            {},
+            "contracts/lib/GenericLogic.sol:GenericLogic",
+        )
+    }
+    {
+        await verifyContract(
+            deployData,
+            network,
+            deployData.clearingHouseLogic.address,
+            [],
+            {},
+            "contracts/lib/ClearingHouseLogic.sol:ClearingHouseLogic",
+        )
     }
     {
         {
